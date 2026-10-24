@@ -43,11 +43,11 @@ This is a development build, not Expo Go. CocoaPods needs a UTF-8 locale (`LANG=
 2. **Style with Uniwind `className`**, not `StyleSheet.create` or inline style objects. Inline styles are fine only for dynamic values (animations, computed sizes).
 3. **Never hard-code hex colours in components.** Map `design.md` colours onto HeroUI's theme variables in `src/global.css` (`--background`, `--surface`, `--foreground`, `--accent`, `--success`, `--warning`, `--danger`, `--border`, `--field-*`, …). Add Padelna-only colours (lime, attention, avatar tints, …) as new variables plus `@theme inline` mappings, so they can be used as Tailwind classes (`bg-lime-soft`, `text-ink-2`).
 4. **Light theme only** for now. `design.md` defines no dark palette, so don't add `dark:` variants.
-5. **Font is Nunito** (400, 600, 700, 800, 900), set through HeroUI's `--font-*` variables. Hierarchy comes from weight (800–900), not from extra colours.
+5. **Font is Nunito**, loaded in `src/app/_layout.tsx`. Each weight is its own font family on native, so pick the weight with these classes, never `fontWeight`: `font-normal` (400), `font-medium` (600), `font-semibold` (700), `font-bold` (800), `font-black` (900). Hierarchy comes from weight (800–900), not from extra colours.
 6. **Spacing and radii** follow the `design.md` scale: 20 px screen margins (24 px on auth/setup/onboarding), cards with radius 20–24 and padding 14–16, inputs 52 px tall with radius 14, primary buttons 54–56 px tall with radius 16–18.
 7. **One primary (blue) button per screen**, usually pinned 34 px from the bottom.
 8. **No gradients, emoji or card shadows.** Shadows are only for floating elements (FAB, the centre Create button).
-9. **Icons** are outline style, 24 px grid, 1.8 px stroke (Lucide-style).
+9. **Icons** come from `lucide-react-native`, always rendered through `<Icon as={Bell} color="muted" />` (`src/components/icon.tsx`). It applies the 1.8 px stroke and takes a theme colour name instead of a hex value.
 10. **Main tabs use the native iOS tab bar** (Expo Router native tabs). Don't recreate the Liquid Glass look by hand.
 
 ## Accessibility and copy

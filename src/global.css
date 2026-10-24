@@ -2,3 +2,207 @@
 @import 'uniwind';
 
 @import 'heroui-native/styles';
+
+/*
+ * Padelna theme. Values come from design.md; change them there first.
+ * The app is light-only (Uniwind.setTheme('light') in the root layout),
+ * so only the light variant of HeroUI's variables is overridden.
+ */
+
+@theme {
+  /* Nunito, loaded in src/app/_layout.tsx. Each weight is its own family on native. */
+  --font-normal: 'Nunito_400Regular';
+  --font-medium: 'Nunito_600SemiBold';
+  --font-semibold: 'Nunito_700Bold';
+  --font-bold: 'Nunito_800ExtraBold';
+  --font-black: 'Nunito_900Black';
+
+  /* --radius drives HeroUI's scale: xl 10.5 (chips), 3xl 21 (cards), 4xl 28 (sheets) */
+  --radius: 7px;
+  --field-radius: 14px;
+  --border-width: 1px;
+  --field-border-width: 1px;
+}
+
+@layer theme {
+  :root {
+    @variant light {
+      --background: #f4f6f8;
+      --foreground: #17202b;
+
+      --surface: #ffffff;
+      --surface-foreground: #17202b;
+      --surface-secondary: #f0f3f7;
+      --surface-secondary-foreground: #17202b;
+      --surface-tertiary: #e8ecf1;
+      --surface-tertiary-foreground: #17202b;
+
+      --overlay: #ffffff;
+      --overlay-foreground: #17202b;
+      --backdrop: rgba(23, 32, 43, 0.44);
+
+      --muted: #5e6875;
+
+      --default: #f0f3f7;
+      --default-foreground: #17202b;
+
+      --accent: #2d63c8;
+      --accent-foreground: #ffffff;
+
+      --field-background: #ffffff;
+      --field-foreground: #17202b;
+      --field-placeholder: #5e6875;
+      --field-border: #dde2e8;
+
+      --success: #1d6e48;
+      --success-foreground: #ffffff;
+      --warning: #6b4f00;
+      --warning-foreground: #ffffff;
+      --danger: #b42318;
+      --danger-foreground: #ffffff;
+
+      --segment: #ffffff;
+      --segment-foreground: #17202b;
+
+      --border: #e3e7ec;
+      --separator: #dde2e8;
+      --focus: #2d63c8;
+      --link: #2d63c8;
+
+      /* No shadows on cards or fields; only floating elements get one */
+      --surface-shadow: 0 0 0 0 transparent;
+      --field-shadow: 0 0 0 0 transparent;
+      --overlay-shadow: 0 8px 24px 0 rgba(23, 32, 43, 0.16);
+    }
+  }
+}
+
+/* HeroUI's soft colours are computed tints; use the exact design.md pairs instead */
+@theme inline {
+  --color-accent-soft: #e3ecfa;
+  --color-accent-soft-foreground: #1f4a99;
+  --color-success-soft: #dff1e7;
+  --color-success-soft-foreground: #1d6e48;
+  --color-warning-soft: #fbf1d3;
+  --color-warning-soft-foreground: #6b4f00;
+  --color-danger-soft: #fde8e6;
+  --color-danger-soft-foreground: #b42318;
+}
+
+/* Padelna-only colours, used as Tailwind classes (bg-lime-soft, text-ink-2, …).
+   static keeps them all available to useCSSVariable (see src/components/icon.tsx). */
+@theme static {
+  --color-ink: #17202b;
+  --color-ink-2: #4a5462;
+  --color-muted-icon: #6b7480;
+  --color-line: #e3e7ec;
+  --color-line-input: #dde2e8;
+  --color-fill: #f0f3f7;
+  --color-track: #e8ecf1;
+
+  --color-primary: #2d63c8;
+  --color-primary-dark: #1f4a99;
+  --color-primary-soft: #e3ecfa;
+  --color-primary-tint-text: #d6e3fa;
+  --color-primary-outline: #c9d6ee;
+  --color-slot-border: #9db8e6;
+
+  --color-lime: #d8f06c;
+  --color-lime-soft: #e4f59e;
+  --color-lime-foreground: #2e3a0a;
+
+  --color-attention: #8a3a12;
+  --color-attention-soft: #fbe8da;
+  --color-attention-action: #a44a1e;
+  --color-attention-outline: #f0c9b2;
+
+  --color-out-of-range: #eef0f3;
+  --color-dot: #e0703a;
+  --color-star: #e5a823;
+
+  --color-avatar-blue: #e3ecfa;
+  --color-avatar-blue-foreground: #2d5db8;
+  --color-avatar-peach: #fbe8da;
+  --color-avatar-peach-foreground: #9a4317;
+  --color-avatar-mint: #dff1e7;
+  --color-avatar-mint-foreground: #1d6e48;
+  --color-avatar-lilac: #ece6f8;
+  --color-avatar-lilac-foreground: #5e3fa0;
+  --color-avatar-sand: #fbf1d3;
+  --color-avatar-sand-foreground: #6b4f00;
+
+  --color-court-blue: #d9e6f6;
+  --color-court-green: #cfe6d8;
+  --color-court-peach: #f7e6da;
+  --color-court-lime: #e8f2cf;
+}
+
+/* Component adjustments where HeroUI's defaults differ from design.md */
+@layer components {
+  /* Buttons: radius 16–18, 800 weight labels */
+  .button__root--size-sm,
+  .button__background--size-sm {
+    border-radius: 14px;
+  }
+  .button__root--size-md,
+  .button__background--size-md {
+    border-radius: 16px;
+  }
+  .button__root--size-lg,
+  .button__background--size-lg {
+    border-radius: 18px;
+  }
+  .button__label {
+    @apply font-bold;
+  }
+  .button__label--size-lg {
+    font-size: 17px;
+  }
+
+  /* Secondary = primary-soft fill; outline = blue text on a light blue border */
+  .button__root--variant-secondary {
+    background-color: var(--color-accent-soft);
+  }
+  .button__root--variant-outline {
+    background-color: var(--color-surface);
+    border-color: var(--color-primary-outline);
+  }
+  .button__label--variant-outline {
+    color: var(--color-accent);
+  }
+  .button__label--variant-ghost {
+    color: var(--color-muted);
+  }
+
+  /* Field labels: 14 px / 700, 6 px above the field */
+  .label__text {
+    font-size: 14px;
+    line-height: 20px;
+    @apply font-semibold;
+  }
+  .label__root--is-inside-field {
+    padding-inline: 0;
+    padding-bottom: 6px;
+  }
+
+  /* Chips and segmented controls: 700 weight labels */
+  .chip__label,
+  .tabs__label {
+    @apply font-semibold;
+  }
+
+  /* Segmented control fills the row, options share it equally */
+  .tabs__list {
+    align-self: stretch;
+  }
+  .tabs__trigger {
+    flex: 1;
+  }
+
+  /* Text inputs: 52 px tall, 16 px text */
+  .input__input {
+    min-height: 52px;
+    padding-inline: 14px;
+    font-size: 16px;
+  }
+}
