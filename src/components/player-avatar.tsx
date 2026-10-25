@@ -24,8 +24,8 @@ export function tintIndexFor(player: Player) {
 }
 
 /**
- * Tints for an overlapping stack: each player keeps their own tint unless it
- * matches the avatar next to it, then it moves to the next one.
+ * Tints for a row or stack of avatars: each player keeps their own tint unless
+ * it matches the avatar next to it, then it moves to the next one.
  */
 export function stackTintIndices(players: Player[]) {
   const indices: number[] = [];

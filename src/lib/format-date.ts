@@ -34,3 +34,15 @@ export function formatCountdown(date: Date, now = new Date()) {
   if (days === 1) return "Tomorrow";
   return `In ${days} days`;
 }
+
+const weekdayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short" });
+
+/** "Today · 20:00", "Tomorrow · 18:30", "Sun · 10:00" within a week, else "Sat 25 Oct · 18:00" */
+export function formatShortMatchDateTime(date: Date, now = new Date()) {
+  const days = daysUntil(date, now);
+  const time = timeFormat.format(date);
+  if (days === 0) return `Today · ${time}`;
+  if (days === 1) return `Tomorrow · ${time}`;
+  if (days > 1 && days < 7) return `${weekdayFormat.format(date)} · ${time}`;
+  return formatMatchDateTime(date);
+}

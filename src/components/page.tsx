@@ -41,6 +41,12 @@ const marginClass: Record<PageVariant, string> = {
   auth: "px-6",
 };
 
+// Cancels the side margin so a row can run edge to edge
+const bleedClass: Record<PageVariant, string> = {
+  app: "-mx-5",
+  auth: "-mx-6",
+};
+
 // Space between the screen edges and the first / last element
 const TOP_GAP = 8;
 const BOTTOM_ACTION_GAP = 34;
@@ -197,6 +203,36 @@ function useKeyboardVisible() {
   return visible;
 }
 
+type PageCarouselProps = {
+  /** Card width, so scrolling snaps card by card */
+  itemWidth: number;
+  /** Space between cards, in px */
+  gap?: number;
+  children: ReactNode;
+};
+
+/**
+ * Horizontal carousel inside Page.Body. It runs to the screen edges while the
+ * first card lines up with the margin; size cards so about 1.5 show (design.md).
+ */
+function PageCarousel({ itemWidth, gap = 12, children }: PageCarouselProps) {
+  const { variant } = usePage();
+
+  return (
+    <ScrollView
+      horizontal
+      className={bleedClass[variant]}
+      contentContainerClassName={marginClass[variant]}
+      contentContainerStyle={{ gap }}
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={itemWidth + gap}
+      decelerationRate="fast"
+    >
+      {children}
+    </ScrollView>
+  );
+}
+
 type PageFooterProps = {
   className?: string;
   children: ReactNode;
@@ -224,5 +260,6 @@ export const Page = Object.assign(PageRoot, {
   Header: PageHeader,
   Body: PageBody,
   Title: PageTitle,
+  Carousel: PageCarousel,
   Footer: PageFooter,
 });
