@@ -1,10 +1,12 @@
 import { View } from "react-native";
 
+import { ClubRow } from "@/components/club-row";
 import { HomeHeader } from "@/components/home-header";
 import { NextMatchCard, type NextMatch } from "@/components/next-match-card";
 import { OpenMatchCard, type OpenMatch } from "@/components/open-match-card";
 import { Page } from "@/components/page";
 import { SectionHeader } from "@/components/section-header";
+import type { Club } from "@/types/club";
 import type { Player } from "@/types/player";
 
 // Mock data until the API exists
@@ -69,6 +71,33 @@ const openMatches: OpenMatch[] = [
   },
 ];
 
+const clubsNearby: Club[] = [
+  {
+    id: "club-lac",
+    name: "Lac Padel Arena",
+    distanceKm: 2.1,
+    courtCount: 6,
+    openMatchCount: 3,
+    placeholderTint: "green",
+  },
+  {
+    id: "club-gammarth",
+    name: "Gammarth Padel",
+    distanceKm: 6.4,
+    courtCount: 4,
+    openMatchCount: 1,
+    placeholderTint: "blue",
+  },
+  {
+    id: "club-marsa",
+    name: "La Marsa Padel",
+    distanceKm: 8.9,
+    courtCount: 5,
+    openMatchCount: 2,
+    placeholderTint: "peach",
+  },
+];
+
 // Width that shows about 1.5 cards on a phone (design.md)
 const OPEN_MATCH_CARD_WIDTH = 248;
 
@@ -90,6 +119,13 @@ export default function Home() {
               <OpenMatchCard key={match.id} match={match} width={OPEN_MATCH_CARD_WIDTH} />
             ))}
           </Page.Carousel>
+        </View>
+
+        <View className="gap-2.5">
+          <SectionHeader title="Clubs near you" actionLabel="Map" />
+          {clubsNearby.map((club) => (
+            <ClubRow key={club.id} club={club} />
+          ))}
         </View>
       </Page.Body>
     </Page>
