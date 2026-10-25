@@ -12,16 +12,32 @@ const tints = [
   { bg: "bg-avatar-sand", fg: "text-avatar-sand-foreground" },
 ] as const;
 
+const RING_WIDTH = 2;
+
 /** Same player, same tint, on every screen */
-function tintIndexFor(id: string) {
+export function tintIndexFor(player: Player) {
   let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash * 31 + id.charCodeAt(i)) | 0;
+  for (let i = 0; i < player.id.length; i++) {
+    hash = (hash * 31 + player.id.charCodeAt(i)) | 0;
   }
-  return Math.abs(hash);
+  return Math.abs(hash) % tints.length;
 }
 
-const RING_WIDTH = 2;
+/**
+ * Tints for an overlapping stack: each player keeps their own tint unless it
+ * matches the avatar next to it, then it moves to the next one.
+ */
+export function stackTintIndices(players: Player[]) {
+  const indices: number[] = [];
+  for (const player of players) {
+    let index = tintIndexFor(player);
+    if (indices.length > 0 && index === indices[indices.length - 1]) {
+      index = (index + 1) % tints.length;
+    }
+    indices.push(index);
+  }
+  return indices;
+}
 
 export function initialsOf(player: Player) {
   return `${player.firstName.charAt(0)}${player.lastName.charAt(0)}`.toUpperCase();
@@ -31,11 +47,8 @@ type PlayerAvatarProps = {
   player: Player;
   /** Diameter of the face in px: 28–36 in lists and stacks, 40–52 in rows, 60–92 on profiles */
   size?: number;
-  /**
-   * Position in a stack. Stacks rotate the tints so neighbours never share a colour;
-   * on its own an avatar keeps the tint derived from the player's id.
-   */
-  stackIndex?: number;
+  /** Override the player's tint, e.g. from stackTintIndices() */
+  tintIndex?: number;
   /** 2 px ring outside the face, in the colour behind the avatar (e.g. "border-accent") */
   ringClassName?: string;
   className?: string;
@@ -45,11 +58,11 @@ type PlayerAvatarProps = {
 export function PlayerAvatar({
   player,
   size = 36,
-  stackIndex,
+  tintIndex,
   ringClassName,
   className,
 }: PlayerAvatarProps) {
-  const tint = tints[(stackIndex ?? tintIndexFor(player.id)) % tints.length];
+  const tint = tints[tintIndex ?? tintIndexFor(player)];
   const outer = ringClassName ? size + RING_WIDTH * 2 : size;
 
   return (

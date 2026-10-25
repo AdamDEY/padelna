@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react-native";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
-import { PlayerAvatar } from "@/components/player-avatar";
+import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
 import { formatCountdown, formatMatchDateTime } from "@/lib/format-date";
 import type { Player } from "@/types/player";
 
@@ -25,6 +25,7 @@ export function NextMatchCard({ match, onPress }: NextMatchCardProps) {
   const dateTime = formatMatchDateTime(match.startsAt);
   const countdown = formatCountdown(match.startsAt);
   const place = `${match.clubName} · ${match.courtName}`;
+  const tintIndices = stackTintIndices(match.players);
 
   return (
     <PressableFeedback
@@ -56,7 +57,7 @@ export function NextMatchCard({ match, onPress }: NextMatchCardProps) {
               key={player.id}
               player={player}
               size={34}
-              stackIndex={index}
+              tintIndex={tintIndices[index]}
               ringClassName="border-accent"
               className={index > 0 ? "-ms-2.5" : undefined}
             />

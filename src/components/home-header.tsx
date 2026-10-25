@@ -1,0 +1,74 @@
+import { PressableFeedback } from "heroui-native";
+import { Bell, MapPin } from "lucide-react-native";
+import { Text, View } from "react-native";
+
+import { Icon } from "@/components/icon";
+import { IconButton } from "@/components/icon-button";
+import { PlayerAvatar } from "@/components/player-avatar";
+import type { Player } from "@/types/player";
+
+type HomeHeaderProps = {
+  player: Player;
+  /** The player's level on the 1–7 scale */
+  level: number;
+  city: string;
+  hasUnreadNotifications?: boolean;
+  onPressProfile?: () => void;
+  onPressNotifications?: () => void;
+};
+
+/** Home: your avatar with level badge, greeting with city, notifications. */
+export function HomeHeader({
+  player,
+  level,
+  city,
+  hasUnreadNotifications,
+  onPressProfile,
+  onPressNotifications,
+}: HomeHeaderProps) {
+  const levelLabel = level.toFixed(1);
+
+  return (
+    <View className="flex-row items-center gap-3">
+      {/* Your own avatar: 2 px primary ring and a lime level badge (design.md).
+          The badge sits outside PressableFeedback, which clips its children. */}
+      <View>
+        <PressableFeedback
+          onPress={onPressProfile}
+          accessibilityRole="button"
+          accessibilityLabel={`Your profile, level ${levelLabel}`}
+          className="rounded-full"
+        >
+          <PlayerAvatar player={player} size={44} ringClassName="border-accent" />
+        </PressableFeedback>
+        <View
+          pointerEvents="none"
+          className="absolute -bottom-1 -end-1.5 rounded-lg border-2 border-background bg-lime px-[5px] py-px"
+        >
+          <Text className="font-black text-[10px] text-lime-foreground">{levelLabel}</Text>
+        </View>
+      </View>
+
+      <View className="flex-1">
+        <Text
+          accessibilityRole="header"
+          numberOfLines={1}
+          className="font-black text-[20px] tracking-[-0.3px] text-foreground"
+        >
+          Hi, {player.firstName}
+        </Text>
+        <View className="flex-row items-center gap-1">
+          <Icon as={MapPin} size={14} color="muted" />
+          <Text className="font-normal text-[13px] text-muted">{city}</Text>
+        </View>
+      </View>
+
+      <IconButton
+        icon={Bell}
+        label="Notifications"
+        showDot={hasUnreadNotifications}
+        onPress={onPressNotifications}
+      />
+    </View>
+  );
+}
