@@ -62,10 +62,10 @@ export default function Matches() {
         <Tabs value={segment} onValueChange={(value) => setSegment(value as Segment)}>
           <Tabs.List className="bg-track">
             <Tabs.Indicator />
-            <Tabs.Trigger value="open">
+            <Tabs.Trigger value="open" className="flex-1">
               <Tabs.Label>Open matches</Tabs.Label>
             </Tabs.Trigger>
-            <Tabs.Trigger value="mine">
+            <Tabs.Trigger value="mine" className="flex-1">
               <Tabs.Label>My matches</Tabs.Label>
             </Tabs.Trigger>
           </Tabs.List>

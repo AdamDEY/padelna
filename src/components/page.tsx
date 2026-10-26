@@ -60,6 +60,15 @@ type PageContextValue = { variant: PageVariant; hasFooter: boolean };
 
 const PageContext = createContext<PageContextValue | null>(null);
 
+/**
+ * Margin classes for rows that must run edge to edge inside Page.Body:
+ * `bleed` cancels the side margin, `inset` puts it back as padding.
+ */
+export function usePageMargins() {
+  const { variant } = usePage();
+  return { bleed: bleedClass[variant], inset: marginClass[variant] };
+}
+
 function usePage() {
   const context = useContext(PageContext);
   if (!context) {

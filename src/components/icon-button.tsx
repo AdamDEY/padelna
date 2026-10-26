@@ -10,21 +10,32 @@ type IconButtonProps = {
   label: string;
   /** Orange unread dot in the top corner */
   showDot?: boolean;
+  /** "primary" = solid blue, for the one main action in a header (e.g. Share a match) */
+  variant?: "outline" | "primary";
   onPress?: () => void;
   className?: string;
 };
 
 /** 44 px round icon button from design.md: white fill, 1 px `line` border. */
-export function IconButton({ icon, label, showDot, onPress, className }: IconButtonProps) {
+export function IconButton({
+  icon,
+  label,
+  showDot,
+  variant = "outline",
+  onPress,
+  className,
+}: IconButtonProps) {
+  const isPrimary = variant === "primary";
+
   return (
     <Button
-      variant="outline"
+      variant={isPrimary ? "primary" : "outline"}
       isIconOnly
       accessibilityLabel={showDot ? `${label}, unread` : label}
       onPress={onPress}
-      className={cn("size-11 rounded-full border-line", className)}
+      className={cn("size-11 rounded-full", !isPrimary && "border-line", className)}
     >
-      <Icon as={icon} size={22} />
+      <Icon as={icon} size={22} color={isPrimary ? "accent-foreground" : "foreground"} />
       {showDot ? (
         <View className="absolute end-[11px] top-[10px] size-2 rounded-full bg-dot" />
       ) : null}
