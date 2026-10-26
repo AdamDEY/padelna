@@ -1,6 +1,7 @@
 import { cn } from "heroui-native";
 import { Image } from "expo-image";
 import { ShieldCheck } from "lucide-react-native";
+import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -18,21 +19,31 @@ function teamFirstNames(team: Team) {
   return team.map((p) => p.firstName).join(" · ");
 }
 
+/** "4.5 · 5.0" when both players' levels are known */
+function teamLevels(team: Team) {
+  const [a, b] = team;
+  return a.level !== undefined && b.level !== undefined
+    ? `${a.level.toFixed(1)} · ${b.level.toFixed(1)}`
+    : null;
+}
+
 /** Index of the team that won more sets */
-function winnerIndex(sets: [number, number][]) {
+export function winnerIndex(sets: [number, number][]) {
   const firstTeamSets = sets.filter(([a, b]) => a > b).length;
   return firstTeamSets > sets.length / 2 ? 0 : 1;
 }
 
 type ResultPostCardProps = {
   post: ResultPost;
+  /** Button on the right of the header, e.g. Connect for players you don't know */
+  headerAction?: ReactNode;
 };
 
 /**
  * A match result in the Community feed. With a team photo it shows the photo
  * and a light score table; without one, a blue scoreboard carries the card.
  */
-export function ResultPostCard({ post }: ResultPostCardProps) {
+export function ResultPostCard({ post, headerAction }: ResultPostCardProps) {
   const winner = winnerIndex(post.sets);
   const poster = post.teams[0];
   const posterWon = winner === 0;
@@ -60,10 +71,19 @@ export function ResultPostCard({ post }: ResultPostCardProps) {
           <Text numberOfLines={2} className="font-bold text-[15px] text-foreground">
             {title}
           </Text>
-          <Text numberOfLines={1} className="font-normal text-[12px] text-muted">
-            {post.clubName} · {formatTimeAgo(post.postedAt)}
+          <Text numberOfLines={2} className="font-normal text-[12px] text-muted">
+            {[
+              post.clubName,
+              formatTimeAgo(post.postedAt),
+              post.mutualFriendCount
+                ? `${post.mutualFriendCount} mutual ${post.mutualFriendCount === 1 ? "friend" : "friends"}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </Text>
         </View>
+        {headerAction}
       </View>
 
       {post.photoUri ? (
@@ -208,6 +228,9 @@ function ScoreTable({ post, winner }: ScoreProps) {
               >
                 {teamFirstNames(team)}
               </Text>
+              {teamLevels(team) ? (
+                <Text className="font-bold text-[11px] text-muted">{teamLevels(team)}</Text>
+              ) : null}
               {isWinner ? (
                 <Text className="overflow-hidden rounded-lg bg-lime-soft px-1.5 py-0.5 font-bold text-[11px] text-lime-foreground">
                   WIN

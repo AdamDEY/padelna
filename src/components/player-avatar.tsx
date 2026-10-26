@@ -39,6 +39,11 @@ export function stackTintIndices(players: Player[]) {
   return indices;
 }
 
+/** "Sami B." */
+export function shortNameOf(player: Player) {
+  return `${player.firstName} ${player.lastName.charAt(0)}.`;
+}
+
 export function initialsOf(player: Player) {
   return `${player.firstName.charAt(0)}${player.lastName.charAt(0)}`.toUpperCase();
 }

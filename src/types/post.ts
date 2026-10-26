@@ -21,4 +21,7 @@ export type ResultPost = {
   confirmed: boolean;
   /** Team photo. Without one the card shows the blue scoreboard instead. */
   photoUri?: string;
+  city?: string;
+  /** Friends you share with the posting team, for posts from people you don't know */
+  mutualFriendCount?: number;
 };

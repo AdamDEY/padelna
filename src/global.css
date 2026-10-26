@@ -191,12 +191,9 @@
     @apply font-semibold;
   }
 
-  /* Segmented control fills the row, options share it equally */
+  /* Tab lists fill the row; segmented controls give each trigger flex-1 themselves */
   .tabs__list {
     align-self: stretch;
-  }
-  .tabs__trigger {
-    flex: 1;
   }
 
   /* Text inputs: 52 px tall, 16 px text */
