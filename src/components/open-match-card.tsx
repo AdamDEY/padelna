@@ -6,21 +6,7 @@ import { Icon } from "@/components/icon";
 import { LevelRangeChip } from "@/components/level-chip";
 import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
 import { formatShortMatchDateTime } from "@/lib/format-date";
-import type { Player } from "@/types/player";
-
-export type OpenMatch = {
-  id: string;
-  startsAt: Date;
-  clubName: string;
-  durationMinutes: number;
-  levelMin: number;
-  levelMax: number;
-  players: Player[];
-  /** Padel is played 2 vs 2 */
-  capacity: number;
-  /** Price per player, in TND */
-  price: number;
-};
+import type { OpenMatch } from "@/types/match";
 
 type OpenMatchCardProps = {
   match: OpenMatch;

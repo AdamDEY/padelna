@@ -165,22 +165,27 @@ type PageTitleProps = {
   eyebrow?: string;
   /** Optional supporting text below the title */
   description?: string;
+  /** Optional button on the right of the title, usually an IconButton */
+  action?: ReactNode;
   children: string;
 };
 
 /** H1 screen title from design.md: 30 px / 900. */
-function PageTitle({ eyebrow, description, children }: PageTitleProps) {
+function PageTitle({ eyebrow, description, action, children }: PageTitleProps) {
   return (
     <View className="gap-1.5">
       {eyebrow ? (
         <Text className="font-bold text-[13px] uppercase tracking-[0.7px] text-muted">{eyebrow}</Text>
       ) : null}
-      <Text
-        accessibilityRole="header"
-        className="font-black text-[30px] leading-[35px] tracking-[-0.5px] text-foreground"
-      >
-        {children}
-      </Text>
+      <View className="flex-row items-center justify-between gap-3">
+        <Text
+          accessibilityRole="header"
+          className="flex-1 font-black text-[30px] leading-[35px] tracking-[-0.5px] text-foreground"
+        >
+          {children}
+        </Text>
+        {action}
+      </View>
       {description ? (
         <Text className="font-normal text-[16px] leading-6 text-ink-2">{description}</Text>
       ) : null}
@@ -207,8 +212,8 @@ function useKeyboardVisible() {
 }
 
 type PageCarouselProps = {
-  /** Card width, so scrolling snaps card by card */
-  itemWidth: number;
+  /** Card width, so scrolling snaps card by card. Leave out for items of mixed widths (chips). */
+  itemWidth?: number;
   /** Space between cards, in px */
   gap?: number;
   children: ReactNode;
@@ -224,12 +229,13 @@ function PageCarousel({ itemWidth, gap = 12, children }: PageCarouselProps) {
   return (
     <ScrollView
       horizontal
-      className={bleedClass[variant]}
+      // ScrollView grows by default; on a short page it would take the spare height
+      className={cn("grow-0", bleedClass[variant])}
       contentContainerClassName={marginClass[variant]}
       contentContainerStyle={{ gap }}
       showsHorizontalScrollIndicator={false}
-      snapToInterval={itemWidth + gap}
-      decelerationRate="fast"
+      snapToInterval={itemWidth ? itemWidth + gap : undefined}
+      decelerationRate={itemWidth ? "fast" : "normal"}
     >
       {children}
     </ScrollView>
