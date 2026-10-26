@@ -23,6 +23,8 @@ export type OpenMatch = {
   /** Price per player, in TND */
   price: number;
   isMixed?: boolean;
+  /** The host has booked the court */
+  isCourtBooked?: boolean;
 };
 
 /** A match you are hosting or have joined */

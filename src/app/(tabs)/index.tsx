@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { View } from "react-native";
 
 import { ClubRow } from "@/components/club-row";
@@ -40,7 +41,11 @@ export default function Home() {
         <View className="gap-2.5">
           <SectionHeader title="Clubs near you" actionLabel="Map" />
           {clubsNearby.map((club) => (
-            <ClubRow key={club.id} club={club} />
+            <ClubRow
+              key={club.id}
+              club={club}
+              onPress={() => router.push({ pathname: "/club/[id]", params: { id: club.id } })}
+            />
           ))}
         </View>
       </Page.Body>

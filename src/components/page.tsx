@@ -79,10 +79,17 @@ function usePage() {
 
 type PageProps = {
   variant?: PageVariant;
+  /** White page instead of the grey canvas, for detail screens */
+  surface?: boolean;
+  /**
+   * Start the content at the very top, under the status bar, for screens that
+   * open with a full-width photo. The screen then handles the top inset itself.
+   */
+  underStatusBar?: boolean;
   children: ReactNode;
 };
 
-function PageRoot({ variant = "app", children }: PageProps) {
+function PageRoot({ variant = "app", surface, underStatusBar, children }: PageProps) {
   const insets = useSafeAreaInsets();
   // Without a footer, the body itself has to clear the home indicator
   const hasFooter = Children.toArray(children).some(
@@ -92,9 +99,9 @@ function PageRoot({ variant = "app", children }: PageProps) {
   return (
     <PageContext.Provider value={{ variant, hasFooter }}>
       <KeyboardAvoidingView
-        className="flex-1 bg-background"
+        className={cn("flex-1", surface ? "bg-surface" : "bg-background")}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ paddingTop: insets.top + TOP_GAP }}
+        style={{ paddingTop: underStatusBar ? 0 : insets.top + TOP_GAP }}
       >
         {children}
       </KeyboardAvoidingView>
