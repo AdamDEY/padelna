@@ -5,15 +5,7 @@ import { Text, View } from "react-native";
 import { Icon } from "@/components/icon";
 import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
 import { formatCountdown, formatMatchDateTime } from "@/lib/format-date";
-import type { Player } from "@/types/player";
-
-export type NextMatch = {
-  id: string;
-  startsAt: Date;
-  clubName: string;
-  courtName: string;
-  players: Player[];
-};
+import type { NextMatch } from "@/types/match";
 
 type NextMatchCardProps = {
   match: NextMatch;
