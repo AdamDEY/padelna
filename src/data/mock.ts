@@ -1,6 +1,6 @@
 // Mock data shared by the screens until the API exists. Dates are relative to today.
 import type { Club } from "@/types/club";
-import type { NextMatch, OpenMatch } from "@/types/match";
+import type { NextMatch, OpenMatch, PastMatch, PendingReview, UpcomingMatch } from "@/types/match";
 import type { Player } from "@/types/player";
 
 function inDays(days: number, hours: number, minutes = 0) {
@@ -32,13 +32,61 @@ export const me: Player = { id: "p-youssef", firstName: "Youssef", lastName: "Be
 export const myLevel = 4.5;
 export const myCity = "Tunis";
 
-export const nextMatch: NextMatch = {
-  id: "match-1",
-  startsAt: inDays(2, 18),
-  clubName: "Lac Padel Arena",
-  courtName: "Court 2",
-  players: [me, players.amine, players.mehdi, players.sarra],
-};
+export const upcomingMatches: UpcomingMatch[] = [
+  {
+    id: "match-1",
+    startsAt: inDays(2, 18),
+    clubName: "Lac Padel Arena",
+    courtName: "Court 2",
+    players: [me, players.amine, players.mehdi, players.sarra],
+    capacity: 4,
+    host: me,
+  },
+  {
+    id: "match-8",
+    startsAt: inDays(4, 20, 30),
+    clubName: "Gammarth Padel",
+    courtName: "Court 4",
+    players: [players.karim, me, players.nour],
+    capacity: 4,
+    host: players.karim,
+  },
+];
+
+export const nextMatch: NextMatch = upcomingMatches[0];
+
+export const pendingReviews: PendingReview[] = [
+  {
+    matchId: "match-0",
+    playedAt: inDays(-1, 19),
+    clubName: "Gammarth Padel",
+    closesAt: inDays(2, 23, 59),
+  },
+];
+
+export const pastMatches: PastMatch[] = [
+  {
+    id: "match-past-1",
+    playedAt: inDays(-7, 18),
+    clubName: "Lac Padel Arena",
+    won: true,
+    sets: [
+      [6, 4],
+      [3, 6],
+      [7, 5],
+    ],
+  },
+  {
+    id: "match-past-2",
+    playedAt: inDays(-12, 20),
+    clubName: "La Marsa Padel",
+    won: false,
+    sets: [
+      [4, 6],
+      [5, 7],
+    ],
+  },
+];
 
 export const openMatches: OpenMatch[] = [
   {

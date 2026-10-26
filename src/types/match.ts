@@ -24,3 +24,27 @@ export type OpenMatch = {
   price: number;
   isMixed?: boolean;
 };
+
+/** A match you are hosting or have joined */
+export type UpcomingMatch = NextMatch & {
+  capacity: number;
+  host: Player;
+};
+
+/** A finished match from your history. Sets are [your games, their games]. */
+export type PastMatch = {
+  id: string;
+  playedAt: Date;
+  clubName: string;
+  won: boolean;
+  sets: [number, number][];
+};
+
+/** A finished match still waiting for its result and player ratings */
+export type PendingReview = {
+  matchId: string;
+  playedAt: Date;
+  clubName: string;
+  /** Last moment the result can be added */
+  closesAt: Date;
+};

@@ -13,9 +13,14 @@ const timeFormat = new Intl.DateTimeFormat(LOCALE, {
   hourCycle: "h23",
 });
 
+/** "Sat 25 Oct" */
+export function formatMatchDay(date: Date) {
+  return dayFormat.format(date).replace(",", "");
+}
+
 /** "Sat 25 Oct · 18:00" */
 export function formatMatchDateTime(date: Date) {
-  return `${dayFormat.format(date).replace(",", "")} · ${timeFormat.format(date)}`;
+  return `${formatMatchDay(date)} · ${timeFormat.format(date)}`;
 }
 
 function startOfDay(date: Date) {

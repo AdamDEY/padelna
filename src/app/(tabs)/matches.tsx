@@ -8,8 +8,19 @@ import { FilterChip } from "@/components/filter-chip";
 import { IconButton } from "@/components/icon-button";
 import { MatchListItem } from "@/components/match-list-item";
 import { Page } from "@/components/page";
-import { myLevel, openMatches } from "@/data/mock";
-import { daysUntil, formatMatchDateTime } from "@/lib/format-date";
+import { PastMatchRow } from "@/components/past-match-row";
+import { RateResultBanner } from "@/components/rate-result-banner";
+import { SectionHeader } from "@/components/section-header";
+import { UpcomingMatchCard } from "@/components/upcoming-match-card";
+import {
+  me,
+  myLevel,
+  openMatches,
+  pastMatches,
+  pendingReviews,
+  upcomingMatches,
+} from "@/data/mock";
+import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { compareByFit, isPlayableFit, levelFit } from "@/lib/level-fit";
 
 type Segment = "open" | "mine";
@@ -27,7 +38,7 @@ function dayLabel(date: Date) {
   const days = daysUntil(date);
   if (days === 0) return "today";
   if (days === 1) return "tomorrow";
-  return `on ${formatMatchDateTime(date).split(" · ")[0]}`;
+  return `on ${formatMatchDay(date)}`;
 }
 
 export default function Matches() {
@@ -129,9 +140,31 @@ function OpenMatches() {
   );
 }
 
-// Placeholder until the My matches view is built
 function MyMatches() {
   return (
-    <Text className="font-normal text-[15px] text-muted">Your upcoming and past matches go here.</Text>
+    <>
+      {pendingReviews.map((review) => (
+        <RateResultBanner key={review.matchId} review={review} />
+      ))}
+
+      <View className="gap-2.5">
+        <SectionHeader size="sm" title={`Upcoming · ${upcomingMatches.length}`} />
+        {upcomingMatches.map((match) => (
+          <UpcomingMatchCard key={match.id} match={match} me={me} />
+        ))}
+        {upcomingMatches.length === 0 ? (
+          <Text className="font-normal text-[14px] text-muted">
+            No matches planned. Join an open match or create one.
+          </Text>
+        ) : null}
+      </View>
+
+      <View className="gap-2">
+        <SectionHeader size="sm" title="Past" actionLabel="History" />
+        {pastMatches.map((match) => (
+          <PastMatchRow key={match.id} match={match} />
+        ))}
+      </View>
+    </>
   );
 }
