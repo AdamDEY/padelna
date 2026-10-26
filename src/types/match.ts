@@ -38,6 +38,7 @@ export type PastMatch = {
   id: string;
   playedAt: Date;
   clubName: string;
+  courtName?: string;
   won: boolean;
   sets: [number, number][];
 };

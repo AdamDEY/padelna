@@ -1,5 +1,5 @@
 import { Button, cn } from "heroui-native";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Star } from "lucide-react-native";
 import { useState } from "react";
 import { Linking, Platform, Pressable, Text, View } from "react-native";
@@ -43,6 +43,7 @@ export default function ClubDetail() {
   }
 
   const hasReviews = club.reviewCount > 0;
+  const latestReview = club.reviews?.[0];
 
   const matchesHere = openMatches
     .filter((match) => match.clubName === club.name)
@@ -139,6 +140,9 @@ export default function ClubDetail() {
               size="sm"
               title="Player reviews"
               actionLabel={hasReviews ? `See all ${club.reviewCount}` : undefined}
+              onPressAction={() =>
+                router.push({ pathname: "/club/[id]/reviews", params: { id: club.id } })
+              }
             />
             {hasReviews ? (
               <ClubReviewsSummary club={club} />
@@ -162,10 +166,11 @@ export default function ClubDetail() {
               ))}
             </View>
 
-            {club.latestReview ? <ClubReviewCard review={club.latestReview} /> : null}
+            {latestReview ? <ClubReviewCard review={latestReview} /> : null}
 
             <Pressable
               accessibilityRole="button"
+              onPress={() => router.push({ pathname: "/club/[id]/rate", params: { id: club.id } })}
               className="h-12 flex-row items-center justify-center gap-2 rounded-[14px] border border-primary-outline"
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
             >
