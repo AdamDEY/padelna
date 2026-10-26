@@ -27,6 +27,7 @@ export function ClubReviewsSummary({ club }: ClubReviewsSummaryProps) {
         </Text>
       </View>
 
+      {/* Aspect bars appear once players have rated them */}
       <View className="flex-1 gap-[7px]">
         {club.ratingBreakdown.map((aspect) => {
           const weak = aspect.value < WEAK_RATING;

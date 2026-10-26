@@ -9,6 +9,14 @@ export type Club = {
   openMatchCount: number;
   /** Placeholder tint until the club has photos */
   placeholderTint: CourtTint;
+  /** Neighbourhood or town, e.g. "Les Berges du Lac" */
+  area: string;
+  /** Governorate, used by the region filter */
+  region: string;
+  /** Average player rating, out of 5 */
+  rating: number;
+  /** You play here regularly */
+  isMyClub?: boolean;
 };
 
 /** Everything the Club detail screen shows */
@@ -21,7 +29,6 @@ export type ClubDetails = Club & {
   /** Closing time today, "00:00" */
   openUntil: string;
   amenities: string[];
-  rating: number;
   reviewCount: number;
   /** Average per aspect, out of 5 */
   ratingBreakdown: { label: string; value: number }[];
