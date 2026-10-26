@@ -2,6 +2,7 @@
 import type { Club } from "@/types/club";
 import type { NextMatch, OpenMatch, PastMatch, PendingReview, UpcomingMatch } from "@/types/match";
 import type { Player } from "@/types/player";
+import type { ResultPost } from "@/types/post";
 
 function inDays(days: number, hours: number, minutes = 0) {
   const date = new Date();
@@ -26,6 +27,9 @@ const players = {
   omar: { id: "p-omar", firstName: "Omar", lastName: "Bouazizi" },
   rania: { id: "p-rania", firstName: "Rania", lastName: "Gharbi" },
   hedi: { id: "p-hedi", firstName: "Hedi", lastName: "Chaabane" },
+  amira: { id: "p-amira", firstName: "Amira", lastName: "Kefi" },
+  salma: { id: "p-salma", firstName: "Salma", lastName: "Haddad" },
+  nader: { id: "p-nader", firstName: "Nader", lastName: "Sassi" },
 } satisfies Record<string, Player>;
 
 export const me: Player = { id: "p-youssef", firstName: "Youssef", lastName: "Ben Ali" };
@@ -182,5 +186,54 @@ export const clubsNearby: Club[] = [
     courtCount: 5,
     openMatchCount: 2,
     placeholderTint: "peach",
+  },
+];
+
+function hoursAgo(hours: number) {
+  return new Date(Date.now() - hours * 3_600_000);
+}
+
+export const communityPosts: ResultPost[] = [
+  {
+    id: "post-1",
+    postedAt: hoursAgo(1),
+    playedAt: hoursAgo(3),
+    clubName: "Lac Padel Arena",
+    courtName: "Court 2",
+    kind: "friendly",
+    levelMin: 4,
+    levelMax: 5,
+    teams: [
+      [me, players.amira],
+      [players.mehdi, players.salma],
+    ],
+    sets: [
+      [6, 4],
+      [3, 6],
+      [7, 5],
+    ],
+    confirmed: true,
+  },
+  {
+    id: "post-2",
+    postedAt: hoursAgo(2),
+    playedAt: hoursAgo(4),
+    clubName: "Gammarth Padel",
+    courtName: "Court 1",
+    kind: "competitive",
+    levelMin: 4,
+    levelMax: 5,
+    teams: [
+      [players.karim, players.nader],
+      [players.aziz, players.omar],
+    ],
+    sets: [
+      [6, 4],
+      [3, 6],
+      [7, 5],
+    ],
+    confirmed: true,
+    // Stand-in photo until real uploads exist
+    photoUri: "https://picsum.photos/seed/padelna-team/800/480",
   },
 ];

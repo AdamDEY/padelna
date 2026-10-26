@@ -51,3 +51,14 @@ export function formatShortMatchDateTime(date: Date, now = new Date()) {
   if (days > 1 && days < 7) return `${weekdayFormat.format(date)} · ${time}`;
   return formatMatchDateTime(date);
 }
+
+/** "Just now", "12 min ago", "1 h ago", "Yesterday", then "Sun 19 Oct" */
+export function formatTimeAgo(date: Date, now = new Date()) {
+  const minutes = Math.floor((now.getTime() - date.getTime()) / 60_000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} h ago`;
+  if (daysUntil(date, now) === -1) return "Yesterday";
+  return formatMatchDay(date);
+}

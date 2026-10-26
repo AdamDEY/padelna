@@ -1,13 +1,21 @@
-import { Page } from "@/components/page";
+import { Plus } from "lucide-react-native";
 
-// Placeholder until the Community screen is built
+import { IconButton } from "@/components/icon-button";
+import { Page } from "@/components/page";
+import { ResultPostCard } from "@/components/result-post-card";
+import { communityPosts } from "@/data/mock";
+
 export default function Community() {
   return (
     <Page>
       <Page.Body>
-        <Page.Title eyebrow="Coming soon" description="Results, photos and posts from players you know.">
+        <Page.Title action={<IconButton icon={Plus} label="Share a match" variant="primary" />}>
           Community
         </Page.Title>
+
+        {communityPosts.map((post) => (
+          <ResultPostCard key={post.id} post={post} />
+        ))}
       </Page.Body>
     </Page>
   );
