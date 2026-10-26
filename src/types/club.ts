@@ -34,7 +34,23 @@ export type ClubDetails = Club & {
   ratingBreakdown: { label: string; value: number }[];
   /** What players mention most; negative ones show in orange */
   reviewTags: { label: string; count: number; negative?: boolean }[];
-  latestReview?: ClubReview;
+  /** Average court rating (surface, glass, lighting), one per court in order */
+  courtRatings?: number[];
+  /** Newest first */
+  reviews?: ClubReview[];
+};
+
+/** What a review talks about, for the topic filter on the reviews screen */
+export type ReviewTopic = "courts" | "gear" | "facilities" | "staff";
+
+/** Per-aspect scores out of 5; aspects the player skipped are left out */
+export type ReviewScores = {
+  surface?: number;
+  glass?: number;
+  lighting?: number;
+  gear?: number;
+  rooms?: number;
+  staff?: number;
 };
 
 export type ClubReview = {
@@ -44,4 +60,12 @@ export type ClubReview = {
   postedAt: Date;
   rating: number;
   text: string;
+  /** When the reviewed match started, "20:00" */
+  playedTime?: string;
+  /** How many times the author has played at this club */
+  timesPlayedHere?: number;
+  scores?: ReviewScores;
+  topics: ReviewTopic[];
+  helpfulCount: number;
+  clubReplied?: boolean;
 };

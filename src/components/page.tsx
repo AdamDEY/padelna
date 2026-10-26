@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { cn } from "heroui-native";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, X } from "lucide-react-native";
 import {
   Children,
   createContext,
@@ -112,6 +112,8 @@ function PageRoot({ variant = "app", surface, underStatusBar, children }: PagePr
 type PageHeaderProps = {
   /** Show a back button. Pass a function to replace the default router.back(). */
   back?: boolean | (() => void);
+  /** Show the back button as a ✕ "Close", for screens that dismiss rather than go back */
+  closeIcon?: boolean;
   /** Compact centred title for sheets and sub-pages. Main screens use Page.Title instead. */
   title?: string;
   /** Content next to the back button, filling the row (e.g. a title with a count below) */
@@ -120,14 +122,20 @@ type PageHeaderProps = {
   children?: ReactNode;
 };
 
-function PageHeader({ back, title, leading, children }: PageHeaderProps) {
+function PageHeader({ back, closeIcon, title, leading, children }: PageHeaderProps) {
   const { variant } = usePage();
   const onBack = typeof back === "function" ? back : () => router.back();
 
   return (
     <View className={cn("min-h-11 flex-row items-center justify-between pb-4", marginClass[variant])}>
       <View className="min-w-11 flex-row">
-        {back ? <IconButton icon={ChevronLeft} label="Back" onPress={onBack} /> : null}
+        {back ? (
+          <IconButton
+            icon={closeIcon ? X : ChevronLeft}
+            label={closeIcon ? "Close" : "Back"}
+            onPress={onBack}
+          />
+        ) : null}
       </View>
       {leading ? <View className="flex-1 ps-3">{leading}</View> : null}
       {title ? (
