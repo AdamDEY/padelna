@@ -50,7 +50,7 @@ export function DateStrip({ start, days = 7, selected, onSelect }: DateStripProp
             <Text
               className={cn(
                 "font-semibold text-[12px]",
-                isSelected ? "text-primary-tint-text" : "text-muted",
+                isSelected ? "text-ink-tint-text" : "text-muted",
               )}
             >
               {weekdayFormat.format(date)}

@@ -116,17 +116,24 @@ export function ResultPostCard({ post, headerAction }: ResultPostCardProps) {
 
 type ScoreProps = { post: ResultPost; winner: number };
 
-/** Blue result block for posts without a photo. */
+// Friendly results are blue, competitive ones ink, so the two read apart at a glance
+const scoreboardTone = {
+  friendly: { bg: "bg-accent", ring: "border-accent", soft: "text-primary-tint-text" },
+  competitive: { bg: "bg-foreground", ring: "border-foreground", soft: "text-ink-tint-text" },
+} as const;
+
+/** Result block for posts without a photo: blue for friendly, ink for competitive. */
 function Scoreboard({ post, winner }: ScoreProps) {
+  const tone = scoreboardTone[post.kind];
   const label = `${post.kind === "friendly" ? "Friendly" : "Competitive"} · ${post.courtName}`;
 
   return (
-    <View className="gap-2.5 rounded-[18px] bg-accent p-3.5">
+    <View className={cn("gap-2.5 rounded-[18px] p-3.5", tone.bg)}>
       <View className="flex-row items-center justify-between">
-        <Text className="font-bold text-[12px] uppercase tracking-[0.8px] text-primary-tint-text">
+        <Text className={cn("font-bold text-[12px] uppercase tracking-[0.8px]", tone.soft)}>
           {label}
         </Text>
-        <Text className="font-bold text-[12px] text-primary-tint-text">
+        <Text className={cn("font-bold text-[12px]", tone.soft)}>
           {formatMatchDay(post.playedAt)}
         </Text>
       </View>
@@ -151,7 +158,7 @@ function Scoreboard({ post, winner }: ScoreProps) {
                     player={player}
                     size={30}
                     tintIndex={tints[index]}
-                    ringClassName="border-accent"
+                    ringClassName={tone.ring}
                     className={index > 0 ? "-ms-2.5" : undefined}
                   />
                 ))}
@@ -160,7 +167,7 @@ function Scoreboard({ post, winner }: ScoreProps) {
                 numberOfLines={1}
                 className={cn(
                   "flex-1 text-[14px]",
-                  isWinner ? "font-black text-accent-foreground" : "font-semibold text-primary-tint-text",
+                  isWinner ? "font-black text-accent-foreground" : cn("font-semibold", tone.soft),
                 )}
               >
                 {teamFirstNames(team)}

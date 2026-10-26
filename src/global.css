@@ -104,6 +104,8 @@
   --color-primary-dark: #1f4a99;
   --color-primary-soft: #e3ecfa;
   --color-primary-tint-text: #d6e3fa;
+  /* Secondary text on ink blocks (competitive scoreboard, selected day) */
+  --color-ink-tint-text: #c3cbd6;
   --color-primary-outline: #c9d6ee;
   --color-slot-border: #9db8e6;
 
