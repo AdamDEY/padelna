@@ -41,10 +41,19 @@ const marginClass: Record<PageVariant, string> = {
   auth: "px-6",
 };
 
+// Cancels the side margin so a row can run edge to edge
+const bleedClass: Record<PageVariant, string> = {
+  app: "-mx-5",
+  auth: "-mx-6",
+};
+
 // Space between the screen edges and the first / last element
 const TOP_GAP = 8;
 const BOTTOM_ACTION_GAP = 34;
 const KEYBOARD_GAP = 12;
+// Breathing room under the last element when nothing is pinned below it,
+// e.g. above the tab bar, whose inset iOS adds to the scroll view itself
+const END_GAP = 16;
 const SECTION_GAP = "gap-5";
 
 type PageContextValue = { variant: PageVariant; hasFooter: boolean };
@@ -127,7 +136,7 @@ function PageBody({ scroll = true, className, children }: PageBodyProps) {
   const { variant, hasFooter } = usePage();
   const insets = useSafeAreaInsets();
   const contentClass = cn(marginClass[variant], SECTION_GAP, className);
-  const paddingBottom = hasFooter ? 24 : Math.max(insets.bottom, BOTTOM_ACTION_GAP);
+  const paddingBottom = hasFooter ? 24 : Math.max(insets.bottom, BOTTOM_ACTION_GAP) + END_GAP;
 
   if (!scroll) {
     return (
@@ -197,6 +206,36 @@ function useKeyboardVisible() {
   return visible;
 }
 
+type PageCarouselProps = {
+  /** Card width, so scrolling snaps card by card */
+  itemWidth: number;
+  /** Space between cards, in px */
+  gap?: number;
+  children: ReactNode;
+};
+
+/**
+ * Horizontal carousel inside Page.Body. It runs to the screen edges while the
+ * first card lines up with the margin; size cards so about 1.5 show (design.md).
+ */
+function PageCarousel({ itemWidth, gap = 12, children }: PageCarouselProps) {
+  const { variant } = usePage();
+
+  return (
+    <ScrollView
+      horizontal
+      className={bleedClass[variant]}
+      contentContainerClassName={marginClass[variant]}
+      contentContainerStyle={{ gap }}
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={itemWidth + gap}
+      decelerationRate="fast"
+    >
+      {children}
+    </ScrollView>
+  );
+}
+
 type PageFooterProps = {
   className?: string;
   children: ReactNode;
@@ -224,5 +263,6 @@ export const Page = Object.assign(PageRoot, {
   Header: PageHeader,
   Body: PageBody,
   Title: PageTitle,
+  Carousel: PageCarousel,
   Footer: PageFooter,
 });

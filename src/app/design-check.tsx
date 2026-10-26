@@ -22,7 +22,7 @@ import { Icon } from "@/components/icon";
 import { IconButton } from "@/components/icon-button";
 import { Page } from "@/components/page";
 
-// Temporary screen to check the theme against design.md. Replace once real screens exist.
+// Reference screen for checking the theme against design.md. Open it at /design-check.
 export default function DesignCheck() {
   const [mode, setMode] = useState("friendly");
 
