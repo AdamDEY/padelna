@@ -195,32 +195,116 @@ export const openMatches: OpenMatch[] = [
   },
 ];
 
-export const clubsNearby: Club[] = [
+/** Every club in the app, for the All clubs screen */
+export const allClubs: Club[] = [
   {
     id: "club-lac",
     name: "Lac Padel Arena",
+    area: "Les Berges du Lac",
+    region: "Tunis",
     distanceKm: 2.1,
     courtCount: 6,
-    openMatchCount: 3,
+    openMatchCount: 0,
+    rating: 4.6,
     placeholderTint: "green",
+    isMyClub: true,
   },
   {
     id: "club-gammarth",
     name: "Gammarth Padel",
+    area: "Gammarth",
+    region: "Tunis",
     distanceKm: 6.4,
     courtCount: 4,
-    openMatchCount: 1,
+    openMatchCount: 0,
+    rating: 4.3,
     placeholderTint: "blue",
+    isMyClub: true,
   },
   {
     id: "club-marsa",
     name: "La Marsa Padel",
+    area: "La Marsa",
+    region: "Tunis",
     distanceKm: 8.9,
     courtCount: 5,
-    openMatchCount: 2,
+    openMatchCount: 0,
+    rating: 4.1,
     placeholderTint: "peach",
   },
+  {
+    id: "club-ennasr",
+    name: "Ennasr Padel Club",
+    area: "Ennasr",
+    region: "Ariana",
+    distanceKm: 9.7,
+    courtCount: 4,
+    openMatchCount: 0,
+    rating: 4.3,
+    placeholderTint: "lime",
+  },
+  {
+    id: "club-menzah",
+    name: "Padel House Menzah",
+    area: "El Menzah",
+    region: "Ariana",
+    distanceKm: 11,
+    courtCount: 3,
+    openMatchCount: 0,
+    rating: 4.1,
+    placeholderTint: "blue",
+  },
+  {
+    id: "club-megrine",
+    name: "Megrine Padel",
+    area: "Megrine",
+    region: "Ben Arous",
+    distanceKm: 12.5,
+    courtCount: 4,
+    openMatchCount: 0,
+    rating: 4.0,
+    placeholderTint: "green",
+  },
+  {
+    id: "club-hammamet",
+    name: "Hammamet Padel Club",
+    area: "Yasmine Hammamet",
+    region: "Nabeul",
+    distanceKm: 64,
+    courtCount: 6,
+    openMatchCount: 0,
+    rating: 4.7,
+    placeholderTint: "peach",
+  },
+  {
+    id: "club-sousse",
+    name: "Sousse Padel Center",
+    area: "Port El Kantaoui",
+    region: "Sousse",
+    distanceKm: 140,
+    courtCount: 5,
+    openMatchCount: 0,
+    rating: 4.4,
+    placeholderTint: "lime",
+  },
+  {
+    id: "club-sfax",
+    name: "Sfax Padel Club",
+    area: "Sfax Ville",
+    region: "Sfax",
+    distanceKm: 270,
+    courtCount: 4,
+    openMatchCount: 0,
+    rating: 4.2,
+    placeholderTint: "blue",
+  },
 ];
+
+/** Regions in the order the filter shows them */
+export const clubRegions = ["Tunis", "Ariana", "Ben Arous", "Nabeul", "Sousse", "Sfax", "Bizerte"];
+
+/** The three closest clubs, for Home */
+export const clubsNearby = [...allClubs].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 3);
 
 function hoursAgo(hours: number) {
   return new Date(Date.now() - hours * 3_600_000);
@@ -398,7 +482,6 @@ const clubDetailsById: Record<string, Omit<ClubDetails, keyof Club>> = {
     outdoorCourts: 2,
     openUntil: "00:00",
     amenities: ["Parking", "Showers", "Racket rental", "Café"],
-    rating: 4.6,
     reviewCount: 86,
     ratingBreakdown: [
       { label: "Court surface", value: 4.8 },
@@ -430,7 +513,6 @@ const clubDetailsById: Record<string, Omit<ClubDetails, keyof Club>> = {
     outdoorCourts: 2,
     openUntil: "23:00",
     amenities: ["Parking", "Showers", "Pro shop"],
-    rating: 4.3,
     reviewCount: 41,
     ratingBreakdown: [
       { label: "Court surface", value: 4.4 },
@@ -452,7 +534,6 @@ const clubDetailsById: Record<string, Omit<ClubDetails, keyof Club>> = {
     outdoorCourts: 5,
     openUntil: "22:00",
     amenities: ["Parking", "Café"],
-    rating: 4.1,
     reviewCount: 27,
     ratingBreakdown: [
       { label: "Court surface", value: 4 },
@@ -469,12 +550,25 @@ const clubDetailsById: Record<string, Omit<ClubDetails, keyof Club>> = {
 };
 
 export function getClubDetails(id: string): ClubDetails | undefined {
-  const club = clubsNearby.find((item) => item.id === id);
-  const details = clubDetailsById[id];
-  return club && details ? { ...club, ...details } : undefined;
+  const club = allClubs.find((item) => item.id === id);
+  if (!club) return undefined;
+  // Clubs without full details yet get sensible defaults
+  const details = clubDetailsById[id] ?? {
+    address: `${club.area}, ${club.region}`,
+    photoCount: 0,
+    indoorCourts: 0,
+    outdoorCourts: club.courtCount,
+    openUntil: "23:00",
+    amenities: ["Parking"],
+    reviewCount: 0,
+    // No reviews yet: the detail screen shows its "Be the first" state
+    ratingBreakdown: [],
+    reviewTags: [],
+  };
+  return { ...club, ...details };
 }
 
 // Keep the counts on Home in step with the open matches above
-for (const club of clubsNearby) {
+for (const club of allClubs) {
   club.openMatchCount = openMatches.filter((match) => match.clubName === club.name).length;
 }

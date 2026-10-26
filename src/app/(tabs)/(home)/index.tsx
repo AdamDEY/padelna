@@ -39,7 +39,11 @@ export default function Home() {
         </View>
 
         <View className="gap-2.5">
-          <SectionHeader title="Clubs near you" actionLabel="Map" />
+          <SectionHeader
+            title="Clubs near you"
+            actionLabel="See all"
+            onPressAction={() => router.push("/clubs")}
+          />
           {clubsNearby.map((club) => (
             <ClubRow
               key={club.id}

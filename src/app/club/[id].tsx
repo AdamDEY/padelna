@@ -42,6 +42,8 @@ export default function ClubDetail() {
     );
   }
 
+  const hasReviews = club.reviewCount > 0;
+
   const matchesHere = openMatches
     .filter((match) => match.clubName === club.name)
     .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
@@ -74,17 +76,19 @@ export default function ClubDetail() {
               >
                 {club.name}
               </Text>
-              <View
-                accessible
-                accessibilityLabel={`Rated ${club.rating.toFixed(1)} from ${club.reviewCount} reviews`}
-                className="flex-row items-center gap-1"
-              >
-                <Icon as={Star} size={16} color="star" filled />
-                <Text className="font-bold text-[15px] text-foreground">
-                  {club.rating.toFixed(1)}{" "}
-                  <Text className="font-medium text-muted">({club.reviewCount})</Text>
-                </Text>
-              </View>
+              {hasReviews ? (
+                <View
+                  accessible
+                  accessibilityLabel={`Rated ${club.rating.toFixed(1)} from ${club.reviewCount} reviews`}
+                  className="flex-row items-center gap-1"
+                >
+                  <Icon as={Star} size={16} color="star" filled />
+                  <Text className="font-bold text-[15px] text-foreground">
+                    {club.rating.toFixed(1)}{" "}
+                    <Text className="font-medium text-muted">({club.reviewCount})</Text>
+                  </Text>
+                </View>
+              ) : null}
             </View>
             <Text className="font-normal text-[15px] text-muted">
               {club.address} · {club.distanceKm.toFixed(1)} km
@@ -134,9 +138,15 @@ export default function ClubDetail() {
             <SectionHeader
               size="sm"
               title="Player reviews"
-              actionLabel={`See all ${club.reviewCount}`}
+              actionLabel={hasReviews ? `See all ${club.reviewCount}` : undefined}
             />
-            <ClubReviewsSummary club={club} />
+            {hasReviews ? (
+              <ClubReviewsSummary club={club} />
+            ) : (
+              <Text className="rounded-[20px] bg-background p-4 font-normal text-[14px] leading-5 text-muted">
+                No reviews yet. Played here? Be the first to rate this club.
+              </Text>
+            )}
 
             <View className="flex-row flex-wrap gap-2">
               {club.reviewTags.map((tag) => (

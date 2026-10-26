@@ -20,7 +20,7 @@ export default function TabsLayout() {
         selected: { color: accent, fontFamily: "Nunito_800ExtraBold", fontSize: 11 },
       }}
     >
-      <NativeTabs.Trigger name="index">
+      <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: "house", selected: "house.fill" }}

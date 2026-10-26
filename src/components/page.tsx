@@ -114,11 +114,13 @@ type PageHeaderProps = {
   back?: boolean | (() => void);
   /** Compact centred title for sheets and sub-pages. Main screens use Page.Title instead. */
   title?: string;
+  /** Content next to the back button, filling the row (e.g. a title with a count below) */
+  leading?: ReactNode;
   /** Actions on the right, usually IconButtons */
   children?: ReactNode;
 };
 
-function PageHeader({ back, title, children }: PageHeaderProps) {
+function PageHeader({ back, title, leading, children }: PageHeaderProps) {
   const { variant } = usePage();
   const onBack = typeof back === "function" ? back : () => router.back();
 
@@ -127,6 +129,7 @@ function PageHeader({ back, title, children }: PageHeaderProps) {
       <View className="min-w-11 flex-row">
         {back ? <IconButton icon={ChevronLeft} label="Back" onPress={onBack} /> : null}
       </View>
+      {leading ? <View className="flex-1 ps-3">{leading}</View> : null}
       {title ? (
         <Text
           accessibilityRole="header"
