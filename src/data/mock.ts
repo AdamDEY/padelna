@@ -1,5 +1,5 @@
 // Mock data shared by the screens until the API exists. Dates are relative to today.
-import type { Club } from "@/types/club";
+import type { Club, ClubDetails } from "@/types/club";
 import type { NextMatch, OpenMatch, PastMatch, PendingReview, UpcomingMatch } from "@/types/match";
 import type { Player } from "@/types/player";
 import type { ResultPost } from "@/types/post";
@@ -147,6 +147,7 @@ export const openMatches: OpenMatch[] = [
     capacity: 4,
     price: 25,
     isMixed: true,
+    isCourtBooked: true,
   },
   {
     id: "match-5",
@@ -375,3 +376,105 @@ export const tunisiaPosts: ResultPost[] = [
 
 /** Players you are already friends with */
 export const myFriendIds = new Set<string>([players.rami.id, players.anis.id]);
+
+openMatches.push({
+  id: "match-9",
+  startsAt: nextWeekday(6, 9),
+  clubName: "Lac Padel Arena",
+  durationMinutes: 90,
+  levelMin: 4.5,
+  levelMax: 5.5,
+  players: [players.sami, players.wael, players.leila],
+  capacity: 4,
+  price: 25,
+  isCourtBooked: false,
+});
+
+const clubDetailsById: Record<string, Omit<ClubDetails, keyof Club>> = {
+  "club-lac": {
+    address: "Les Berges du Lac 2, Tunis",
+    photoCount: 6,
+    indoorCourts: 4,
+    outdoorCourts: 2,
+    openUntil: "00:00",
+    amenities: ["Parking", "Showers", "Racket rental", "Café"],
+    rating: 4.6,
+    reviewCount: 86,
+    ratingBreakdown: [
+      { label: "Court surface", value: 4.8 },
+      { label: "Glass & walls", value: 4.6 },
+      { label: "Lighting", value: 4.9 },
+      { label: "Rental gear", value: 3.6 },
+      { label: "Changing rooms", value: 4.2 },
+    ],
+    reviewTags: [
+      { label: "Fresh turf", count: 41 },
+      { label: "Great lighting", count: 35 },
+      { label: "Clean glass", count: 22 },
+      { label: "Worn rental rackets", count: 18, negative: true },
+      { label: "Flat balls", count: 9, negative: true },
+    ],
+    latestReview: {
+      id: "review-1",
+      author: players.ines,
+      courtName: "Court 3",
+      postedAt: inDays(-3, 20),
+      rating: 5,
+      text: "Turf feels new and the glass is spotless. Bring your own racket, the rental ones are tired.",
+    },
+  },
+  "club-gammarth": {
+    address: "Route de Gammarth, La Marsa",
+    photoCount: 4,
+    indoorCourts: 2,
+    outdoorCourts: 2,
+    openUntil: "23:00",
+    amenities: ["Parking", "Showers", "Pro shop"],
+    rating: 4.3,
+    reviewCount: 41,
+    ratingBreakdown: [
+      { label: "Court surface", value: 4.4 },
+      { label: "Glass & walls", value: 4.1 },
+      { label: "Lighting", value: 4.5 },
+      { label: "Rental gear", value: 4.2 },
+      { label: "Changing rooms", value: 3.8 },
+    ],
+    reviewTags: [
+      { label: "Friendly staff", count: 19 },
+      { label: "Sea breeze", count: 12 },
+      { label: "Small changing rooms", count: 7, negative: true },
+    ],
+  },
+  "club-marsa": {
+    address: "Avenue Habib Bourguiba, La Marsa",
+    photoCount: 3,
+    indoorCourts: 0,
+    outdoorCourts: 5,
+    openUntil: "22:00",
+    amenities: ["Parking", "Café"],
+    rating: 4.1,
+    reviewCount: 27,
+    ratingBreakdown: [
+      { label: "Court surface", value: 4 },
+      { label: "Glass & walls", value: 4.2 },
+      { label: "Lighting", value: 3.7 },
+      { label: "Rental gear", value: 4.3 },
+      { label: "Changing rooms", value: 4 },
+    ],
+    reviewTags: [
+      { label: "Easy booking", count: 14 },
+      { label: "Dim evening light", count: 6, negative: true },
+    ],
+  },
+};
+
+export function getClubDetails(id: string): ClubDetails | undefined {
+  const club = clubsNearby.find((item) => item.id === id);
+  const details = clubDetailsById[id];
+  return club && details ? { ...club, ...details } : undefined;
+}
+
+// Keep the counts on Home in step with the open matches above
+for (const club of clubsNearby) {
+  club.openMatchCount = openMatches.filter((match) => match.clubName === club.name).length;
+}

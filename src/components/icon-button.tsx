@@ -12,6 +12,8 @@ type IconButtonProps = {
   showDot?: boolean;
   /** "primary" = solid blue, for the one main action in a header (e.g. Share a match) */
   variant?: "outline" | "primary";
+  /** Filled icon, for on/off states like a saved heart */
+  filled?: boolean;
   onPress?: () => void;
   className?: string;
 };
@@ -22,6 +24,7 @@ export function IconButton({
   label,
   showDot,
   variant = "outline",
+  filled,
   onPress,
   className,
 }: IconButtonProps) {
@@ -35,7 +38,12 @@ export function IconButton({
       onPress={onPress}
       className={cn("size-11 rounded-full", !isPrimary && "border-line", className)}
     >
-      <Icon as={icon} size={22} color={isPrimary ? "accent-foreground" : "foreground"} />
+      <Icon
+        as={icon}
+        size={22}
+        color={isPrimary ? "accent-foreground" : filled ? "dot" : "foreground"}
+        filled={filled}
+      />
       {showDot ? (
         <View className="absolute end-[11px] top-[10px] size-2 rounded-full bg-dot" />
       ) : null}
