@@ -49,7 +49,7 @@ This is a development build, not Expo Go. CocoaPods needs a UTF-8 locale (`LANG=
 7. **One primary (blue) button per screen**, usually pinned 34 px from the bottom.
 8. **No gradients, emoji or card shadows.** Shadows are only for floating elements (FAB, the centre Create button).
 9. **Icons** come from `lucide-react-native`, always rendered through `<Icon as={Bell} color="muted" />` (`src/components/icon.tsx`). It applies the 1.8 px stroke and takes a theme colour name instead of a hex value.
-10. **Main tabs use the native iOS tab bar** (Expo Router native tabs). Don't recreate the Liquid Glass look by hand.
+10. **Main tabs use the native tab bar**: `NativeTabs` from `expo-router/native-tabs` in `src/app/(tabs)/_layout.tsx` (Home, Matches, Community, Players). Icons are SF Symbols (`sf`) on iOS and Material Symbols (`md`) on Android. Don't recreate the Liquid Glass look by hand. Screens that open on top of the tabs (details, settings) go outside `(tabs)` so the root `Stack` pushes them.
 
 ## Accessibility and copy
 

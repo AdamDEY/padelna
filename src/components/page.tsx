@@ -51,6 +51,9 @@ const bleedClass: Record<PageVariant, string> = {
 const TOP_GAP = 8;
 const BOTTOM_ACTION_GAP = 34;
 const KEYBOARD_GAP = 12;
+// Breathing room under the last element when nothing is pinned below it,
+// e.g. above the tab bar, whose inset iOS adds to the scroll view itself
+const END_GAP = 16;
 const SECTION_GAP = "gap-5";
 
 type PageContextValue = { variant: PageVariant; hasFooter: boolean };
@@ -133,7 +136,7 @@ function PageBody({ scroll = true, className, children }: PageBodyProps) {
   const { variant, hasFooter } = usePage();
   const insets = useSafeAreaInsets();
   const contentClass = cn(marginClass[variant], SECTION_GAP, className);
-  const paddingBottom = hasFooter ? 24 : Math.max(insets.bottom, BOTTOM_ACTION_GAP);
+  const paddingBottom = hasFooter ? 24 : Math.max(insets.bottom, BOTTOM_ACTION_GAP) + END_GAP;
 
   if (!scroll) {
     return (
