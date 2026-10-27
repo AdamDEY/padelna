@@ -1,10 +1,11 @@
 import { Button, cn } from "heroui-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { Star } from "lucide-react-native";
+import { Heart, Star } from "lucide-react-native";
 import { useState } from "react";
 import { Linking, Platform, Pressable, Text, View } from "react-native";
 
-import { ClubHero } from "@/components/club-hero";
+import { CourtHero } from "@/components/court-hero";
+import { IconButton } from "@/components/icon-button";
 import { ClubMatchRow } from "@/components/club-match-row";
 import { ClubReviewCard } from "@/components/club-review-card";
 import { ClubReviewsSummary } from "@/components/club-reviews-summary";
@@ -60,11 +61,18 @@ export default function ClubDetail() {
   return (
     <Page surface underStatusBar>
       <Page.Body className="gap-0 px-0">
-        <ClubHero
+        <CourtHero
           tint={club.placeholderTint}
           photoCount={club.photoCount}
-          isSaved={isSaved}
-          onToggleSave={() => setIsSaved((saved) => !saved)}
+          rightAction={
+            <IconButton
+              icon={Heart}
+              label={isSaved ? "Remove from saved clubs" : "Save club"}
+              filled={isSaved}
+              onPress={() => setIsSaved((saved) => !saved)}
+              className="border-0 bg-white/90"
+            />
+          }
         />
 
         <View

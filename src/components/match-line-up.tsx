@@ -1,0 +1,102 @@
+import { cn, PressableFeedback } from "heroui-native";
+import { Plus, ShieldCheck } from "lucide-react-native";
+import { Fragment } from "react";
+import { Text, View } from "react-native";
+
+import { Icon } from "@/components/icon";
+import { PlayerAvatar } from "@/components/player-avatar";
+import type { Player } from "@/types/player";
+
+const AVATAR_SIZE = 52;
+
+type MatchLineUpProps = {
+  /** In seat order: seats 1–2 are one team, 3–4 the other */
+  players: Player[];
+  capacity: number;
+  /** Players whose level is still settling, shown as "new" */
+  newPlayerIds: Set<string>;
+  /** Tapping an open seat */
+  onTakeSpot?: () => void;
+};
+
+/** Two teams facing each other, with dashed "You?" seats for open spots. */
+export function MatchLineUp({ players, capacity, newPlayerIds, onTakeSpot }: MatchLineUpProps) {
+  const seats = Array.from({ length: capacity }, (_, i) => players[i]);
+  const half = Math.ceil(capacity / 2);
+  const teams = [seats.slice(0, half), seats.slice(half)];
+
+  return (
+    <View className="flex-row items-center gap-2.5 rounded-[20px] bg-background px-2.5 py-3.5">
+      {teams.map((team, teamIndex) => (
+        <Fragment key={teamIndex}>
+          {teamIndex > 0 ? (
+            <Text className="font-black text-[13px] text-muted" accessibilityLabel="versus">
+              VS
+            </Text>
+          ) : null}
+          <View className="flex-1 flex-row justify-around">
+            {team.map((player, seatIndex) =>
+              player ? (
+                <Seat key={player.id} player={player} isNew={newPlayerIds.has(player.id)} />
+              ) : (
+                <OpenSeat
+                  key={`open-${seatIndex}`}
+                  // Even seats are on the left of the court, odd on the right
+                  side={seatIndex % 2 === 0 ? "Left side" : "Right side"}
+                  onPress={onTakeSpot}
+                />
+              ),
+            )}
+          </View>
+        </Fragment>
+      ))}
+    </View>
+  );
+}
+
+function Seat({ player, isNew }: { player: Player; isNew: boolean }) {
+  const level = player.level?.toFixed(1);
+
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${player.firstName}${level ? `, level ${level}` : ""}${isNew ? ", new player" : ""}`}
+      className="items-center gap-1"
+    >
+      <PlayerAvatar player={player} size={AVATAR_SIZE} />
+      <Text numberOfLines={1} className="font-bold text-[13px] text-foreground">
+        {player.firstName}
+      </Text>
+      {level ? (
+        isNew ? (
+          <Text className="font-semibold text-[12px] text-muted">{level} · new</Text>
+        ) : (
+          <View className="flex-row items-center gap-0.5">
+            <Icon as={ShieldCheck} size={12} color="success" />
+            <Text className="font-bold text-[12px] text-success">{level}</Text>
+          </View>
+        )
+      ) : null}
+    </View>
+  );
+}
+
+function OpenSeat({ side, onPress }: { side: string; onPress?: () => void }) {
+  return (
+    <View className="items-center gap-1">
+      <PressableFeedback
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`Take this spot, ${side.toLowerCase()}`}
+        className={cn(
+          "items-center justify-center rounded-full border-2 border-dashed border-accent bg-surface",
+        )}
+        style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
+      >
+        <Icon as={Plus} size={20} color="accent" />
+      </PressableFeedback>
+      <Text className="font-bold text-[13px] text-accent">You?</Text>
+      <Text className="font-normal text-[12px] text-muted">{side}</Text>
+    </View>
+  );
+}

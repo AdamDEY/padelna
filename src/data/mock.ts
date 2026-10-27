@@ -1,6 +1,13 @@
 // Mock data shared by the screens until the API exists. Dates are relative to today.
 import type { Club, ClubDetails } from "@/types/club";
-import type { NextMatch, OpenMatch, PastMatch, PendingReview, UpcomingMatch } from "@/types/match";
+import type {
+  MatchDetails,
+  NextMatch,
+  OpenMatch,
+  PastMatch,
+  PendingReview,
+  UpcomingMatch,
+} from "@/types/match";
 import type { Player } from "@/types/player";
 import type { PlayerProfile } from "@/types/profile";
 import type { ResultPost } from "@/types/post";
@@ -21,11 +28,11 @@ const players = {
   amine: { id: "p-amine", firstName: "Amine", lastName: "Khelifi" },
   mehdi: { id: "p-mehdi", firstName: "Mehdi", lastName: "Trabelsi" },
   sarra: { id: "p-sarra", firstName: "Sarra", lastName: "Hamdi" },
-  karim: { id: "p-karim", firstName: "Karim", lastName: "Jaziri" },
-  nour: { id: "p-nour", firstName: "Nour", lastName: "Saidi" },
-  aziz: { id: "p-aziz", firstName: "Aziz", lastName: "Mansour" },
-  ines: { id: "p-ines", firstName: "Ines", lastName: "Rekik" },
-  omar: { id: "p-omar", firstName: "Omar", lastName: "Bouazizi" },
+  karim: { id: "p-karim", firstName: "Karim", lastName: "Jaziri", level: 4.5 },
+  nour: { id: "p-nour", firstName: "Nour", lastName: "Saidi", level: 4 },
+  aziz: { id: "p-aziz", firstName: "Aziz", lastName: "Mansour", level: 5 },
+  ines: { id: "p-ines", firstName: "Ines", lastName: "Rekik", level: 4 },
+  omar: { id: "p-omar", firstName: "Omar", lastName: "Bouazizi", level: 4.5 },
   rania: { id: "p-rania", firstName: "Rania", lastName: "Gharbi" },
   hedi: { id: "p-hedi", firstName: "Hedi", lastName: "Chaabane" },
   amira: { id: "p-amira", firstName: "Amira", lastName: "Kefi" },
@@ -65,8 +72,8 @@ const players = {
   },
 } satisfies Record<string, Player>;
 
-export const me: Player = { id: "p-youssef", firstName: "Youssef", lastName: "Ben Ali" };
 export const myLevel = 4.5;
+export const me: Player = { id: "p-youssef", firstName: "Youssef", lastName: "Ben Ali", level: myLevel };
 export const myCity = "Tunis";
 
 export const upcomingMatches: UpcomingMatch[] = [
@@ -137,6 +144,12 @@ export const openMatches: OpenMatch[] = [
     players: [players.karim, players.nour, players.aziz],
     capacity: 4,
     price: 20,
+    isCourtBooked: true,
+    courtName: "Court 3",
+    host: players.karim,
+    kind: "friendly",
+    audience: "Men",
+    note: "Relaxed game, good vibes. Balls are on me.",
   },
   {
     id: "match-4",
@@ -693,3 +706,46 @@ export const myProfile: PlayerProfile = {
     { label: "Solid at the net", count: 6 },
   ],
 };
+
+/** Players whose level is still settling (few matches played) */
+export const newPlayerIds = new Set<string>([players.aziz.id]);
+
+/** One match by id, from the open matches or your own upcoming ones */
+export function getMatchDetails(id: string): MatchDetails | undefined {
+  const open = openMatches.find((match) => match.id === id);
+  if (open) {
+    return {
+      id: open.id,
+      startsAt: open.startsAt,
+      durationMinutes: open.durationMinutes,
+      clubName: open.clubName,
+      courtName: open.courtName,
+      isCourtBooked: open.isCourtBooked ?? false,
+      levelMin: open.levelMin,
+      levelMax: open.levelMax,
+      kind: open.kind ?? "friendly",
+      audience: open.audience ?? (open.isMixed ? "Mixed" : undefined),
+      players: open.players,
+      capacity: open.capacity,
+      price: open.price,
+      host: open.host ?? open.players[0],
+      note: open.note,
+    };
+  }
+  const upcoming = upcomingMatches.find((match) => match.id === id);
+  if (upcoming) {
+    return {
+      id: upcoming.id,
+      startsAt: upcoming.startsAt,
+      durationMinutes: 90,
+      clubName: upcoming.clubName,
+      courtName: upcoming.courtName,
+      isCourtBooked: true,
+      kind: "friendly",
+      players: upcoming.players,
+      capacity: upcoming.capacity,
+      host: upcoming.host,
+    };
+  }
+  return undefined;
+}
