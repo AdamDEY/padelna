@@ -20,9 +20,8 @@ export default function SignUp() {
   function createAccount() {
     setSubmitted(true);
     if (!isEmail(email) || password.length < MIN_PASSWORD_LENGTH || !acceptedTerms) return;
-    // No accounts yet; the API will create it. Profile setup comes next once built.
-    toast.show({ variant: "success", label: "Welcome to Padelna!" });
-    router.replace("/");
+    // No accounts yet; the API will create it. Then the player sets up their profile.
+    router.push("/setup");
   }
 
   function showLegal(name: string) {

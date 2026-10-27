@@ -318,6 +318,20 @@ export const allClubs: Club[] = [
 /** Regions in the order the filter shows them */
 export const clubRegions = ["Tunis", "Ariana", "Ben Arous", "Nabeul", "Sousse", "Sfax", "Bizerte"];
 
+/** Cities a player can pick in profile setup */
+export const cities = [
+  "Tunis",
+  "Ariana",
+  "Ben Arous",
+  "La Marsa",
+  "Nabeul",
+  "Hammamet",
+  "Sousse",
+  "Monastir",
+  "Sfax",
+  "Bizerte",
+];
+
 /** The three closest clubs, for Home */
 export const clubsNearby = [...allClubs].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 3);
 

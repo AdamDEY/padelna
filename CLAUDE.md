@@ -62,6 +62,7 @@ Screens are built from the Padelna design canvas: https://claude.ai/artifact/F3x
 
 - `(tabs)/` — Home (`index`), Matches, Community, Players, Profile. Profile is a tab, so it has **no back button**.
 - `(auth)/` — `sign-in`, `sign-up` in their own stack, no tab bar. Not wired to real auth yet; reachable via `com.padelna.app:///sign-in`.
+- `setup` — profile setup after sign up, **one screen whose steps swap in place** (no navigation between steps): step 1 About you (`SetupAboutStep`), step 2 Your game (`SetupGameStep`), step 3 the level quiz (`SetupQuizStep`, questions in `src/data/level-quiz.ts`; 3 of the 8 are active for now, one question per page, picking an answer moves on after 300 ms). The starting-level result screen is not built yet. The screen holds all the values; the header with `SetupProgress` stays put, and Back steps back inside the screen.
 - Pushed over the tabs by the root `Stack` (tab bar hidden): `club/[id]/index`, `club/[id]/reviews`, `clubs` (All clubs), `match/[id]`, `design-check`.
 - Short actions open as **bottom sheets** on the current screen, not as new pages: Create match (from the Home FAB), Rate the club, Connect.
 - Navigate with `router.push({ pathname: "/club/[id]", params: { id } })` and `<Link>` from `expo-router`; read params with `useLocalSearchParams`.
@@ -69,8 +70,8 @@ Screens are built from the Padelna design canvas: https://claude.ai/artifact/F3x
 ## Shared components (reuse before writing new ones)
 
 - **Layout:** `Page` (+ `usePageMargins()`), `SectionHeader`, `CourtHero` (tinted court illustration hero with optional ball and right action), `CourtPlaceholder`.
-- **Controls:** `IconButton` (variants, `showDot`), `SegmentedControl` (same look as HeroUI Tabs on Matches, but works inside bottom sheets), `ChoiceChips`, `FilterChip`, `DateStrip`, `StarRating`, `CreateMatchButton` (Home FAB).
-- **Display:** `Icon`, `PlayerAvatar` (+ `shortNameOf`, `stackTintIndices`), `LevelChip`, `InfoNote` (info / warning), `MatchLineUp`, `LevelChart`, `WinRateBars`, `PadelnaLogo`.
+- **Controls:** `IconButton` (variants, `showDot`), `SegmentedControl` (same look as HeroUI Tabs on Matches, but works inside bottom sheets; use it for every segmented control), `Dropdown` (HeroUI Select with a custom trigger, works in sheets and screens), `OptionTile` (icon-over-label choice tile), `AnswerCard` (radio-style answer, design.md "Answer card"), `PhotoPicker` (round profile photo, `expo-image-picker`), `ChoiceChips`, `FilterChip`, `DateStrip`, `StarRating`, `CreateMatchButton` (Home FAB).
+- **Display:** `SetupProgress` (3-segment "n of 3" bar), `Icon`, `PlayerAvatar` (+ `shortNameOf`, `stackTintIndices`), `LevelChip`, `InfoNote` (info / warning), `MatchLineUp`, `LevelChart`, `WinRateBars`, `PadelnaLogo`.
 - **Cards and rows:** `NextMatchCard`, `OpenMatchCard`, `UpcomingMatchCard`, `MatchListItem`, `PastMatchRow`, `ResultPostCard`, `ClubRow`, `ClubListItem`, `ClubMatchRow`, `ClubReviewCard`, `ClubReviewDetailCard`, `ClubReviewsSummary`, `RateResultBanner`, `ProfileHero`, `HomeHeader`.
 - **Sheets:** `CreateMatchSheet`, `RateClubSheet`, `ConnectSheet`.
 
@@ -92,6 +93,8 @@ Match the existing files; read a neighbouring component before writing a new one
 - Inside a HeroUI `BottomSheet`, use `Pressable` and `ScrollView` from `react-native-gesture-handler`, not from `react-native`, or taps and scrolling are swallowed. HeroUI `Tabs` gets no taps there, so use `SegmentedControl`.
 - Native SwiftUI pickers (date/time) render blank inside a sheet unless it uses `<BottomSheet.Portal disableFullWindowOverlay>`.
 - `Select` inside a sheet needs a custom trigger; long option lists go in a gesture-handler `ScrollView` with a `maxHeight` (see `create-match-sheet.tsx`).
+- HeroUI `Label` only accepts plain text; put extras like "(optional)" in a `Text` next to it.
+- Adding a native module (e.g. `expo-image-picker`) needs a rebuild: `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npx expo run:ios --no-bundler --device "iPhone 17"` (the locale is required by CocoaPods; non-interactive shells don't load `~/.zshrc`).
 - Heroes drawn for a 44 pt status bar must offset by `insets.top - 44` (see `sign-in.tsx`) so they don't collide with taller status bars.
 - In the Simulator, iOS's "Strong Password" overlay blocks typing into `textContentType="newPassword"` fields (no Keychain). That's a simulator limitation; keep the content type.
 
