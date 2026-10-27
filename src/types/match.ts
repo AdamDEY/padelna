@@ -50,6 +50,17 @@ export type PastMatch = {
   sets: [number, number][];
 };
 
+/** A match you played through the app that you can still share to Community */
+export type ShareableMatch = {
+  id: string;
+  playedAt: Date;
+  clubName: string;
+  /** The other players, shown as a small avatar stack */
+  players: Player[];
+  /** What's missing before it makes a full post */
+  missing: "score" | "photo";
+};
+
 /** A finished match still waiting for its result and player ratings */
 export type PendingReview = {
   matchId: string;
