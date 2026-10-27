@@ -10,6 +10,7 @@ import { ClubReviewCard } from "@/components/club-review-card";
 import { ClubReviewsSummary } from "@/components/club-reviews-summary";
 import { Icon } from "@/components/icon";
 import { Page } from "@/components/page";
+import { RateClubSheet } from "@/components/rate-club-sheet";
 import { SectionHeader } from "@/components/section-header";
 import { getClubDetails, openMatches } from "@/data/mock";
 
@@ -30,6 +31,7 @@ export default function ClubDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const club = getClubDetails(id);
   const [isSaved, setIsSaved] = useState(false);
+  const [isRating, setIsRating] = useState(false);
 
   if (!club) {
     return (
@@ -170,7 +172,7 @@ export default function ClubDetail() {
 
             <Pressable
               accessibilityRole="button"
-              onPress={() => router.push({ pathname: "/club/[id]/rate", params: { id: club.id } })}
+              onPress={() => setIsRating(true)}
               className="h-12 flex-row items-center justify-center gap-2 rounded-[14px] border border-primary-outline"
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
             >
@@ -194,6 +196,8 @@ export default function ClubDetail() {
           Create match here
         </Button>
       </Page.Footer>
+
+      <RateClubSheet club={club} isOpen={isRating} onOpenChange={setIsRating} />
     </Page>
   );
 }
