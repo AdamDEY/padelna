@@ -36,7 +36,10 @@ export default function Home() {
           city={myCity}
           hasUnreadNotifications
         />
-        <NextMatchCard match={nextMatch} />
+        <NextMatchCard
+          match={nextMatch}
+          onPress={() => router.push({ pathname: "/match/[id]", params: { id: nextMatch.id } })}
+        />
 
         <View className="gap-3">
           <SectionHeader
@@ -46,7 +49,13 @@ export default function Home() {
           />
           <Page.Carousel itemWidth={OPEN_MATCH_CARD_WIDTH}>
             {matchesForYou.map((match) => (
-              <OpenMatchCard key={match.id} match={match} width={OPEN_MATCH_CARD_WIDTH} />
+              <OpenMatchCard
+                key={match.id}
+                match={match}
+                width={OPEN_MATCH_CARD_WIDTH}
+                onPress={() => router.push({ pathname: "/match/[id]", params: { id: match.id } })}
+                onJoin={() => router.push({ pathname: "/match/[id]", params: { id: match.id } })}
+              />
             ))}
           </Page.Carousel>
         </View>

@@ -25,6 +25,13 @@ export type OpenMatch = {
   isMixed?: boolean;
   /** The host has booked the court */
   isCourtBooked?: boolean;
+  courtName?: string;
+  host?: Player;
+  /** The host's message to players */
+  note?: string;
+  kind?: "friendly" | "competitive";
+  /** Who the match is for */
+  audience?: "Men" | "Women" | "Mixed";
 };
 
 /** A match you are hosting or have joined */
@@ -50,4 +57,24 @@ export type PendingReview = {
   clubName: string;
   /** Last moment the result can be added */
   closesAt: Date;
+};
+
+/** Everything the Match detail screen shows, for open matches and your own */
+export type MatchDetails = {
+  id: string;
+  startsAt: Date;
+  durationMinutes: number;
+  clubName: string;
+  courtName?: string;
+  isCourtBooked: boolean;
+  levelMin?: number;
+  levelMax?: number;
+  kind: "friendly" | "competitive";
+  audience?: "Men" | "Women" | "Mixed";
+  /** In seat order: the first two play together, the last two together */
+  players: Player[];
+  capacity: number;
+  price?: number;
+  host?: Player;
+  note?: string;
 };
