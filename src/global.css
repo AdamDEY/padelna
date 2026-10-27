@@ -108,6 +108,10 @@
   --color-ink-tint-text: #c3cbd6;
   --color-primary-outline: #c9d6ee;
   --color-slot-border: #9db8e6;
+  /* Outline of the small court drawings on unselected "Preferred side" tiles */
+  --color-diagram-line: #9aa4b1;
+  /* Empty radio circle on unselected answer cards */
+  --color-radio-border: #c9d1db;
 
   --color-lime: #d8f06c;
   --color-lime-soft: #e4f59e;
