@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { Page } from "@/components/page";
+import { supabase } from "@/lib/supabase";
 import { isEmail, MIN_PASSWORD_LENGTH } from "@/lib/validation";
 
 export default function SignUp() {
@@ -12,16 +13,29 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   const emailError = submitted && !isEmail(email);
   const passwordError = submitted && password.length < MIN_PASSWORD_LENGTH;
   const termsError = submitted && !acceptedTerms;
 
-  function createAccount() {
+  async function createAccount() {
     setSubmitted(true);
     if (!isEmail(email) || password.length < MIN_PASSWORD_LENGTH || !acceptedTerms) return;
-    // No accounts yet; the API will create it. Then the player sets up their profile.
-    router.push("/setup");
+    setIsCreating(true);
+    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+    setIsCreating(false);
+    if (error) {
+      toast.show({ variant: "danger", label: "Couldn’t create your account", description: error.message });
+      return;
+    }
+    if (data.session) {
+      router.replace("/setup");
+    } else {
+      // Email confirmation is on: there is no session until the player confirms
+      toast.show({ label: "Check your email", description: "Confirm your address, then sign in." });
+      router.replace("/sign-in");
+    }
   }
 
   function showLegal(name: string) {
@@ -97,7 +111,7 @@ export default function SignUp() {
           </View>
         </View>
 
-        <Button size="lg" onPress={createAccount}>
+        <Button size="lg" onPress={createAccount} isDisabled={isCreating}>
           Create account
         </Button>
       </Page.Body>

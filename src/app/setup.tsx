@@ -1,5 +1,5 @@
 import { router, Stack } from "expo-router";
-import { Button } from "heroui-native";
+import { Button, useToast } from "heroui-native";
 import { useEffect, useRef, useState } from "react";
 import { BackHandler, View } from "react-native";
 import Animated, { FadeInLeft, FadeInRight } from "react-native-reanimated";
@@ -14,6 +14,8 @@ import { initialGameValues, SetupGameStep } from "@/components/setup-game-step";
 import { SetupProgress } from "@/components/setup-progress";
 import { SetupQuizStep } from "@/components/setup-quiz-step";
 import { levelQuizQuestions } from "@/data/level-quiz";
+import { saveProfile } from "@/lib/profile";
+import { supabase } from "@/lib/supabase";
 
 type Step = 1 | 2 | 3;
 
@@ -26,6 +28,7 @@ const AUTO_ADVANCE_MS = 300;
  * swap in place on one screen, so the header and progress bar stay put.
  */
 export default function ProfileSetup() {
+  const { toast } = useToast();
   const [step, setStep] = useState<Step>(1);
   const [question, setQuestion] = useState(0);
   // Slide the next page in from the right, the previous one from the left
@@ -34,6 +37,7 @@ export default function ProfileSetup() {
   const [game, setGame] = useState(initialGameValues);
   const [answers, setAnswers] = useState<(number | undefined)[]>([]);
   const [aboutSubmitted, setAboutSubmitted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const advanceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => () => clearTimeout(advanceTimer.current), []);
@@ -71,10 +75,28 @@ export default function ProfileSetup() {
     }
   }
 
-  function finish() {
-    // The starting-level result screen isn't built yet, so setup goes straight to onboarding.
-    // The API will save the profile here.
-    router.push("/onboarding");
+  async function finish() {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        router.replace("/sign-in");
+        return;
+      }
+      await saveProfile(data.user.id, about, game);
+      // The starting-level result screen isn't built yet, so setup goes straight to onboarding.
+      // The quiz answers aren't saved until it is.
+      router.push("/onboarding");
+    } catch (error) {
+      toast.show({
+        variant: "danger",
+        label: "Couldn’t save your profile",
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function next() {
@@ -141,14 +163,14 @@ export default function ProfileSetup() {
 
       <Page.Footer className={isQuiz ? "flex-row gap-2.5" : undefined}>
         {isQuiz ? (
-          <Button size="lg" variant="ghost" onPress={finish} className="px-[18px]">
+          <Button size="lg" variant="ghost" onPress={finish} isDisabled={isSaving} className="px-[18px]">
             <Button.Label className="text-muted">Skip</Button.Label>
           </Button>
         ) : null}
         <Button
           size="lg"
           onPress={next}
-          isDisabled={isQuiz && !hasAnswer}
+          isDisabled={(isQuiz && !hasAnswer) || isSaving}
           className={isQuiz ? "flex-1" : undefined}
         >
           {isLastQuestion ? "See my level" : isQuiz ? "Next" : "Continue"}
