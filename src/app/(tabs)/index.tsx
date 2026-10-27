@@ -27,7 +27,6 @@ export default function Home() {
           level={myLevel}
           city={myCity}
           hasUnreadNotifications
-          onPressProfile={() => router.push("/profile")}
         />
         <NextMatchCard match={nextMatch} />
 

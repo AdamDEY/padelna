@@ -155,11 +155,13 @@ function PageHeader({ back, closeIcon, title, leading, children }: PageHeaderPro
 type PageBodyProps = {
   /** Scrolls by default. Set false for screens that must fit without scrolling. */
   scroll?: boolean;
+  /** Called with the vertical scroll offset as the body scrolls */
+  onScrollY?: (y: number) => void;
   className?: string;
   children: ReactNode;
 };
 
-function PageBody({ scroll = true, className, children }: PageBodyProps) {
+function PageBody({ scroll = true, onScrollY, className, children }: PageBodyProps) {
   const { variant, hasFooter } = usePage();
   const insets = useSafeAreaInsets();
   const contentClass = cn(marginClass[variant], SECTION_GAP, className);
@@ -181,6 +183,8 @@ function PageBody({ scroll = true, className, children }: PageBodyProps) {
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
       showsVerticalScrollIndicator={false}
+      onScroll={onScrollY ? (event) => onScrollY(event.nativeEvent.contentOffset.y) : undefined}
+      scrollEventThrottle={onScrollY ? 32 : undefined}
     >
       {children}
     </ScrollView>

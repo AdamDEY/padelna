@@ -1,4 +1,3 @@
-import { PressableFeedback } from "heroui-native";
 import { Bell, MapPin } from "lucide-react-native";
 import { Text, View } from "react-native";
 
@@ -13,7 +12,6 @@ type HomeHeaderProps = {
   level: number;
   city: string;
   hasUnreadNotifications?: boolean;
-  onPressProfile?: () => void;
   onPressNotifications?: () => void;
 };
 
@@ -23,7 +21,6 @@ export function HomeHeader({
   level,
   city,
   hasUnreadNotifications,
-  onPressProfile,
   onPressNotifications,
 }: HomeHeaderProps) {
   const levelLabel = level.toFixed(1);
@@ -31,20 +28,10 @@ export function HomeHeader({
   return (
     <View className="flex-row items-center gap-3">
       {/* Your own avatar: 2 px primary ring and a lime level badge (design.md).
-          The badge sits outside PressableFeedback, which clips its children. */}
-      <View>
-        <PressableFeedback
-          onPress={onPressProfile}
-          accessibilityRole="button"
-          accessibilityLabel={`Your profile, level ${levelLabel}`}
-          className="rounded-full"
-        >
-          <PlayerAvatar player={player} size={44} ringClassName="border-accent" />
-        </PressableFeedback>
-        <View
-          pointerEvents="none"
-          className="absolute -bottom-1 -end-1.5 rounded-lg border-2 border-background bg-lime px-[5px] py-px"
-        >
+          Your profile lives in its own tab, so the avatar isn't a button. */}
+      <View accessible accessibilityLabel={`You, level ${levelLabel}`}>
+        <PlayerAvatar player={player} size={44} ringClassName="border-accent" />
+        <View className="absolute -bottom-1 -end-1.5 rounded-lg border-2 border-background bg-lime px-[5px] py-px">
           <Text className="font-black text-[10px] text-lime-foreground">{levelLabel}</Text>
         </View>
       </View>

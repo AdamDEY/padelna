@@ -1,5 +1,5 @@
 import { Button, cn } from "heroui-native";
-import { ChevronLeft, SlidersHorizontal } from "lucide-react-native";
+import { SlidersHorizontal } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -15,13 +15,12 @@ const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2 - 3.5;
 
 type ProfileHeroProps = {
   profile: PlayerProfile;
-  onBack: () => void;
   onPressSettings?: () => void;
   onPressFriends?: () => void;
 };
 
 /** Blue profile header: who you are, your level ring with progress, and headline stats. */
-export function ProfileHero({ profile, onBack, onPressSettings, onPressFriends }: ProfileHeroProps) {
+export function ProfileHero({ profile, onPressSettings, onPressFriends }: ProfileHeroProps) {
   const insets = useSafeAreaInsets();
   const lime = useCSSVariable("--color-lime") as string;
   const nextLevel = profile.level + 0.5;
@@ -52,11 +51,6 @@ export function ProfileHero({ profile, onBack, onPressSettings, onPressFriends }
         style={{ top: insets.top + 60 }}
       />
 
-      <View className="flex-row items-center justify-between">
-        <HeroIconButton icon="back" label="Back" onPress={onBack} />
-        <HeroIconButton icon="settings" label="Edit profile and settings" onPress={onPressSettings} />
-      </View>
-
       <View className="flex-row items-center gap-3">
         <PlayerAvatar player={profile.player} size={50} ringClassName="border-white/35" />
         <View className="flex-1">
@@ -71,6 +65,7 @@ export function ProfileHero({ profile, onBack, onPressSettings, onPressFriends }
             {profile.city} · {profile.side} · {profile.playStyle}
           </Text>
         </View>
+        <HeroIconButton label="Edit profile and settings" onPress={onPressSettings} />
       </View>
 
       <View className="flex-row items-center gap-[18px]">
@@ -140,16 +135,8 @@ export function ProfileHero({ profile, onBack, onPressSettings, onPressFriends }
   );
 }
 
-/** Round translucent button for the blue header */
-function HeroIconButton({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: "back" | "settings";
-  label: string;
-  onPress?: () => void;
-}) {
+/** Round translucent settings button for the blue header */
+function HeroIconButton({ label, onPress }: { label: string; onPress?: () => void }) {
   return (
     <Button
       variant="ghost"
@@ -158,11 +145,7 @@ function HeroIconButton({
       onPress={onPress}
       className="size-11 rounded-full bg-white/15"
     >
-      <Icon
-        as={icon === "back" ? ChevronLeft : SlidersHorizontal}
-        size={icon === "back" ? 22 : 20}
-        color="accent-foreground"
-      />
+      <Icon as={SlidersHorizontal} size={20} color="accent-foreground" />
     </Button>
   );
 }
