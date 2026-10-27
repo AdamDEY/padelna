@@ -1,5 +1,5 @@
 import { Button, cn } from "heroui-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { ChevronDown } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -8,6 +8,7 @@ import { ChoiceChips } from "@/components/choice-chips";
 import { ClubReviewDetailCard } from "@/components/club-review-detail-card";
 import { Icon } from "@/components/icon";
 import { Page } from "@/components/page";
+import { RateClubSheet } from "@/components/rate-club-sheet";
 import { getClubDetails } from "@/data/mock";
 import type { ReviewTopic } from "@/types/club";
 
@@ -37,6 +38,7 @@ export default function ClubReviews() {
   const [topic, setTopic] = useState<ReviewTopic | typeof ALL>(ALL);
   const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
   const [helpfulIds, setHelpfulIds] = useState<Set<string>>(() => new Set());
+  const [isRating, setIsRating] = useState(false);
 
   const reviews = useMemo(
     () =>
@@ -177,13 +179,12 @@ export default function ClubReviews() {
       </Page.Body>
 
       <Page.Footer className="border-t border-line bg-surface">
-        <Button
-          size="lg"
-          onPress={() => router.push({ pathname: "/club/[id]/rate", params: { id: club.id } })}
-        >
+        <Button size="lg" onPress={() => setIsRating(true)}>
           Write a review
         </Button>
       </Page.Footer>
+
+      <RateClubSheet club={club} isOpen={isRating} onOpenChange={setIsRating} />
     </Page>
   );
 }
