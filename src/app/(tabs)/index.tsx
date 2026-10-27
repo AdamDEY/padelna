@@ -22,7 +22,13 @@ export default function Home() {
   return (
     <Page>
       <Page.Body>
-        <HomeHeader player={me} level={myLevel} city={myCity} hasUnreadNotifications />
+        <HomeHeader
+          player={me}
+          level={myLevel}
+          city={myCity}
+          hasUnreadNotifications
+          onPressProfile={() => router.push("/profile")}
+        />
         <NextMatchCard match={nextMatch} />
 
         <View className="gap-3">

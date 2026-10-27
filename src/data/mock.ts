@@ -2,6 +2,7 @@
 import type { Club, ClubDetails } from "@/types/club";
 import type { NextMatch, OpenMatch, PastMatch, PendingReview, UpcomingMatch } from "@/types/match";
 import type { Player } from "@/types/player";
+import type { PlayerProfile } from "@/types/profile";
 import type { ResultPost } from "@/types/post";
 
 function inDays(days: number, hours: number, minutes = 0) {
@@ -633,3 +634,62 @@ export const clubReviewTagOptions = [
   { label: "Windy", negative: true },
   { label: "Hard to park", negative: true },
 ];
+
+/** The signed-in player's profile */
+export const myProfile: PlayerProfile = {
+  player: me,
+  city: myCity,
+  side: "Right side",
+  playStyle: "Balanced",
+  level: myLevel,
+  progressToNext: 0.62,
+  nextLevelHint: "About 6 more wins against 4.5+ players should get you there.",
+  matchesPlayed: 32,
+  reviewCount: 14,
+  winRate: 59,
+  streak: "W3",
+  friendCount: 48,
+  levelHistory: [
+    { month: "May", level: 4.0 },
+    { month: "Jun", level: 4.1 },
+    { month: "Jul", level: 4.1 },
+    { month: "Aug", level: 4.25 },
+    { month: "Sep", level: 4.35 },
+    { month: "Oct", level: 4.5 },
+  ],
+  winRates: [
+    {
+      title: "By side",
+      stats: [
+        { label: "Right side", winRate: 68 },
+        { label: "Left side", winRate: 41 },
+      ],
+    },
+    {
+      title: "By opponent level",
+      stats: [
+        { label: "Lower than you", winRate: 82 },
+        { label: "Same level", winRate: 58 },
+        { label: "Higher than you", winRate: 36 },
+      ],
+    },
+    {
+      title: "By set",
+      stats: [
+        { label: "First set", winRate: 63 },
+        { label: "Third set", winRate: 29 },
+      ],
+    },
+  ],
+  bestPartners: [
+    { player: players.amira, matches: 9, wins: 7 },
+    { player: players.karim, matches: 6, wins: 4 },
+    { player: players.mehdi, matches: 4, wins: 2 },
+  ],
+  reputationTags: [
+    { label: "Fair play", count: 12 },
+    { label: "On time", count: 11 },
+    { label: "Great teammate", count: 9 },
+    { label: "Solid at the net", count: 6 },
+  ],
+};
