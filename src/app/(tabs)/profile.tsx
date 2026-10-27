@@ -1,9 +1,10 @@
-import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import { useFocusEffect } from "expo-router";
+import { setStatusBarStyle } from "expo-status-bar";
 import { cn, PressableFeedback } from "heroui-native";
 import { ChevronRight } from "lucide-react-native";
-import type { ReactNode } from "react";
+import { useCallback, useRef, type ReactNode } from "react";
 import { Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/icon";
 import { LevelChart } from "@/components/level-chart";
@@ -13,13 +14,33 @@ import { ProfileHero } from "@/components/profile-hero";
 import { WinRateBars } from "@/components/win-rate-bars";
 import { myProfile } from "@/data/mock";
 
-function goBack() {
-  if (router.canGoBack()) router.back();
-  else router.replace("/");
-}
-
 export default function Profile() {
   const profile = myProfile;
+
+  const insets = useSafeAreaInsets();
+  // White status bar text while the blue header is behind it; dark once it scrolls away
+  const heroHeight = useRef(0);
+  const statusBarOverHero = useRef(true);
+
+  const applyStatusBar = useCallback(() => {
+    setStatusBarStyle(statusBarOverHero.current ? "light" : "dark");
+  }, []);
+
+  function handleScroll(y: number) {
+    const overHero = y < heroHeight.current - insets.top;
+    if (overHero !== statusBarOverHero.current) {
+      statusBarOverHero.current = overHero;
+      applyStatusBar();
+    }
+  }
+
+  // Only while this tab is showing; other tabs have light backgrounds
+  useFocusEffect(
+    useCallback(() => {
+      applyStatusBar();
+      return () => setStatusBarStyle("dark");
+    }, [applyStatusBar]),
+  );
   const first = profile.levelHistory[0];
   const latest = profile.levelHistory[profile.levelHistory.length - 1];
   const levelChange = latest && first ? latest.level - first.level : 0;
@@ -33,10 +54,10 @@ export default function Profile() {
 
   return (
     <Page underStatusBar>
-      {/* White status bar text on the blue header */}
-      <StatusBar style="light" />
-      <Page.Body className="gap-[18px] px-0">
-        <ProfileHero profile={profile} onBack={goBack} />
+      <Page.Body className="gap-[18px] px-0" onScrollY={handleScroll}>
+        <View onLayout={(event) => (heroHeight.current = event.nativeEvent.layout.height)}>
+          <ProfileHero profile={profile} />
+        </View>
 
         <Card>
           <View className="flex-row items-baseline justify-between">

@@ -42,6 +42,13 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Label>Players</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: "person.2", selected: "person.2.fill" }} md="group" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "person.crop.circle", selected: "person.crop.circle.fill" }}
+          md="account_circle"
+        />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
