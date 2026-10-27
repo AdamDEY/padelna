@@ -11,6 +11,7 @@ import { Page, usePageMargins } from "@/components/page";
 import { ResultPostCard } from "@/components/result-post-card";
 import { RISING_PLAYER_WIDTH, RisingPlayer } from "@/components/rising-player";
 import { SectionHeader } from "@/components/section-header";
+import { ShareMatchSheet } from "@/components/share-match-sheet";
 import {
   clubPosts,
   clubsThisWeek,
@@ -19,6 +20,7 @@ import {
   myClubNames,
   myFriendIds,
   risingPlayers,
+  shareableMatches,
   tunisiaCities,
   tunisiaPosts,
 } from "@/data/mock";
@@ -40,6 +42,7 @@ export default function Community() {
   const [connectPost, setConnectPost] = useState<ResultPost | null>(null);
   // Pending connection requests, kept while you switch feeds
   const [requestedIds, setRequestedIds] = useState<Set<string>>(() => new Set());
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   function toggleRequest(playerId: string) {
     setRequestedIds((current) => {
@@ -53,7 +56,12 @@ export default function Community() {
   return (
     <Page>
       <Page.Body>
-        <Page.Title action={<IconButton icon={Plus} label="Share a match" variant="primary" />}>
+        <Page.Title action={<IconButton
+              icon={Plus}
+              label="Share a match"
+              variant="primary"
+              onPress={() => setIsShareOpen(true)}
+            />}>
           Community
         </Page.Title>
 
@@ -71,6 +79,11 @@ export default function Community() {
         friendIds={myFriendIds}
         requestedIds={requestedIds}
         onToggleRequest={toggleRequest}
+      />
+      <ShareMatchSheet
+        isOpen={isShareOpen}
+        onOpenChange={setIsShareOpen}
+        matches={shareableMatches}
       />
     </Page>
   );
