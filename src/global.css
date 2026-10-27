@@ -198,6 +198,25 @@
     align-self: stretch;
   }
 
+  /* Sliders: thin track, round white handles with a 2 px blue ring (design.md) */
+  .slider__track {
+    background-color: var(--color-track);
+    border-radius: 9999px;
+  }
+  .slider__track--orientation-horizontal {
+    height: 8px;
+  }
+  .slider__thumb-container {
+    border-radius: 9999px;
+  }
+  .slider__thumb-container--orientation-horizontal {
+    width: 28px;
+    height: 28px;
+  }
+  .slider__thumb-knob {
+    border-radius: 9999px;
+  }
+
   /* Text inputs: 52 px tall, 16 px text */
   .input__input {
     min-height: 52px;

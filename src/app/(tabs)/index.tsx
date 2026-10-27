@@ -1,7 +1,10 @@
 import { router } from "expo-router";
+import { useState } from "react";
 import { View } from "react-native";
 
 import { ClubRow } from "@/components/club-row";
+import { CreateMatchButton } from "@/components/create-match-button";
+import { CreateMatchSheet } from "@/components/create-match-sheet";
 import { HomeHeader } from "@/components/home-header";
 import { NextMatchCard } from "@/components/next-match-card";
 import { OpenMatchCard } from "@/components/open-match-card";
@@ -18,7 +21,12 @@ const matchesForYou = openMatches
 // Width that shows about 1.5 cards on a phone (design.md)
 const OPEN_MATCH_CARD_WIDTH = 248;
 
+// Room under the last section so the floating Create match button never covers it
+const FLOATING_BUTTON_SPACE = 72;
+
 export default function Home() {
+  const [isCreating, setIsCreating] = useState(false);
+
   return (
     <Page>
       <Page.Body>
@@ -57,7 +65,11 @@ export default function Home() {
             />
           ))}
         </View>
+        <View style={{ height: FLOATING_BUTTON_SPACE }} />
       </Page.Body>
+
+      <CreateMatchButton onPress={() => setIsCreating(true)} />
+      <CreateMatchSheet isOpen={isCreating} onOpenChange={setIsCreating} />
     </Page>
   );
 }
