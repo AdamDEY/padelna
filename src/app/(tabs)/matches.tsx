@@ -14,10 +14,16 @@ import { RateResultBanner } from "@/components/rate-result-banner";
 import { SectionHeader } from "@/components/section-header";
 import { UpcomingMatchCard } from "@/components/upcoming-match-card";
 import { myLevel, pastMatches, pendingReviews } from "@/data/mock";
-import { useMyUpcomingMatches, useOpenMatches } from "@/hooks/useMatches";
+import {
+  myMatchesKey,
+  openMatchesKey,
+  useMyUpcomingMatches,
+  useOpenMatches,
+} from "@/hooks/useMatches";
 import { useMyAccount, useMyProfile } from "@/hooks/useMyProfile";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { compareByFit, isPlayableFit, levelFit } from "@/lib/level-fit";
+import { queryClient } from "@/lib/query-client";
 
 type Segment = "open" | "mine";
 
@@ -37,12 +43,20 @@ function dayLabel(date: Date) {
   return `on ${formatMatchDay(date)}`;
 }
 
+// Pull to refresh reloads both lists, whichever tab you're on
+function refreshMatches() {
+  return Promise.all(
+    [openMatchesKey, myMatchesKey].map((queryKey) => queryClient.refetchQueries({ queryKey })),
+  );
+}
+
 export default function Matches() {
   const [segment, setSegment] = useState<Segment>("open");
 
   return (
     <Page>
-      <Page.Body>
+      {/* The title and the Open / My matches switch stay put while the lists scroll */}
+      <Page.Fixed className="gap-5">
         <Page.Title
           action={
             segment === "open" ? (
@@ -66,7 +80,9 @@ export default function Matches() {
             </Tabs.Trigger>
           </Tabs.List>
         </Tabs>
+      </Page.Fixed>
 
+      <Page.Body onRefresh={refreshMatches}>
         {segment === "open" ? <OpenMatches /> : <MyMatches />}
       </Page.Body>
     </Page>

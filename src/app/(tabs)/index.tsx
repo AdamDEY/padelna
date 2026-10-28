@@ -11,9 +11,10 @@ import { OpenMatchCard } from "@/components/open-match-card";
 import { Page } from "@/components/page";
 import { SectionHeader } from "@/components/section-header";
 import { clubsNearby, myLevel } from "@/data/mock";
-import { useMyUpcomingMatches, useOpenMatches } from "@/hooks/useMatches";
-import { useMyProfile } from "@/hooks/useMyProfile";
+import { myMatchesKey, openMatchesKey, useMyUpcomingMatches, useOpenMatches } from "@/hooks/useMatches";
+import { myProfileKey, useMyProfile } from "@/hooks/useMyProfile";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
+import { queryClient } from "@/lib/query-client";
 
 // How far ahead Home looks for open matches
 const DAYS_AHEAD = 7;
@@ -23,6 +24,15 @@ const OPEN_MATCH_CARD_WIDTH = 248;
 
 // Room under the last section so the floating Create match button never covers it
 const FLOATING_BUTTON_SPACE = 72;
+
+// Pull to refresh reloads everything Home shows that comes from Supabase
+function refreshHome() {
+  return Promise.all(
+    [myProfileKey, myMatchesKey, openMatchesKey].map((queryKey) =>
+      queryClient.refetchQueries({ queryKey }),
+    ),
+  );
+}
 
 export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
@@ -45,13 +55,15 @@ export default function Home() {
 
   return (
     <Page>
-      <Page.Body>
+      <Page.Fixed>
         <HomeHeader
           player={profile?.player}
           level={profile?.level}
           city={profile?.city}
           hasUnreadNotifications
         />
+      </Page.Fixed>
+      <Page.Body onRefresh={refreshHome}>
         {nextMatch ? (
           <NextMatchCard
             match={nextMatch}

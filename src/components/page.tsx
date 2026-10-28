@@ -10,7 +10,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconButton } from "@/components/icon-button";
@@ -165,17 +173,42 @@ function PageHeader({ back, closeIcon, title, leading, children, bar }: PageHead
   );
 }
 
+type PageFixedProps = {
+  className?: string;
+  children: ReactNode;
+};
+
+/** Content pinned above the scrolling body (e.g. the Home header), with the page's side margins. */
+function PageFixed({ className, children }: PageFixedProps) {
+  const { variant } = usePage();
+  return <View className={cn("pb-5", marginClass[variant], className)}>{children}</View>;
+}
+
 type PageBodyProps = {
   /** Scrolls by default. Set false for screens that must fit without scrolling. */
   scroll?: boolean;
   /** Called with the vertical scroll offset as the body scrolls */
   onScrollY?: (y: number) => void;
+  /** Adds pull to refresh; the spinner shows until the returned promise settles */
+  onRefresh?: () => Promise<unknown>;
   className?: string;
   children: ReactNode;
 };
 
-function PageBody({ scroll = true, onScrollY, className, children }: PageBodyProps) {
+function PageBody({ scroll = true, onScrollY, onRefresh, className, children }: PageBodyProps) {
   const { variant, hasFooter } = usePage();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  async function refresh() {
+    if (!onRefresh) return;
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
   const insets = useSafeAreaInsets();
   const contentClass = cn(marginClass[variant], SECTION_GAP, className);
   const paddingBottom = hasFooter ? 24 : Math.max(insets.bottom, BOTTOM_ACTION_GAP) + END_GAP;
@@ -198,6 +231,9 @@ function PageBody({ scroll = true, onScrollY, className, children }: PageBodyPro
       showsVerticalScrollIndicator={false}
       onScroll={onScrollY ? (event) => onScrollY(event.nativeEvent.contentOffset.y) : undefined}
       scrollEventThrottle={onScrollY ? 32 : undefined}
+      refreshControl={
+        onRefresh ? <RefreshControl refreshing={isRefreshing} onRefresh={refresh} /> : undefined
+      }
     >
       {children}
     </ScrollView>
@@ -312,6 +348,7 @@ function PageFooter({ className, children }: PageFooterProps) {
 export const Page = Object.assign(PageRoot, {
   Header: PageHeader,
   Body: PageBody,
+  Fixed: PageFixed,
   Title: PageTitle,
   Carousel: PageCarousel,
   Footer: PageFooter,

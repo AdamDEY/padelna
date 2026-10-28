@@ -16,6 +16,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Uniwind } from "uniwind";
 
+import { useMatchesRealtime } from "@/hooks/useMatchesRealtime";
 import { queryClient } from "@/lib/query-client";
 
 // design.md only defines a light palette
@@ -24,6 +25,8 @@ Uniwind.setTheme("light");
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  useMatchesRealtime();
+
   const [fontsLoaded, fontError] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,

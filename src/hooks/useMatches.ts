@@ -12,16 +12,20 @@ import {
   leaveMatch,
 } from "@/repositories/match-repository";
 
+// Live updates can fail without any sign (a dropped connection, a phone that was asleep), so
+// the lists also reload now and then while they are on screen
+const SAFETY_REFETCH_MS = 30_000;
+
 export const clubsKey = ["clubs"] as const;
 export const myMatchesKey = ["my-matches"] as const;
 export const openMatchesKey = ["open-matches"] as const;
 export const matchKey = (id: string) => ["match", id] as const;
 
-// Everything a match change can touch: the lists and the match itself
-function refreshMatches(matchId: string) {
+// Everything a match change can touch: the lists and the match itself (or every match)
+export function refreshMatches(matchId?: string) {
   queryClient.invalidateQueries({ queryKey: myMatchesKey });
   queryClient.invalidateQueries({ queryKey: openMatchesKey });
-  queryClient.invalidateQueries({ queryKey: matchKey(matchId) });
+  queryClient.invalidateQueries({ queryKey: matchId ? matchKey(matchId) : ["match"] });
 }
 
 /** Every club with its courts, for choosing where a match is booked. */
@@ -40,12 +44,17 @@ export function useOpenMatches(from: Date, to: Date) {
   return useQuery({
     queryKey: [...openMatchesKey, from.toISOString(), to.toISOString()],
     queryFn: () => fetchOpenMatches(from, to),
+    refetchInterval: SAFETY_REFETCH_MS,
   });
 }
 
 /** Matches you host or play in that haven't finished. */
 export function useMyUpcomingMatches() {
-  return useQuery({ queryKey: myMatchesKey, queryFn: fetchMyUpcomingMatches });
+  return useQuery({
+    queryKey: myMatchesKey,
+    queryFn: fetchMyUpcomingMatches,
+    refetchInterval: SAFETY_REFETCH_MS,
+  });
 }
 
 export function useCreateMatch() {

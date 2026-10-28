@@ -1,3 +1,5 @@
+import type { RealtimeChannel } from "@supabase/supabase-js";
+
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
 import type { Club } from "@/types/club";
@@ -8,6 +10,8 @@ import type { Player } from "@/types/player";
 const CAPACITY = 4;
 // A match that started less than this long ago still counts as upcoming (it lasts 90 minutes)
 const STILL_PLAYING_MS = 90 * 60_000;
+// How long to wait before reconnecting after the live connection fails
+const RECONNECT_DELAY_MS = 5_000;
 // Postgres: exclusion constraint violation, i.e. the host already has a match at that time
 const OVERLAP_ERROR_CODE = "23P01";
 
@@ -161,6 +165,50 @@ export async function fetchOpenMatches(from: Date, to: Date): Promise<OpenMatch[
       note: match.note,
       kind: match.kind,
     }));
+}
+
+/**
+ * Listens for joins, leaves, new matches and cancellations. `onChange` gets the id of the
+ * match that changed, or nothing when the connection (re)starts and anything may have changed.
+ * Returns a function that stops listening.
+ */
+export function subscribeToMatchChanges(onChange: (matchId?: string) => void) {
+  let channel: RealtimeChannel | undefined;
+  let retryTimer: ReturnType<typeof setTimeout> | undefined;
+  let isStopped = false;
+
+  function connect() {
+    channel = supabase
+      .channel("match-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, (change) => {
+        const row = (change.new as { id?: string }) ?? {};
+        const old = (change.old as { id?: string }) ?? {};
+        onChange(row.id ?? old.id);
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "match_players" }, (change) => {
+        const row = (change.new as { match_id?: string }) ?? {};
+        const old = (change.old as { match_id?: string }) ?? {};
+        onChange(row.match_id ?? old.match_id);
+      })
+      .subscribe((status) => {
+        if (isStopped) return;
+        // Events sent while the phone was offline or asleep are lost, so catch up on every (re)connect
+        if (status === "SUBSCRIBED") onChange();
+        // A failed channel doesn't recover by itself: drop it and connect again shortly
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          supabase.removeChannel(channel!);
+          retryTimer = setTimeout(connect, RECONNECT_DELAY_MS);
+        }
+      });
+  }
+
+  connect();
+
+  return () => {
+    isStopped = true;
+    clearTimeout(retryTimer);
+    if (channel) supabase.removeChannel(channel);
+  };
 }
 
 /** Takes a seat (1–4) in a match. Throws with a readable message when it can't. */
