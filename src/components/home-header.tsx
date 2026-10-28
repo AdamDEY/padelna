@@ -7,10 +7,11 @@ import { PlayerAvatar } from "@/components/player-avatar";
 import type { Player } from "@/types/player";
 
 type HomeHeaderProps = {
-  player: Player;
+  /** Missing while your profile loads or if it can't load; the header keeps its size with a plain greeting */
+  player?: Player;
   /** The player's level on the 1–7 scale */
-  level: number;
-  city: string;
+  level?: number;
+  city?: string;
   hasUnreadNotifications?: boolean;
   onPressNotifications?: () => void;
 };
@@ -23,18 +24,22 @@ export function HomeHeader({
   hasUnreadNotifications,
   onPressNotifications,
 }: HomeHeaderProps) {
-  const levelLabel = level.toFixed(1);
+  const levelLabel = level?.toFixed(1);
 
   return (
     <View className="flex-row items-center gap-3">
       {/* Your own avatar: 2 px primary ring and a lime level badge (design.md).
           Your profile lives in its own tab, so the avatar isn't a button. */}
-      <View accessible accessibilityLabel={`You, level ${levelLabel}`}>
-        <PlayerAvatar player={player} size={44} ringClassName="border-accent" />
-        <View className="absolute -bottom-1 -end-1.5 rounded-lg border-2 border-background bg-lime px-[5px] py-px">
-          <Text className="font-black text-[10px] text-lime-foreground">{levelLabel}</Text>
+      {player && levelLabel ? (
+        <View accessible accessibilityLabel={`You, level ${levelLabel}`}>
+          <PlayerAvatar player={player} size={44} ringClassName="border-accent" />
+          <View className="absolute -bottom-1 -end-1.5 rounded-lg border-2 border-background bg-lime px-[5px] py-px">
+            <Text className="font-black text-[10px] text-lime-foreground">{levelLabel}</Text>
+          </View>
         </View>
-      </View>
+      ) : (
+        <View aria-hidden className="size-[48px] rounded-full bg-fill" />
+      )}
 
       <View className="flex-1">
         <Text
@@ -42,12 +47,14 @@ export function HomeHeader({
           numberOfLines={1}
           className="font-black text-[20px] tracking-[-0.3px] text-foreground"
         >
-          Hi, {player.firstName}
+          {player ? `Hi, ${player.firstName}` : "Hi there"}
         </Text>
-        <View className="flex-row items-center gap-1">
-          <Icon as={MapPin} size={14} color="muted" />
-          <Text className="font-normal text-[13px] text-muted">{city}</Text>
-        </View>
+        {city ? (
+          <View className="flex-row items-center gap-1">
+            <Icon as={MapPin} size={14} color="muted" />
+            <Text className="font-normal text-[13px] text-muted">{city}</Text>
+          </View>
+        ) : null}
       </View>
 
       <IconButton

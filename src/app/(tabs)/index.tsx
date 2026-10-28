@@ -10,7 +10,8 @@ import { NextMatchCard } from "@/components/next-match-card";
 import { OpenMatchCard } from "@/components/open-match-card";
 import { Page } from "@/components/page";
 import { SectionHeader } from "@/components/section-header";
-import { clubsNearby, me, myCity, myLevel, nextMatch, openMatches } from "@/data/mock";
+import { clubsNearby, myLevel, nextMatch, openMatches } from "@/data/mock";
+import { useMyProfile } from "@/hooks/useMyProfile";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
 
 // Open matches that suit your level, soonest first
@@ -26,14 +27,15 @@ const FLOATING_BUTTON_SPACE = 72;
 
 export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
+  const { data: profile } = useMyProfile();
 
   return (
     <Page>
       <Page.Body>
         <HomeHeader
-          player={me}
-          level={myLevel}
-          city={myCity}
+          player={profile?.player}
+          level={profile?.level}
+          city={profile?.city}
           hasUnreadNotifications
         />
         <NextMatchCard
