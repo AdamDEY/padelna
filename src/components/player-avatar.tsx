@@ -76,6 +76,7 @@ export function PlayerAvatar({
       className={cn(ringClassName && "border-2", ringClassName, className)}
       style={{ width: outer, height: outer }}
     >
+      {player.avatarUrl ? <Avatar.Image source={{ uri: player.avatarUrl }} /> : null}
       <Avatar.Fallback className={tint.bg}>
         <Text className={cn("font-bold", tint.fg)} style={{ fontSize: Math.round(size * 0.35) }}>
           {initialsOf(player)}

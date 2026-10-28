@@ -1,8 +1,8 @@
 import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
-import { cn, PressableFeedback } from "heroui-native";
+import { Button, cn, PressableFeedback, Spinner } from "heroui-native";
 import { ChevronRight } from "lucide-react-native";
-import { useCallback, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -12,19 +12,21 @@ import { Page } from "@/components/page";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { ProfileHero } from "@/components/profile-hero";
 import { WinRateBars } from "@/components/win-rate-bars";
-import { myProfile } from "@/data/mock";
+import { useMyProfile } from "@/lib/use-my-profile";
 
 export default function Profile() {
-  const profile = myProfile;
+  const { data: profile, error, refetch, isRefetching } = useMyProfile();
 
   const insets = useSafeAreaInsets();
   // White status bar text while the blue header is behind it; dark once it scrolls away
   const heroHeight = useRef(0);
   const statusBarOverHero = useRef(true);
+  // The loading and error states have no blue header, so the status bar stays dark there
+  const hasHero = profile !== undefined;
 
   const applyStatusBar = useCallback(() => {
-    setStatusBarStyle(statusBarOverHero.current ? "light" : "dark");
-  }, []);
+    setStatusBarStyle(hasHero && statusBarOverHero.current ? "light" : "dark");
+  }, [hasHero]);
 
   function handleScroll(y: number) {
     const overHero = y < heroHeight.current - insets.top;
@@ -41,6 +43,32 @@ export default function Profile() {
       return () => setStatusBarStyle("dark");
     }, [applyStatusBar]),
   );
+  useEffect(() => {
+    applyStatusBar();
+  }, [applyStatusBar]);
+
+  if (!profile) {
+    return (
+      <Page>
+        <Page.Body scroll={false} className="items-center justify-center gap-3">
+          {error ? (
+            <>
+              <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
+                Couldn’t load your profile
+              </Text>
+              <Text className="text-center font-normal text-[14px] text-muted">{error.message}</Text>
+              <Button variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
+                Try again
+              </Button>
+            </>
+          ) : (
+            <Spinner accessibilityLabel="Loading your profile" />
+          )}
+        </Page.Body>
+      </Page>
+    );
+  }
+
   const first = profile.levelHistory[0];
   const latest = profile.levelHistory[profile.levelHistory.length - 1];
   const levelChange = latest && first ? latest.level - first.level : 0;
