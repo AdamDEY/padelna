@@ -12,7 +12,7 @@ import { Page } from "@/components/page";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { ProfileHero } from "@/components/profile-hero";
 import { WinRateBars } from "@/components/win-rate-bars";
-import { useMyProfile } from "@/lib/use-my-profile";
+import { useMyProfile } from "@/hooks/useMyProfile";
 
 export default function Profile() {
   const { data: profile, error, refetch, isRefetching } = useMyProfile();
