@@ -1,4 +1,4 @@
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { cn, PressableFeedback } from "heroui-native";
 import { ChevronRight } from "lucide-react-native";
@@ -56,7 +56,7 @@ export default function Profile() {
     <Page underStatusBar>
       <Page.Body className="gap-[18px] px-0" onScrollY={handleScroll}>
         <View onLayout={(event) => (heroHeight.current = event.nativeEvent.layout.height)}>
-          <ProfileHero profile={profile} />
+          <ProfileHero profile={profile} onPressSettings={() => router.push("/settings")} />
         </View>
 
         <Card>

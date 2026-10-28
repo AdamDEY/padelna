@@ -18,6 +18,8 @@ type SegmentedControlProps<T extends string> = {
   options: { value: T; label: string; icon?: LucideIcon }[];
   value: T;
   onChange: (value: T) => void;
+  /** Smaller labels, for four short options in a row */
+  size?: "md" | "sm";
 };
 
 /**
@@ -28,6 +30,7 @@ export function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
+  size = "md",
 }: SegmentedControlProps<T>) {
   const [trackWidth, setTrackWidth] = useState(0);
   const optionWidth =
@@ -97,7 +100,8 @@ export function SegmentedControl<T extends string>({
             {option.icon && isSelected ? <Icon as={option.icon} size={16} color="success" /> : null}
             <Text
               className={cn(
-                "font-semibold text-[16px]",
+                "font-semibold",
+                size === "sm" ? "text-[13px]" : "text-[16px]",
                 isSelected ? "text-segment-foreground" : "text-muted",
               )}
             >

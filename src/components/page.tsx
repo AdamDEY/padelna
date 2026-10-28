@@ -56,7 +56,7 @@ const KEYBOARD_GAP = 12;
 const END_GAP = 16;
 const SECTION_GAP = "gap-5";
 
-type PageContextValue = { variant: PageVariant; hasFooter: boolean };
+type PageContextValue = { variant: PageVariant; hasFooter: boolean; underStatusBar: boolean };
 
 const PageContext = createContext<PageContextValue | null>(null);
 
@@ -97,7 +97,7 @@ function PageRoot({ variant = "app", surface, underStatusBar, children }: PagePr
   );
 
   return (
-    <PageContext.Provider value={{ variant, hasFooter }}>
+    <PageContext.Provider value={{ variant, hasFooter, underStatusBar: !!underStatusBar }}>
       <KeyboardAvoidingView
         className={cn("flex-1", surface ? "bg-surface" : "bg-background")}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -120,14 +120,27 @@ type PageHeaderProps = {
   leading?: ReactNode;
   /** Actions on the right, usually IconButtons */
   children?: ReactNode;
+  /**
+   * White bar with a bottom border, for settings-style pages. Use with
+   * <Page underStatusBar> so the bar runs up behind the status bar.
+   */
+  bar?: boolean;
 };
 
-function PageHeader({ back, closeIcon, title, leading, children }: PageHeaderProps) {
-  const { variant } = usePage();
+function PageHeader({ back, closeIcon, title, leading, children, bar }: PageHeaderProps) {
+  const { variant, underStatusBar } = usePage();
+  const insets = useSafeAreaInsets();
   const onBack = typeof back === "function" ? back : () => router.back();
 
   return (
-    <View className={cn("min-h-11 flex-row items-center justify-between pb-4", marginClass[variant])}>
+    <View
+      className={cn(
+        "min-h-11 flex-row items-center justify-between",
+        bar ? "mb-4 border-b border-line bg-surface pb-2.5" : "pb-4",
+        marginClass[variant],
+      )}
+      style={bar && underStatusBar ? { paddingTop: insets.top + TOP_GAP } : undefined}
+    >
       <View className="min-w-11 flex-row">
         {back ? (
           <IconButton
