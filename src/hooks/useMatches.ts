@@ -28,6 +28,25 @@ export function refreshMatches(matchId?: string) {
   queryClient.invalidateQueries({ queryKey: matchId ? matchKey(matchId) : ["match"] });
 }
 
+// Home looks this many days ahead for open matches
+const HOME_OPEN_MATCHES_DAYS = 7;
+// Keyed by the number of days, not by dates, so the splash screen can load the very same query
+export const homeOpenMatchesKey = [...openMatchesKey, "next-days", HOME_OPEN_MATCHES_DAYS] as const;
+
+export function fetchHomeOpenMatches() {
+  const from = new Date();
+  return fetchOpenMatches(from, new Date(from.getTime() + HOME_OPEN_MATCHES_DAYS * 86_400_000));
+}
+
+/** Open matches with a free spot over the next week, for Home. */
+export function useHomeOpenMatches() {
+  return useQuery({
+    queryKey: homeOpenMatchesKey,
+    queryFn: fetchHomeOpenMatches,
+    refetchInterval: SAFETY_REFETCH_MS,
+  });
+}
+
 /** Every club with its courts, for choosing where a match is booked. */
 export function useClubs() {
   // Clubs change rarely (a CMS adds them), so keep them for the whole session

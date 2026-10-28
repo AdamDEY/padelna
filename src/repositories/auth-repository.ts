@@ -8,6 +8,12 @@ export async function getCurrentUser(): Promise<User | null> {
   return data.user;
 }
 
+/** Whether a session is saved on this device. Reads local storage only, so it works offline. */
+export async function hasSavedSession() {
+  const { data } = await supabase.auth.getSession();
+  return data.session !== null;
+}
+
 /**
  * Calls back once with the current state and again whenever the player signs in or out
  * (not on routine token refreshes). Returns a function that stops listening.

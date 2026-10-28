@@ -17,6 +17,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Uniwind } from "uniwind";
 
 import { useMatchesRealtime } from "@/hooks/useMatchesRealtime";
+import { usePrepareHome } from "@/hooks/usePrepareHome";
 import { queryClient } from "@/lib/query-client";
 
 // design.md only defines a light palette
@@ -26,6 +27,8 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useMatchesRealtime();
+  // Home's data loads behind the splash screen, in parallel with the fonts
+  const isHomeReady = usePrepareHome();
 
   const [fontsLoaded, fontError] = useFonts({
     Nunito_400Regular,
@@ -36,10 +39,10 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    if ((fontsLoaded || fontError) && isHomeReady) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, isHomeReady]);
 
   if (!fontsLoaded && !fontError) {
     return null;

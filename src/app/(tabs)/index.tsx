@@ -11,13 +11,11 @@ import { OpenMatchCard } from "@/components/open-match-card";
 import { Page } from "@/components/page";
 import { SectionHeader } from "@/components/section-header";
 import { clubsNearby, myLevel } from "@/data/mock";
-import { myMatchesKey, openMatchesKey, useMyUpcomingMatches, useOpenMatches } from "@/hooks/useMatches";
+import { myMatchesKey, openMatchesKey, useHomeOpenMatches, useMyUpcomingMatches } from "@/hooks/useMatches";
 import { myProfileKey, useMyProfile } from "@/hooks/useMyProfile";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
 import { queryClient } from "@/lib/query-client";
 
-// How far ahead Home looks for open matches
-const DAYS_AHEAD = 7;
 
 // Width that shows about 1.5 cards on a phone (design.md)
 const OPEN_MATCH_CARD_WIDTH = 248;
@@ -41,9 +39,7 @@ export default function Home() {
   const { data: upcoming } = useMyUpcomingMatches();
   const nextMatch = upcoming?.[0];
 
-  const [from] = useState(() => new Date());
-  const to = useMemo(() => new Date(from.getTime() + DAYS_AHEAD * 86_400_000), [from]);
-  const { data: openMatches } = useOpenMatches(from, to);
+  const { data: openMatches } = useHomeOpenMatches();
   // Open matches that suit your level, soonest first
   const matchesForYou = useMemo(
     () =>
