@@ -20,8 +20,8 @@ export type OpenMatch = {
   players: Player[];
   /** Padel is played 2 vs 2 */
   capacity: number;
-  /** Price per player, in TND */
-  price: number;
+  /** Price per player, in TND; left out until the club sets it */
+  price?: number;
   isMixed?: boolean;
   /** The host has booked the court */
   isCourtBooked?: boolean;
@@ -90,4 +90,9 @@ export type MatchDetails = {
   note?: string;
   /** Set for matches that come from the database, to link to the club */
   clubId?: string;
+  /**
+   * One entry per seat (seats 1–2 are one team, 3–4 the other): a player, a guest
+   * of the host, or undefined for an open seat. `players` leaves the open ones out.
+   */
+  seats?: (Player | undefined)[];
 };

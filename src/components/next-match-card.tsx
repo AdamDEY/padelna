@@ -16,7 +16,7 @@ type NextMatchCardProps = {
 export function NextMatchCard({ match, onPress }: NextMatchCardProps) {
   const dateTime = formatMatchDateTime(match.startsAt);
   const countdown = formatCountdown(match.startsAt);
-  const place = `${match.clubName} · ${match.courtName}`;
+  const place = [match.clubName, match.courtName].filter(Boolean).join(" · ");
   const tintIndices = stackTintIndices(match.players);
 
   return (

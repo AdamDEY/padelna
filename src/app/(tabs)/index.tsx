@@ -1,6 +1,6 @@
 import { router } from "expo-router";
-import { useState } from "react";
-import { View } from "react-native";
+import { useMemo, useState } from "react";
+import { Text, View } from "react-native";
 
 import { ClubRow } from "@/components/club-row";
 import { CreateMatchButton } from "@/components/create-match-button";
@@ -10,14 +10,13 @@ import { NextMatchCard } from "@/components/next-match-card";
 import { OpenMatchCard } from "@/components/open-match-card";
 import { Page } from "@/components/page";
 import { SectionHeader } from "@/components/section-header";
-import { clubsNearby, myLevel, nextMatch, openMatches } from "@/data/mock";
+import { clubsNearby, myLevel } from "@/data/mock";
+import { useMyUpcomingMatches, useOpenMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
 
-// Open matches that suit your level, soonest first
-const matchesForYou = openMatches
-  .filter((match) => isPlayableFit(levelFit(myLevel, match.levelMin, match.levelMax)))
-  .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+// How far ahead Home looks for open matches
+const DAYS_AHEAD = 7;
 
 // Width that shows about 1.5 cards on a phone (design.md)
 const OPEN_MATCH_CARD_WIDTH = 248;
@@ -28,6 +27,21 @@ const FLOATING_BUTTON_SPACE = 72;
 export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
   const { data: profile } = useMyProfile();
+  const level = profile?.level ?? myLevel;
+  const { data: upcoming } = useMyUpcomingMatches();
+  const nextMatch = upcoming?.[0];
+
+  const [from] = useState(() => new Date());
+  const to = useMemo(() => new Date(from.getTime() + DAYS_AHEAD * 86_400_000), [from]);
+  const { data: openMatches } = useOpenMatches(from, to);
+  // Open matches that suit your level, soonest first
+  const matchesForYou = useMemo(
+    () =>
+      (openMatches ?? [])
+        .filter((match) => isPlayableFit(levelFit(level, match.levelMin, match.levelMax)))
+        .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime()),
+    [openMatches, level],
+  );
 
   return (
     <Page>
@@ -38,15 +52,17 @@ export default function Home() {
           city={profile?.city}
           hasUnreadNotifications
         />
-        <NextMatchCard
-          match={nextMatch}
-          onPress={() => router.push({ pathname: "/match/[id]", params: { id: nextMatch.id } })}
-        />
+        {nextMatch ? (
+          <NextMatchCard
+            match={nextMatch}
+            onPress={() => router.push({ pathname: "/match/[id]", params: { id: nextMatch.id } })}
+          />
+        ) : null}
 
         <View className="gap-3">
           <SectionHeader
             title="Open matches for you"
-            subtitle={`Around your level ${myLevel.toFixed(1)}`}
+            subtitle={`Around your level ${level.toFixed(1)}`}
             actionLabel="See all"
           />
           <Page.Carousel itemWidth={OPEN_MATCH_CARD_WIDTH}>
@@ -60,6 +76,11 @@ export default function Home() {
               />
             ))}
           </Page.Carousel>
+          {openMatches !== undefined && matchesForYou.length === 0 ? (
+            <Text className="font-normal text-[14px] text-muted">
+              No open matches this week. Create one and invite players.
+            </Text>
+          ) : null}
         </View>
 
         <View className="gap-2.5">
