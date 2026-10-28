@@ -29,6 +29,7 @@ import {
 } from "@/components/settings-section";
 import type { Hand, PlayStyle, Side } from "@/components/setup-game-step";
 import { allClubs, cities, me, myAccount, myClubNames, myProfile, upcomingMatches } from "@/data/mock";
+import { supabase } from "@/lib/supabase";
 
 const BIO_MAX_LENGTH = 150;
 const cityOptions = cities.map((city) => ({ value: city, label: city }));
@@ -89,14 +90,25 @@ export default function Settings() {
     router.replace("/sign-in");
   }
 
-  function logOut() {
-    // No session yet; signing out of the API comes with auth
+  async function logOut() {
+    // Signing out clears the session on the device even if the network call fails
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.show({ variant: "danger", label: "Couldn’t log you out", description: error.message });
+      return;
+    }
     leaveToSignIn();
   }
 
-  function deleteAccount() {
-    // Nothing is deleted yet; the API will remove the account and its data
+  async function deleteAccount() {
+    const { error } = await supabase.rpc("delete_own_account");
+    if (error) {
+      toast.show({ variant: "danger", label: "Couldn’t delete your account", description: error.message });
+      return;
+    }
     setIsDeleteOpen(false);
+    // The account is gone on the server; this clears the session left on the device
+    await supabase.auth.signOut({ scope: "local" });
     toast.show({ label: "Your account was deleted", description: "We're sorry to see you go." });
     leaveToSignIn();
   }
