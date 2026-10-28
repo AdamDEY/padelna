@@ -24,13 +24,14 @@ export function OpenMatchCard({ match, onPress, onJoin, width }: OpenMatchCardPr
   const where = `${match.clubName} · ${match.durationMinutes} min`;
   const spotsLeft = Math.max(match.capacity - match.players.length, 0);
   const spotsLabel = `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"}`;
+  const priceLabel = match.price !== undefined ? `${match.price} TND` : undefined;
   const tintIndices = stackTintIndices(match.players);
 
   return (
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${when}, ${where}, level ${match.levelMin.toFixed(1)} to ${match.levelMax.toFixed(1)}, ${spotsLabel} left, ${match.price} TND`}
+      accessibilityLabel={`${when}, ${where}, level ${match.levelMin.toFixed(1)} to ${match.levelMax.toFixed(1)}, ${spotsLabel} left${priceLabel ? `, ${priceLabel}` : ""}`}
       style={width ? { width } : undefined}
     >
       <View className="gap-3 rounded-[20px] border border-line bg-surface p-4">
@@ -63,7 +64,8 @@ export function OpenMatchCard({ match, onPress, onJoin, width }: OpenMatchCardPr
 
         <View className="flex-row items-center justify-between">
           <Text className="font-normal text-[13px] text-muted">
-            <Text className="font-bold text-foreground">{spotsLabel}</Text> · {match.price} TND
+            <Text className="font-bold text-foreground">{spotsLabel}</Text>
+            {priceLabel ? ` · ${priceLabel}` : ""}
           </Text>
           <Button size="sm" onPress={onJoin} hitSlop={4} className="h-9 rounded-xl px-4">
             Join

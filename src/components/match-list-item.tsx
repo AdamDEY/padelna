@@ -39,6 +39,7 @@ export function MatchListItem({ match, fit, onPress, onAskToJoin }: MatchListIte
   const playable = isPlayableFit(fit);
   const spotsLeft = Math.max(match.capacity - match.players.length, 0);
   const spotsLabel = `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"}`;
+  const priceLabel = match.price !== undefined ? `${match.price} TND` : undefined;
   const tintIndices = stackTintIndices(match.players);
   const note = playable ? fitLabel(fit, match.isMixed) : outOfRangeLabel(fit);
 
@@ -46,7 +47,7 @@ export function MatchListItem({ match, fit, onPress, onAskToJoin }: MatchListIte
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${time}, ${match.durationMinutes} minutes, ${match.clubName}, level ${match.levelMin.toFixed(1)} to ${match.levelMax.toFixed(1)}, ${spotsLabel} left, ${match.price} TND. ${note}`}
+      accessibilityLabel={`${time}, ${match.durationMinutes} minutes, ${match.clubName}, level ${match.levelMin.toFixed(1)} to ${match.levelMax.toFixed(1)}, ${spotsLabel} left${priceLabel ? `, ${priceLabel}` : ""}. ${note}`}
     >
       <View className="flex-row gap-3.5 rounded-[20px] border border-line bg-surface p-3.5">
         <View className="w-[60px] items-center justify-center rounded-[14px] bg-fill">
@@ -78,7 +79,8 @@ export function MatchListItem({ match, fit, onPress, onAskToJoin }: MatchListIte
                   ))}
                 </View>
                 <Text className="font-normal text-[13px] text-muted">
-                  <Text className="font-bold text-foreground">{spotsLabel}</Text> · {match.price} TND
+                  <Text className="font-bold text-foreground">{spotsLabel}</Text>
+                  {priceLabel ? ` · ${priceLabel}` : ""}
                 </Text>
               </View>
               <View className="flex-row items-center gap-1">

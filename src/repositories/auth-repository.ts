@@ -8,6 +8,21 @@ export async function getCurrentUser(): Promise<User | null> {
   return data.user;
 }
 
+/**
+ * Calls back once with the current state and again whenever the player signs in or out
+ * (not on routine token refreshes). Returns a function that stops listening.
+ */
+export function onSignedInChange(callback: (isSignedIn: boolean) => void) {
+  let wasSignedIn: boolean | undefined;
+  const { data } = supabase.auth.onAuthStateChange((_, session) => {
+    const isSignedIn = session !== null;
+    if (isSignedIn === wasSignedIn) return;
+    wasSignedIn = isSignedIn;
+    callback(isSignedIn);
+  });
+  return () => data.subscription.unsubscribe();
+}
+
 /** Signs in with email and password and returns the player's id. Throws with a readable message. */
 export async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });

@@ -5,14 +5,15 @@ import { useState } from "react";
 import { Share, Text, View } from "react-native";
 
 import { CourtHero } from "@/components/court-hero";
-import { HostedMatch } from "@/components/hosted-match";
 import { Icon } from "@/components/icon";
 import { IconButton } from "@/components/icon-button";
-import { MatchLineUp } from "@/components/match-line-up";
+import { MyMatch } from "@/components/my-match";
 import { Page } from "@/components/page";
 import { PlayerAvatar } from "@/components/player-avatar";
-import { allClubs, getMatchDetails, me, myLevel, newPlayerIds } from "@/data/mock";
-import { useMatch } from "@/hooks/useMatches";
+import { seatInfo, TeamPicker } from "@/components/team-picker";
+import { allClubs, getMatchDetails, me, myLevel } from "@/data/mock";
+import type { Player } from "@/types/player";
+import { useJoinMatch, useMatch } from "@/hooks/useMatches";
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
@@ -40,9 +41,12 @@ export default function MatchDetail() {
   const stored = useMatch(id, isStored);
   const { data: account, isPending: isAccountPending } = useMyAccount();
   const match = isStored ? stored.data ?? undefined : getMatchDetails(id);
+  const joinStoredMatch = useJoinMatch();
   const { toast } = useToast();
   const [hasJoined, setHasJoined] = useState(false);
   const [hasAsked, setHasAsked] = useState(false);
+  // The seat you tapped, until you confirm with the Join button
+  const [selectedSeat, setSelectedSeat] = useState<number>();
 
   if (isStored && (stored.isPending || isAccountPending)) {
     return (
@@ -55,8 +59,11 @@ export default function MatchDetail() {
     );
   }
 
-  if (isStored && match && account && match.host?.id === account.id) {
-    return <HostedMatch match={match} />;
+  // A match you host or play in gets its own layout; everyone else sees the public one
+  if (isStored && match && account) {
+    const isHost = match.host?.id === account.id;
+    const isPlaying = match.seats?.some((player) => player?.id === account.id);
+    if (isHost || isPlaying) return <MyMatch match={match} role={isHost ? "host" : "player"} />;
   }
 
   if (!match) {
@@ -80,18 +87,58 @@ export default function MatchDetail() {
   const averageLevel = levels.length
     ? levels.reduce((sum, level) => sum + level, 0) / levels.length
     : undefined;
+  // Matches from the database use your real level; the mock ones keep the placeholder
+  const level = isStored ? account?.level ?? myLevel : myLevel;
   const fit =
     match.levelMin !== undefined && match.levelMax !== undefined
-      ? levelFit(myLevel, match.levelMin, match.levelMax)
+      ? levelFit(level, match.levelMin, match.levelMax)
       : undefined;
   const fits = fit === undefined || isPlayableFit(fit);
+
+  // One entry per seat; open seats are undefined
+  const seats =
+    isStored && match.seats
+      ? match.seats
+      : Array.from({ length: match.capacity }, (_, index) => players[index]);
+  const canPick = !isMine && fits && !isFull;
+  const picked = selectedSeat !== undefined ? seatInfo(selectedSeat, match.capacity) : undefined;
+  const self: Player =
+    isStored && account
+      ? {
+          id: account.id,
+          firstName: account.firstName,
+          lastName: account.lastName,
+          level: account.level,
+          avatarUrl: account.avatarUrl,
+        }
+      : me;
 
   const start = formatTime(match.startsAt);
   const end = formatTime(new Date(match.startsAt.getTime() + match.durationMinutes * 60_000));
   const title = `${dayLabel(match.startsAt)} · ${start} – ${end}`;
 
-  function join() {
-    // Nothing is saved yet; the API will add you to the match
+  function join(seat: number) {
+    if (isStored) {
+      joinStoredMatch.mutate(
+        { matchId: match!.id, seat },
+        {
+          onSuccess: () =>
+            toast.show({
+              variant: "success",
+              label: "You're in",
+              description: `${title} at ${match!.clubName || "a court to be booked"}. See you on court!`,
+            }),
+          onError: (error) =>
+            toast.show({
+              variant: "danger",
+              label: "Couldn’t join the match",
+              description: error.message,
+            }),
+        },
+      );
+      return;
+    }
+    // Nothing is saved yet for the mock matches
     setHasJoined(true);
     toast.show({
       variant: "success",
@@ -101,6 +148,10 @@ export default function MatchDetail() {
   }
 
   function askToJoin() {
+    if (isStored) {
+      toast.show({ label: "Requests are coming soon", description: "For now, join matches at your level." });
+      return;
+    }
     // Nothing is sent yet; the API will notify the host
     setHasAsked(true);
     toast.show({
@@ -214,17 +265,22 @@ export default function MatchDetail() {
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
                 Players · {players.length}/{match.capacity}
               </Text>
-              {averageLevel !== undefined ? (
+              {canPick ? (
+                <Text className="font-bold text-[13px] text-accent">
+                  {selectedSeat === undefined ? "Choose your spot" : "Tap another spot to switch"}
+                </Text>
+              ) : averageLevel !== undefined ? (
                 <Text className="font-normal text-[13px] text-muted">
                   Avg level {averageLevel.toFixed(1)}
                 </Text>
               ) : null}
             </View>
-            <MatchLineUp
-              players={players}
-              capacity={match.capacity}
-              newPlayerIds={newPlayerIds}
-              onTakeSpot={!isMine && fits ? join : undefined}
+            <TeamPicker
+              seats={seats}
+              selectedSeat={selectedSeat}
+              me={self}
+              preferredSide={account?.side}
+              onSelectSeat={canPick ? setSelectedSeat : undefined}
             />
             {fit !== undefined && !isMine ? (
               <View
@@ -236,8 +292,8 @@ export default function MatchDetail() {
                 <Icon as={fits ? Check : Clock} size={18} color={fits ? "success" : "warning"} />
                 <Text className={cn("font-bold text-[14px]", fits ? "text-success" : "text-warning")}>
                   {fits
-                    ? `Your level ${myLevel.toFixed(1)} fits this match`
-                    : `Your level ${myLevel.toFixed(1)} is outside this range. You can still ask the host.`}
+                    ? `Your level ${level.toFixed(1)} fits this match`
+                    : `Your level ${level.toFixed(1)} is outside this range. You can still ask the host.`}
                 </Text>
               </View>
             ) : null}
@@ -274,11 +330,24 @@ export default function MatchDetail() {
           <Button
             size="lg"
             variant={fits ? "primary" : "outline"}
-            isDisabled={isFull || hasAsked}
-            onPress={fits ? join : askToJoin}
+            isDisabled={
+              isFull ||
+              hasAsked ||
+              joinStoredMatch.isPending ||
+              (fits && selectedSeat === undefined)
+            }
+            onPress={fits ? () => join(selectedSeat!) : askToJoin}
             className="flex-1"
           >
-            {isFull ? "Match is full" : fits ? "Join match" : hasAsked ? "Request sent" : "Ask to join"}
+            {isFull
+              ? "Match is full"
+              : !fits
+                ? hasAsked
+                  ? "Request sent"
+                  : "Ask to join"
+                : picked
+                  ? `Join Team ${picked.team} · ${picked.side === "left" ? "Left" : "Right"} side`
+                  : "Pick a spot to join"}
           </Button>
         )}
       </Page.Footer>

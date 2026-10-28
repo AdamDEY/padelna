@@ -10,13 +10,13 @@ import type { Player } from "@/types/player";
 const AVATAR_SIZE = 52;
 
 type MatchLineUpProps = {
-  /** In seat order: seats 1–2 are one team, 3–4 the other */
-  players: Player[];
+  /** In seat order (seats 1–2 are one team, 3–4 the other); an undefined entry is an open seat */
+  players: (Player | undefined)[];
   capacity: number;
   /** Players whose level is still settling, shown as "new" */
   newPlayerIds: Set<string>;
-  /** Tapping an open seat */
-  onTakeSpot?: () => void;
+  /** Tapping an open seat, with its number (1–4) */
+  onTakeSpot?: (seat: number) => void;
   /** Text under an open seat; the host's own view says "Open" instead of "You?" */
   openSeatLabel?: string;
 };
@@ -52,7 +52,7 @@ export function MatchLineUp({
                   // Even seats are on the left of the court, odd on the right
                   side={seatIndex % 2 === 0 ? "Left side" : "Right side"}
                   label={openSeatLabel}
-                  onPress={onTakeSpot}
+                  onPress={onTakeSpot ? () => onTakeSpot(teamIndex * half + seatIndex + 1) : undefined}
                 />
               ),
             )}

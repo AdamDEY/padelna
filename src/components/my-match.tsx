@@ -8,7 +8,8 @@ import { Icon } from "@/components/icon";
 import { MatchLineUp } from "@/components/match-line-up";
 import { Page } from "@/components/page";
 import { SettingsRow, SettingsSection } from "@/components/settings-section";
-import { useCancelMatch } from "@/hooks/useMatches";
+import { useCancelMatch, useLeaveMatch } from "@/hooks/useMatches";
+import { InfoNote } from "@/components/info-note";
 import { formatMatchDay, formatStartsIn } from "@/lib/format-date";
 import type { MatchDetails } from "@/types/match";
 import type { LucideIcon } from "lucide-react-native";
@@ -20,14 +21,21 @@ function formatTime(date: Date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-type HostedMatchProps = {
+type MyMatchProps = {
   match: MatchDetails;
+  /** Hosts get the host tools and can cancel; players can leave */
+  role: "host" | "player";
 };
 
-/** Match detail for the host (design: Your match · hosting): countdown, line-up and host tools. */
-export function HostedMatch({ match }: HostedMatchProps) {
+/**
+ * Match detail for a match you're in (design: Your match · hosting / joined):
+ * countdown, line-up, and host tools or a Leave button.
+ */
+export function MyMatch({ match, role }: MyMatchProps) {
   const { toast } = useToast();
   const cancelMatch = useCancelMatch();
+  const leaveMatch = useLeaveMatch();
+  const isHost = role === "host";
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -53,6 +61,29 @@ export function HostedMatch({ match }: HostedMatchProps) {
   // These need chat, maps and calendar support, or the player-management API
   function comingSoon(label: string) {
     toast.show({ label, description: "This is coming soon." });
+  }
+
+  function confirmLeave() {
+    Alert.alert("Leave this match?", "Your spot will open up for other players.", [
+      { text: "Stay in", style: "cancel" },
+      {
+        text: "Leave match",
+        style: "destructive",
+        onPress: () =>
+          leaveMatch.mutate(match.id, {
+            onSuccess: () => {
+              toast.show({ label: "You left the match" });
+              router.back();
+            },
+            onError: (error) =>
+              toast.show({
+                variant: "danger",
+                label: "Couldn’t leave the match",
+                description: error.message,
+              }),
+          }),
+      },
+    ]);
   }
 
   function confirmCancel() {
@@ -91,8 +122,14 @@ export function HostedMatch({ match }: HostedMatchProps) {
           </Text>
         }
       >
-        <Text className="self-center overflow-hidden rounded-xl bg-accent px-3 py-1.5 font-bold text-[12px] text-accent-foreground">
-          Hosting
+        <Text
+          className={
+            isHost
+              ? "self-center overflow-hidden rounded-xl bg-accent px-3 py-1.5 font-bold text-[12px] text-accent-foreground"
+              : "self-center overflow-hidden rounded-xl bg-success-soft px-3 py-1.5 font-bold text-[12px] text-success"
+          }
+        >
+          {isHost ? "Hosting" : "Joined"}
         </Text>
       </Page.Header>
 
@@ -102,12 +139,14 @@ export function HostedMatch({ match }: HostedMatchProps) {
             <Text className="font-bold text-[12px] uppercase tracking-[0.8px] text-primary-tint-text">
               Starts in
             </Text>
-            <View className="flex-row items-center gap-1 rounded-[10px] bg-lime px-2.5 py-1">
-              <Icon as={match.isCourtBooked ? Check : Clock} size={12} color="lime-foreground" />
-              <Text className="font-bold text-[12px] text-lime-foreground">
-                {match.isCourtBooked ? "Court booked" : "Not booked yet"}
-              </Text>
-            </View>
+            {isHost ? (
+              <View className="flex-row items-center gap-1 rounded-[10px] bg-lime px-2.5 py-1">
+                <Icon as={match.isCourtBooked ? Check : Clock} size={12} color="lime-foreground" />
+                <Text className="font-bold text-[12px] text-lime-foreground">
+                  {match.isCourtBooked ? "Court booked" : "Not booked yet"}
+                </Text>
+              </View>
+            ) : null}
           </View>
           <Text className="font-black text-[32px] leading-[32px] tracking-[-0.8px] text-accent-foreground">
             {formatStartsIn(match.startsAt, now)}
@@ -119,6 +158,12 @@ export function HostedMatch({ match }: HostedMatchProps) {
             <Text className="font-normal text-[14px] text-primary-tint-text">{details}</Text>
           </View>
         </View>
+
+        {!isHost && !match.isCourtBooked ? (
+          <InfoNote icon={Clock} tone="warning" title="Court not booked yet.">
+            {`${match.host?.firstName ?? "The host"} will confirm once it’s reserved.`}
+          </InfoNote>
+        ) : null}
 
         <View className="flex-row gap-2.5">
           <ActionTile icon={MapPin} label="Directions" onPress={() => comingSoon("Directions")} />
@@ -135,22 +180,25 @@ export function HostedMatch({ match }: HostedMatchProps) {
             <Text accessibilityRole="header" className="font-black text-[15px] text-foreground">
               Line-up · {match.players.length}/{match.capacity}
             </Text>
-            <PressableFeedback
-              onPress={() => comingSoon("Swapping teams")}
-              accessibilityRole="button"
-              hitSlop={8}
-            >
-              <Text className="font-bold text-[13px] text-accent">Swap teams</Text>
-            </PressableFeedback>
+            {isHost ? (
+              <PressableFeedback
+                onPress={() => comingSoon("Swapping teams")}
+                accessibilityRole="button"
+                hitSlop={8}
+              >
+                <Text className="font-bold text-[13px] text-accent">Swap teams</Text>
+              </PressableFeedback>
+            ) : null}
           </View>
           <MatchLineUp
-            players={match.players}
+            players={match.seats ?? match.players}
             capacity={match.capacity}
             newPlayerIds={new Set()}
             openSeatLabel="Open"
           />
         </View>
 
+        {isHost ? (
         <SettingsSection title="Host tools">
           <SettingsRow
             label="Edit time, level or type"
@@ -167,17 +215,20 @@ export function HostedMatch({ match }: HostedMatchProps) {
             onPress={() => comingSoon("Managing players")}
           />
         </SettingsSection>
+        ) : null}
       </Page.Body>
 
       <Page.Footer>
         <Button
           size="lg"
           variant="outline"
-          onPress={confirmCancel}
-          isDisabled={cancelMatch.isPending}
+          onPress={isHost ? confirmCancel : confirmLeave}
+          isDisabled={cancelMatch.isPending || leaveMatch.isPending}
           className="border-attention-outline bg-surface"
         >
-          <Button.Label className="text-attention-action">Cancel match</Button.Label>
+          <Button.Label className="text-attention-action">
+            {isHost ? "Cancel match" : "Leave match"}
+          </Button.Label>
         </Button>
       </Page.Footer>
     </Page>

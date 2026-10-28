@@ -13,11 +13,17 @@ import { PastMatchRow } from "@/components/past-match-row";
 import { RateResultBanner } from "@/components/rate-result-banner";
 import { SectionHeader } from "@/components/section-header";
 import { UpcomingMatchCard } from "@/components/upcoming-match-card";
-import { myLevel, openMatches, pastMatches, pendingReviews } from "@/data/mock";
-import { useMyUpcomingMatches } from "@/hooks/useMatches";
-import { useMyAccount } from "@/hooks/useMyProfile";
+import { myLevel, pastMatches, pendingReviews } from "@/data/mock";
+import {
+  myMatchesKey,
+  openMatchesKey,
+  useMyUpcomingMatches,
+  useOpenMatches,
+} from "@/hooks/useMatches";
+import { useMyAccount, useMyProfile } from "@/hooks/useMyProfile";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { compareByFit, isPlayableFit, levelFit } from "@/lib/level-fit";
+import { queryClient } from "@/lib/query-client";
 
 type Segment = "open" | "mine";
 
@@ -37,12 +43,20 @@ function dayLabel(date: Date) {
   return `on ${formatMatchDay(date)}`;
 }
 
+// Pull to refresh reloads both lists, whichever tab you're on
+function refreshMatches() {
+  return Promise.all(
+    [openMatchesKey, myMatchesKey].map((queryKey) => queryClient.refetchQueries({ queryKey })),
+  );
+}
+
 export default function Matches() {
   const [segment, setSegment] = useState<Segment>("open");
 
   return (
     <Page>
-      <Page.Body>
+      {/* The title and the Open / My matches switch stay put while the lists scroll */}
+      <Page.Fixed className="gap-5">
         <Page.Title
           action={
             segment === "open" ? (
@@ -66,7 +80,9 @@ export default function Matches() {
             </Tabs.Trigger>
           </Tabs.List>
         </Tabs>
+      </Page.Fixed>
 
+      <Page.Body onRefresh={refreshMatches}>
         {segment === "open" ? <OpenMatches /> : <MyMatches />}
       </Page.Body>
     </Page>
@@ -77,6 +93,18 @@ function OpenMatches() {
   const [today] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState(today);
   const [activeFilters, setActiveFilters] = useState<Set<FilterId>>(() => new Set(["my-level"]));
+  const { data: profile } = useMyProfile();
+  const level = profile?.level ?? myLevel;
+
+  const dayStart = useMemo(
+    () => new Date(selectedDay.getFullYear(), selectedDay.getMonth(), selectedDay.getDate()),
+    [selectedDay],
+  );
+  const dayEnd = useMemo(
+    () => new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1),
+    [dayStart],
+  );
+  const { data: openMatches, error, refetch, isRefetching } = useOpenMatches(dayStart, dayEnd);
 
   function toggleFilter(id: FilterId) {
     setActiveFilters((current) => {
@@ -87,15 +115,15 @@ function OpenMatches() {
     });
   }
 
-  // Only "My level" filters for now; the others need club and match-type data from the API
+  // "My level" and "Friendly" filter for now; "Any time" and "My clubs" need more data
   const matches = useMemo(
     () =>
-      openMatches
-        .filter((match) => daysUntil(match.startsAt, selectedDay) === 0)
-        .map((match) => ({ ...match, fit: levelFit(myLevel, match.levelMin, match.levelMax) }))
+      (openMatches ?? [])
+        .map((match) => ({ ...match, fit: levelFit(level, match.levelMin, match.levelMax) }))
         .filter((match) => !activeFilters.has("my-level") || isPlayableFit(match.fit))
+        .filter((match) => !activeFilters.has("friendly") || match.kind === "friendly")
         .sort(compareByFit),
-    [selectedDay, activeFilters],
+    [openMatches, level, activeFilters],
   );
 
   return (
@@ -120,10 +148,29 @@ function OpenMatches() {
         </Text>
 
         {matches.map((match) => (
-          <MatchListItem key={match.id} match={match} fit={match.fit} />
+          <MatchListItem
+            key={match.id}
+            match={match}
+            fit={match.fit}
+            onPress={() => router.push({ pathname: "/match/[id]", params: { id: match.id } })}
+            onAskToJoin={() => router.push({ pathname: "/match/[id]", params: { id: match.id } })}
+          />
         ))}
 
-        {matches.length === 0 ? (
+        {error ? (
+          <View className="items-start gap-2">
+            <Text className="font-normal text-[14px] text-muted">
+              Couldn’t load matches. {error.message}
+            </Text>
+            <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
+              Try again
+            </Button>
+          </View>
+        ) : openMatches === undefined ? (
+          <Spinner accessibilityLabel="Loading matches" className="self-start" />
+        ) : null}
+
+        {openMatches !== undefined && matches.length === 0 ? (
           <View className="items-center gap-1 rounded-[20px] border border-line bg-surface p-6">
             <Text className="font-bold text-[15px] text-foreground">No open matches yet</Text>
             <Text className="text-center font-normal text-[14px] text-muted">

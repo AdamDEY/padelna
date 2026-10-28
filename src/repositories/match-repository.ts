@@ -1,13 +1,17 @@
+import type { RealtimeChannel } from "@supabase/supabase-js";
+
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
 import type { Club } from "@/types/club";
-import type { MatchDetails, UpcomingMatch } from "@/types/match";
+import type { MatchDetails, OpenMatch, UpcomingMatch } from "@/types/match";
 import type { Player } from "@/types/player";
 
 // Padel is 2 vs 2
 const CAPACITY = 4;
 // A match that started less than this long ago still counts as upcoming (it lasts 90 minutes)
 const STILL_PLAYING_MS = 90 * 60_000;
+// How long to wait before reconnecting after the live connection fails
+const RECONNECT_DELAY_MS = 5_000;
 // Postgres: exclusion constraint violation, i.e. the host already has a match at that time
 const OVERLAP_ERROR_CODE = "23P01";
 
@@ -119,6 +123,106 @@ export async function fetchMatch(matchId: string): Promise<MatchDetails | null> 
   return toMatchDetails(data as unknown as MatchRow, cards);
 }
 
+/**
+ * Open matches with a free spot that start in the given window, soonest first.
+ * Matches you host or already play in are left out; they are under My matches.
+ */
+export async function fetchOpenMatches(from: Date, to: Date): Promise<OpenMatch[]> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("You’re signed out. Sign in again.");
+
+  const { data, error } = await supabase
+    .from("matches")
+    .select(MATCH_SELECT)
+    .eq("status", "open")
+    .gt("starts_at", new Date().toISOString())
+    .gte("starts_at", from.toISOString())
+    .lt("starts_at", to.toISOString())
+    .order("starts_at");
+  if (error) throw error;
+
+  const rows = (data as unknown as MatchRow[]).filter(
+    (row) => !row.match_players.some((seat) => seat.player_id === user.id),
+  );
+  const cards = await fetchPlayerCards(rows);
+
+  return rows
+    .map((row) => toMatchDetails(row, cards))
+    .filter((match) => match.players.length < match.capacity)
+    .map((match) => ({
+      id: match.id,
+      startsAt: match.startsAt,
+      clubName: match.isCourtBooked ? match.clubName : "Court not booked yet",
+      durationMinutes: match.durationMinutes,
+      levelMin: match.levelMin ?? 1,
+      levelMax: match.levelMax ?? 7,
+      players: match.players,
+      capacity: match.capacity,
+      price: match.price,
+      isCourtBooked: match.isCourtBooked,
+      courtName: match.courtName,
+      host: match.host,
+      note: match.note,
+      kind: match.kind,
+    }));
+}
+
+/**
+ * Listens for joins, leaves, new matches and cancellations. `onChange` gets the id of the
+ * match that changed, or nothing when the connection (re)starts and anything may have changed.
+ * Returns a function that stops listening.
+ */
+export function subscribeToMatchChanges(onChange: (matchId?: string) => void) {
+  let channel: RealtimeChannel | undefined;
+  let retryTimer: ReturnType<typeof setTimeout> | undefined;
+  let isStopped = false;
+
+  function connect() {
+    channel = supabase
+      .channel("match-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, (change) => {
+        const row = (change.new as { id?: string }) ?? {};
+        const old = (change.old as { id?: string }) ?? {};
+        onChange(row.id ?? old.id);
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "match_players" }, (change) => {
+        const row = (change.new as { match_id?: string }) ?? {};
+        const old = (change.old as { match_id?: string }) ?? {};
+        onChange(row.match_id ?? old.match_id);
+      })
+      .subscribe((status) => {
+        if (isStopped) return;
+        // Events sent while the phone was offline or asleep are lost, so catch up on every (re)connect
+        if (status === "SUBSCRIBED") onChange();
+        // A failed channel doesn't recover by itself: drop it and connect again shortly
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          supabase.removeChannel(channel!);
+          retryTimer = setTimeout(connect, RECONNECT_DELAY_MS);
+        }
+      });
+  }
+
+  connect();
+
+  return () => {
+    isStopped = true;
+    clearTimeout(retryTimer);
+    if (channel) supabase.removeChannel(channel);
+  };
+}
+
+/** Takes a seat (1–4) in a match. Throws with a readable message when it can't. */
+export async function joinMatch(matchId: string, seat: number) {
+  const { error } = await supabase.rpc("join_match", { p_match_id: matchId, p_seat: seat });
+  if (error) throw error;
+}
+
+/** Leaves a match you joined, which reopens your seat. */
+export async function leaveMatch(matchId: string) {
+  const { error } = await supabase.rpc("leave_match", { p_match_id: matchId });
+  if (error) throw error;
+}
+
 /** Open matches you host or play in that haven't finished, soonest first. */
 export async function fetchMyUpcomingMatches(): Promise<UpcomingMatch[]> {
   const user = await getCurrentUser();
@@ -175,19 +279,18 @@ async function fetchPlayerCards(rows: MatchRow[]) {
 }
 
 function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails {
-  const joined = [...row.match_players]
-    .sort((a, b) => a.seat - b.seat)
-    .map((seat) => cards.get(seat.player_id))
-    .filter((player): player is Player => player !== undefined);
-
-  // The host brings the players beyond the open spots, who aren't on the app: show them as guests
-  const openSpots = Math.max(row.players_needed - (joined.length - 1), 0);
-  const guestCount = Math.max(CAPACITY - joined.length - openSpots, 0);
-  const guests: Player[] = Array.from({ length: guestCount }, (_, i) => ({
-    id: `guest-${row.id}-${i}`,
-    firstName: "Guest",
-    lastName: "",
-  }));
+  // The host takes seat 1 and brings guests (who aren't on the app) for the seats after it;
+  // the last players_needed seats are open to other players
+  const guestSeats = CAPACITY - row.players_needed;
+  const seats: (Player | undefined)[] = Array.from({ length: CAPACITY }, (_, index) => {
+    const seat = index + 1;
+    const taken = row.match_players.find((item) => item.seat === seat);
+    if (taken) return cards.get(taken.player_id);
+    if (seat > 1 && seat <= guestSeats) {
+      return { id: `guest-${row.id}-${seat}`, firstName: "Guest", lastName: "" };
+    }
+    return undefined;
+  });
 
   return {
     id: row.id,
@@ -200,7 +303,8 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     levelMin: row.level_min,
     levelMax: row.level_max,
     kind: row.kind,
-    players: [...joined, ...guests],
+    players: seats.filter((player): player is Player => player !== undefined),
+    seats,
     capacity: CAPACITY,
     price: row.price ?? undefined,
     host: cards.get(row.host_id),
