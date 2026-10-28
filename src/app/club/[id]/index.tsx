@@ -6,14 +6,17 @@ import { Linking, Platform, Pressable, Text, View } from "react-native";
 
 import { CourtHero } from "@/components/court-hero";
 import { IconButton } from "@/components/icon-button";
+import { BookingNoticeSheet } from "@/components/booking-notice-sheet";
 import { ClubMatchRow } from "@/components/club-match-row";
 import { ClubReviewCard } from "@/components/club-review-card";
 import { ClubReviewsSummary } from "@/components/club-reviews-summary";
+import { CreateMatchSheet } from "@/components/create-match-sheet";
 import { Icon } from "@/components/icon";
 import { Page } from "@/components/page";
 import { RateClubSheet } from "@/components/rate-club-sheet";
 import { SectionHeader } from "@/components/section-header";
 import { getClubDetails, openMatches } from "@/data/mock";
+import { shouldSkipBookingNotice } from "@/lib/booking-notice";
 
 // How far the white sheet slides up over the photo
 const SHEET_OVERLAP = 34;
@@ -33,6 +36,14 @@ export default function ClubDetail() {
   const club = getClubDetails(id);
   const [isSaved, setIsSaved] = useState(false);
   const [isRating, setIsRating] = useState(false);
+  const [isShowingNotice, setIsShowingNotice] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Players who ticked "Don't show this again" go straight to the form
+  async function startCreating() {
+    if (await shouldSkipBookingNotice()) setIsCreating(true);
+    else setIsShowingNotice(true);
+  }
 
   if (!club) {
     return (
@@ -200,12 +211,23 @@ export default function ClubDetail() {
         >
           Directions
         </Button>
-        <Button size="lg" className="flex-[1.4]">
+        <Button size="lg" className="flex-[1.4]" onPress={startCreating}>
           Create match here
         </Button>
       </Page.Footer>
 
       <RateClubSheet club={club} isOpen={isRating} onOpenChange={setIsRating} />
+      <BookingNoticeSheet
+        clubName={club.name}
+        phone={club.phone}
+        isOpen={isShowingNotice}
+        onOpenChange={setIsShowingNotice}
+        onCreate={() => {
+          setIsShowingNotice(false);
+          setIsCreating(true);
+        }}
+      />
+      <CreateMatchSheet isOpen={isCreating} onOpenChange={setIsCreating} initialClubName={club.name} />
     </Page>
   );
 }
