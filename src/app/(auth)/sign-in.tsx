@@ -6,7 +6,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Page } from "@/components/page";
 import { PadelnaLogo } from "@/components/padelna-logo";
-import { isEmailOrPhone } from "@/lib/validation";
+import { hasProfile } from "@/lib/profile";
+import { supabase } from "@/lib/supabase";
+import { isEmail, isEmailOrPhone } from "@/lib/validation";
 
 // The design is drawn for a 44 pt status bar; taller ones push everything down
 const DESIGN_STATUS_BAR = 44;
@@ -21,15 +23,36 @@ export default function SignIn() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const identifierError = submitted && !isEmailOrPhone(identifier);
   const passwordError = submitted && password.length === 0;
 
-  function signIn() {
+  async function signIn() {
     setSubmitted(true);
     if (!isEmailOrPhone(identifier) || password.length === 0) return;
-    // No accounts yet; the API will check the credentials
-    router.replace("/");
+    if (!isEmail(identifier)) {
+      // Phone sign-in needs an SMS provider
+      toast.show({ label: "Phone sign-in is coming soon", description: "For now, use your email." });
+      return;
+    }
+    setIsSigningIn(true);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: identifier.trim(),
+      password,
+    });
+    if (error) {
+      setIsSigningIn(false);
+      toast.show({ variant: "danger", label: "Couldn’t sign you in", description: error.message });
+      return;
+    }
+    try {
+      // A player who signed up but never finished setup picks it up where they left off
+      router.replace((await hasProfile(data.user.id)) ? "/" : "/setup");
+    } catch {
+      setIsSigningIn(false);
+      toast.show({ variant: "danger", label: "Something went wrong", description: "Please try again." });
+    }
   }
 
   return (
@@ -114,7 +137,7 @@ export default function SignIn() {
             <FieldError>Enter your password.</FieldError>
           </TextField>
 
-          <Button size="lg" onPress={signIn} className="mt-1">
+          <Button size="lg" onPress={signIn} isDisabled={isSigningIn} className="mt-1">
             Sign in
           </Button>
         </View>
