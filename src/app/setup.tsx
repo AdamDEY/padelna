@@ -1,5 +1,5 @@
 import { router, Stack } from "expo-router";
-import { Button, useToast } from "heroui-native";
+import { Button } from "heroui-native";
 import { useEffect, useRef, useState } from "react";
 import { BackHandler, View } from "react-native";
 import Animated, { FadeInLeft, FadeInRight } from "react-native-reanimated";
@@ -26,7 +26,6 @@ const AUTO_ADVANCE_MS = 300;
  * swap in place on one screen, so the header and progress bar stay put.
  */
 export default function ProfileSetup() {
-  const { toast } = useToast();
   const [step, setStep] = useState<Step>(1);
   const [question, setQuestion] = useState(0);
   // Slide the next page in from the right, the previous one from the left
@@ -73,9 +72,9 @@ export default function ProfileSetup() {
   }
 
   function finish() {
-    // The starting-level result screen isn't built yet; the API will save the profile then
-    toast.show({ label: "Your starting level is next", description: "For now, welcome to Padelna!" });
-    router.replace("/");
+    // The starting-level result screen isn't built yet, so setup goes straight to onboarding.
+    // The API will save the profile here.
+    router.push("/onboarding");
   }
 
   function next() {
