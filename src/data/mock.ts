@@ -77,6 +77,19 @@ export const myLevel = 4.5;
 export const me: Player = { id: "p-youssef", firstName: "Youssef", lastName: "Ben Ali", level: myLevel };
 export const myCity = "Tunis";
 
+/** Your account details and settings, for the Edit profile screen */
+export const myAccount = {
+  phone: "20 123 456",
+  email: "youssef@example.com",
+  bio: "Weekend player, love long rallies. Always up for a game.",
+  hand: "right" as const,
+  side: "right" as const,
+  playStyle: "balanced" as const,
+  notifications: { newMatches: true, invites: true, chat: true },
+  matchVisibility: "Friends",
+  language: "English",
+};
+
 export const upcomingMatches: UpcomingMatch[] = [
   {
     id: "match-1",

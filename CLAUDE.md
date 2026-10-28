@@ -63,17 +63,17 @@ Screens are built from the Padelna design canvas: https://claude.ai/artifact/F3x
 - `(tabs)/` — Home (`index`), Matches, Community, Players, Profile. Profile is a tab, so it has **no back button**.
 - `(auth)/` — `sign-in`, `sign-up` in their own stack, no tab bar. Not wired to real auth yet; reachable via `com.padelna.app:///sign-in`.
 - `setup` — profile setup after sign up, **one screen whose steps swap in place** (no navigation between steps): step 1 About you (`SetupAboutStep`), step 2 Your game (`SetupGameStep`), step 3 the level quiz (`SetupQuizStep`, questions in `src/data/level-quiz.ts`; 3 of the 8 are active for now, one question per page, picking an answer moves on after 300 ms). The starting-level result screen is not built yet. The screen holds all the values; the header with `SetupProgress` stays put, and Back steps back inside the screen.
-- Pushed over the tabs by the root `Stack` (tab bar hidden): `club/[id]/index`, `club/[id]/reviews`, `clubs` (All clubs), `match/[id]`, `design-check`.
+- Pushed over the tabs by the root `Stack` (tab bar hidden): `club/[id]/index`, `club/[id]/reviews`, `clubs` (All clubs), `match/[id]`, `settings` (Edit profile, from the Profile hero's top-right button), `design-check`.
 - Short actions open as **bottom sheets** on the current screen, not as new pages: Create match (from the Home FAB), Rate the club, Connect, Share a match (from the Community + button).
 - Navigate with `router.push({ pathname: "/club/[id]", params: { id } })` and `<Link>` from `expo-router`; read params with `useLocalSearchParams`.
 
 ## Shared components (reuse before writing new ones)
 
-- **Layout:** `Page` (+ `usePageMargins()`), `SectionHeader`, `CourtHero` (tinted court illustration hero with optional ball and right action), `CourtPlaceholder`.
-- **Controls:** `IconButton` (variants, `showDot`), `SegmentedControl` (same look as HeroUI Tabs on Matches, but works inside bottom sheets; use it for every segmented control), `Dropdown` (HeroUI Select with a custom trigger, works in sheets and screens), `OptionTile` (icon-over-label choice tile), `AnswerCard` (radio-style answer, design.md "Answer card"), `PhotoPicker` (round profile photo, `expo-image-picker`), `ChoiceChips`, `FilterChip`, `DateStrip`, `StarRating`, `CreateMatchButton` (Home FAB).
+- **Layout:** `Page` (+ `usePageMargins()`; `Page.Header bar` gives the white settings-style header, used with `<Page underStatusBar>`), `SettingsSection` / `SettingsRow` / `SettingsSwitchRow` / `SettingsFieldLabel` (settings cards and rows), `SectionHeader`, `CourtHero` (tinted court illustration hero with optional ball and right action), `CourtPlaceholder`.
+- **Controls:** `IconButton` (variants, `showDot`), `SegmentedControl` (same look as HeroUI Tabs on Matches, but works inside bottom sheets; use it for every segmented control; `size="sm"` for four short options), `Dropdown` (HeroUI Select with a custom trigger, works in sheets and screens), `OptionTile` (icon-over-label choice tile), `AnswerCard` (radio-style answer, design.md "Answer card"), `PhotoPicker` (round profile photo, `expo-image-picker`; `current` shows the existing avatar), `ChoiceChips`, `FilterChip`, `DateStrip`, `StarRating`, `CreateMatchButton` (Home FAB).
 - **Display:** `SetupProgress` (3-segment "n of 3" bar), `Icon`, `PlayerAvatar` (+ `shortNameOf`, `stackTintIndices`), `LevelChip`, `InfoNote` (info / warning), `MatchLineUp`, `LevelChart`, `WinRateBars`, `PadelnaLogo`.
 - **Cards and rows:** `NextMatchCard`, `OpenMatchCard`, `UpcomingMatchCard`, `MatchListItem`, `PastMatchRow`, `ResultPostCard`, `ClubRow`, `ClubListItem`, `ClubMatchRow`, `ClubReviewCard`, `ClubReviewDetailCard`, `ClubReviewsSummary`, `RateResultBanner`, `ProfileHero`, `HomeHeader`.
-- **Sheets:** `CreateMatchSheet`, `RateClubSheet`, `ConnectSheet`, `ShareMatchSheet`.
+- **Sheets:** `CreateMatchSheet`, `RateClubSheet`, `ConnectSheet`, `ShareMatchSheet`, `DeleteAccountSheet` (type DELETE to confirm).
 
 ## Code style
 

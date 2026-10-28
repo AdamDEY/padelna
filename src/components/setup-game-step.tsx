@@ -7,9 +7,9 @@ import { OptionTile } from "@/components/option-tile";
 import { Page } from "@/components/page";
 import { SegmentedControl } from "@/components/segmented-control";
 
-type Hand = "right" | "left";
-type Side = "left" | "right" | "both";
-type PlayStyle = "aggressive" | "balanced" | "defensive" | "tactical";
+export type Hand = "right" | "left";
+export type Side = "left" | "right" | "both";
+export type PlayStyle = "aggressive" | "balanced" | "defensive" | "tactical";
 
 export type GameValues = { hand: Hand; side: Side; playStyle: PlayStyle };
 
