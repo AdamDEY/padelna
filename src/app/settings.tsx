@@ -29,6 +29,7 @@ import {
 } from "@/components/settings-section";
 import type { Hand, PlayStyle, Side } from "@/components/setup-game-step";
 import { allClubs, cities, me, myAccount, myClubNames, myProfile, upcomingMatches } from "@/data/mock";
+import { queryClient } from "@/lib/query-client";
 import { supabase } from "@/lib/supabase";
 
 const BIO_MAX_LENGTH = 150;
@@ -86,6 +87,8 @@ export default function Settings() {
   }
 
   function leaveToSignIn() {
+    // The next player to sign in on this device must not see this profile
+    queryClient.clear();
     router.dismissAll();
     router.replace("/sign-in");
   }

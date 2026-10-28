@@ -15,7 +15,9 @@ import { SetupProgress } from "@/components/setup-progress";
 import { SetupQuizStep } from "@/components/setup-quiz-step";
 import { levelQuizQuestions } from "@/data/level-quiz";
 import { saveProfile } from "@/lib/profile";
+import { queryClient } from "@/lib/query-client";
 import { supabase } from "@/lib/supabase";
+import { myProfileKey } from "@/lib/use-my-profile";
 
 type Step = 1 | 2 | 3;
 
@@ -85,6 +87,7 @@ export default function ProfileSetup() {
         return;
       }
       await saveProfile(data.user.id, about, game);
+      await queryClient.invalidateQueries({ queryKey: myProfileKey });
       // The starting-level result screen isn't built yet, so setup goes straight to onboarding.
       // The quiz answers aren't scored yet; saveProfile gives everyone level 6.
       router.push("/onboarding");
