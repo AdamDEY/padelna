@@ -1,21 +1,27 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { Button, cn, useToast } from "heroui-native";
+import { Button, cn, Spinner, useToast } from "heroui-native";
 import { Check, Clock, MapPin, MessageSquare, Share2 } from "lucide-react-native";
 import { useState } from "react";
 import { Share, Text, View } from "react-native";
 
 import { CourtHero } from "@/components/court-hero";
+import { HostedMatch } from "@/components/hosted-match";
 import { Icon } from "@/components/icon";
 import { IconButton } from "@/components/icon-button";
 import { MatchLineUp } from "@/components/match-line-up";
 import { Page } from "@/components/page";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { allClubs, getMatchDetails, me, myLevel, newPlayerIds } from "@/data/mock";
+import { useMatch } from "@/hooks/useMatches";
+import { useMyAccount } from "@/hooks/useMyProfile";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
 
 // How far the white sheet slides up over the court
 const SHEET_OVERLAP = 36;
+
+// Matches created in the app have uuid ids; the mock ones ("match-1") don't
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function formatTime(date: Date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
@@ -30,10 +36,28 @@ function dayLabel(date: Date) {
 
 export default function MatchDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const match = getMatchDetails(id);
+  const isStored = UUID.test(id);
+  const stored = useMatch(id, isStored);
+  const { data: account, isPending: isAccountPending } = useMyAccount();
+  const match = isStored ? stored.data ?? undefined : getMatchDetails(id);
   const { toast } = useToast();
   const [hasJoined, setHasJoined] = useState(false);
   const [hasAsked, setHasAsked] = useState(false);
+
+  if (isStored && (stored.isPending || isAccountPending)) {
+    return (
+      <Page>
+        <Page.Header back />
+        <Page.Body scroll={false} className="items-center justify-center">
+          <Spinner accessibilityLabel="Loading the match" />
+        </Page.Body>
+      </Page>
+    );
+  }
+
+  if (isStored && match && account && match.host?.id === account.id) {
+    return <HostedMatch match={match} />;
+  }
 
   if (!match) {
     return (
@@ -48,7 +72,7 @@ export default function MatchDetail() {
     );
   }
 
-  const club = allClubs.find((item) => item.name === match.clubName);
+  const club = allClubs.find((item) => item.id === match.clubId || item.name === match.clubName);
   const players = hasJoined ? [...match.players, me] : match.players;
   const isMine = players.some((player) => player.id === me.id);
   const isFull = players.length >= match.capacity;

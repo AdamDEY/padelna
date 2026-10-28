@@ -17,10 +17,18 @@ type MatchLineUpProps = {
   newPlayerIds: Set<string>;
   /** Tapping an open seat */
   onTakeSpot?: () => void;
+  /** Text under an open seat; the host's own view says "Open" instead of "You?" */
+  openSeatLabel?: string;
 };
 
 /** Two teams facing each other, with dashed "You?" seats for open spots. */
-export function MatchLineUp({ players, capacity, newPlayerIds, onTakeSpot }: MatchLineUpProps) {
+export function MatchLineUp({
+  players,
+  capacity,
+  newPlayerIds,
+  onTakeSpot,
+  openSeatLabel = "You?",
+}: MatchLineUpProps) {
   const seats = Array.from({ length: capacity }, (_, i) => players[i]);
   const half = Math.ceil(capacity / 2);
   const teams = [seats.slice(0, half), seats.slice(half)];
@@ -43,6 +51,7 @@ export function MatchLineUp({ players, capacity, newPlayerIds, onTakeSpot }: Mat
                   key={`open-${seatIndex}`}
                   // Even seats are on the left of the court, odd on the right
                   side={seatIndex % 2 === 0 ? "Left side" : "Right side"}
+                  label={openSeatLabel}
                   onPress={onTakeSpot}
                 />
               ),
@@ -81,13 +90,13 @@ function Seat({ player, isNew }: { player: Player; isNew: boolean }) {
   );
 }
 
-function OpenSeat({ side, onPress }: { side: string; onPress?: () => void }) {
+function OpenSeat({ side, label, onPress }: { side: string; label: string; onPress?: () => void }) {
   return (
     <View className="items-center gap-1">
       <PressableFeedback
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`Take this spot, ${side.toLowerCase()}`}
+        accessibilityLabel={`${onPress ? "Take this spot" : "Open spot"}, ${side.toLowerCase()}`}
         className={cn(
           "items-center justify-center rounded-full border-2 border-dashed border-accent bg-surface",
         )}
@@ -95,7 +104,7 @@ function OpenSeat({ side, onPress }: { side: string; onPress?: () => void }) {
       >
         <Icon as={Plus} size={20} color="accent" />
       </PressableFeedback>
-      <Text className="font-bold text-[13px] text-accent">You?</Text>
+      <Text className="font-bold text-[13px] text-accent">{label}</Text>
       <Text className="font-normal text-[12px] text-muted">{side}</Text>
     </View>
   );

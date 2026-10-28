@@ -1,4 +1,5 @@
-import { Tabs } from "heroui-native";
+import { router } from "expo-router";
+import { Button, Spinner, Tabs } from "heroui-native";
 import { CalendarDays, SlidersHorizontal } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
@@ -12,14 +13,9 @@ import { PastMatchRow } from "@/components/past-match-row";
 import { RateResultBanner } from "@/components/rate-result-banner";
 import { SectionHeader } from "@/components/section-header";
 import { UpcomingMatchCard } from "@/components/upcoming-match-card";
-import {
-  me,
-  myLevel,
-  openMatches,
-  pastMatches,
-  pendingReviews,
-  upcomingMatches,
-} from "@/data/mock";
+import { myLevel, openMatches, pastMatches, pendingReviews } from "@/data/mock";
+import { useMyUpcomingMatches } from "@/hooks/useMatches";
+import { useMyAccount } from "@/hooks/useMyProfile";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { compareByFit, isPlayableFit, levelFit } from "@/lib/level-fit";
 
@@ -141,6 +137,9 @@ function OpenMatches() {
 }
 
 function MyMatches() {
+  const { data: account } = useMyAccount();
+  const { data: upcomingMatches, error, refetch, isRefetching } = useMyUpcomingMatches();
+
   return (
     <>
       {pendingReviews.map((review) => (
@@ -148,11 +147,29 @@ function MyMatches() {
       ))}
 
       <View className="gap-2.5">
-        <SectionHeader size="sm" title={`Upcoming · ${upcomingMatches.length}`} />
-        {upcomingMatches.map((match) => (
-          <UpcomingMatchCard key={match.id} match={match} me={me} />
-        ))}
-        {upcomingMatches.length === 0 ? (
+        <SectionHeader size="sm" title={`Upcoming · ${upcomingMatches?.length ?? 0}`} />
+        {account
+          ? upcomingMatches?.map((match) => (
+              <UpcomingMatchCard
+                key={match.id}
+                match={match}
+                me={{ id: account.id, firstName: account.firstName, lastName: account.lastName }}
+                onPress={() => router.push({ pathname: "/match/[id]", params: { id: match.id } })}
+              />
+            ))
+          : null}
+        {error ? (
+          <View className="items-start gap-2">
+            <Text className="font-normal text-[14px] text-muted">
+              Couldn’t load your matches. {error.message}
+            </Text>
+            <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
+              Try again
+            </Button>
+          </View>
+        ) : upcomingMatches === undefined ? (
+          <Spinner accessibilityLabel="Loading your matches" className="self-start" />
+        ) : upcomingMatches.length === 0 ? (
           <Text className="font-normal text-[14px] text-muted">
             No matches planned. Join an open match or create one.
           </Text>

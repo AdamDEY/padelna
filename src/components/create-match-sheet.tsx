@@ -4,6 +4,7 @@ import {
   type BottomSheetFooterProps,
 } from "@gorhom/bottom-sheet";
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
+import { router } from "expo-router";
 import { BottomSheet, Button, cn, Slider, useToast } from "heroui-native";
 import { Check, Clock, Info, MapPin, Minus, Plus, Trophy } from "lucide-react-native";
 import { useState, type ReactNode } from "react";
@@ -16,7 +17,9 @@ import { Dropdown, type DropdownOption as Option } from "@/components/dropdown";
 import { Icon } from "@/components/icon";
 import { InfoNote } from "@/components/info-note";
 import { SegmentedControl } from "@/components/segmented-control";
-import { allClubs, myLevel } from "@/data/mock";
+import { myLevel as placeholderLevel } from "@/data/mock";
+import { useMyProfile } from "@/hooks/useMyProfile";
+import { useClubs, useCreateMatch } from "@/hooks/useMatches";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 
 // Room the pinned Publish button takes, so the last field can scroll above it
@@ -70,8 +73,9 @@ function defaultStart() {
   return date;
 }
 
-function defaultLevelRange(): [number, number] {
-  return [Math.max(MIN_LEVEL, myLevel - 0.5), Math.min(MAX_LEVEL, myLevel + 0.5)];
+/** Half a level either side of the host, as a starting point */
+function defaultLevelRange(level: number): [number, number] {
+  return [Math.max(MIN_LEVEL, level - 0.5), Math.min(MAX_LEVEL, level + 0.5)];
 }
 
 type CreateMatchSheetProps = {
@@ -87,7 +91,10 @@ type CreateMatchSheetProps = {
 export function CreateMatchSheet({ isOpen, onOpenChange }: CreateMatchSheetProps) {
   const { toast } = useToast();
   const accent = useCSSVariable("--color-accent") as string;
-  const clubs = [...allClubs].sort((a, b) => a.distanceKm - b.distanceKm);
+  const { data: clubs = [] } = useClubs();
+  const { data: profile } = useMyProfile();
+  const createMatch = useCreateMatch();
+  const myLevel = profile?.level ?? placeholderLevel;
   const [now] = useState(() => new Date());
   const lastDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + DAYS_AHEAD);
 
@@ -95,18 +102,23 @@ export function CreateMatchSheet({ isOpen, onOpenChange }: CreateMatchSheetProps
   const [club, setClub] = useState<Option | undefined>();
   const [court, setCourt] = useState<Option | undefined>();
   const [startsAt, setStartsAt] = useState(defaultStart);
-  const [levelRange, setLevelRange] = useState<[number, number]>(defaultLevelRange);
+  // Until the host moves the slider, the range follows their level (which may load after the sheet)
+  const [pickedRange, setLevelRange] = useState<[number, number]>();
+  const levelRange = pickedRange ?? defaultLevelRange(myLevel);
   const [kind, setKind] = useState<Option>(kindOptions[0]);
   const [playersNeeded, setPlayersNeeded] = useState(2);
 
   const selectedClub = clubs.find((item) => item.id === club?.value);
-  const courtOptions: Option[] = Array.from({ length: selectedClub?.courtCount ?? 0 }, (_, i) => ({
-    value: String(i + 1),
-    label: String(i + 1),
+  const courtOptions: Option[] = (selectedClub?.courts ?? []).map((item) => ({
+    value: item.id,
+    label: String(item.number),
   }));
   const endsAt = new Date(startsAt.getTime() + MATCH_MINUTES * 60_000);
+  // `now` is when Home opened; publish() checks the real clock again
+  const isInPast = startsAt.getTime() <= now.getTime();
   // A booked court needs the club and court; otherwise those come later
-  const canPublish = !isBooked || (club !== undefined && court !== undefined);
+  const canPublish =
+    (!isBooked || (club !== undefined && court !== undefined)) && !isInPast && !createMatch.isPending;
 
   function handleOpenChange(open: boolean) {
     if (!open) {
@@ -115,7 +127,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange }: CreateMatchSheetProps
       setClub(undefined);
       setCourt(undefined);
       setStartsAt(defaultStart());
-      setLevelRange(defaultLevelRange());
+      setLevelRange(undefined);
       setKind(kindOptions[0]);
       setPlayersNeeded(2);
     }
@@ -139,17 +151,41 @@ export function CreateMatchSheet({ isOpen, onOpenChange }: CreateMatchSheetProps
   const timeValue = TIME_OPTIONS.find((option) => option.value === formatTime(startsAt));
 
   function publish() {
-    // Nothing is saved yet; the API will create the match
+    if (startsAt.getTime() <= Date.now()) {
+      toast.show({ variant: "danger", label: "That time has passed", description: "Pick a later time." });
+      return;
+    }
     const when = `${dayLabel(startsAt)} · ${formatTime(startsAt)}`;
-    toast.show({
-      variant: "success",
-      label: "Match published",
-      description:
-        isBooked && club
-          ? `${when} at ${club.label}, Court ${court?.value}. Players at your level can join.`
-          : `${when}. Add the club and court once you've booked.`,
-    });
-    handleOpenChange(false);
+    createMatch.mutate(
+      {
+        courtId: isBooked ? court?.value : undefined,
+        startsAt,
+        levelMin: levelRange[0],
+        levelMax: levelRange[1],
+        kind: kind.value as MatchKind,
+        playersNeeded,
+      },
+      {
+        onSuccess: (matchId) => {
+          toast.show({
+            variant: "success",
+            label: "Match published",
+            description:
+              isBooked && club
+                ? `${when} at ${club.label}, Court ${court?.label}. Players at your level can join.`
+                : `${when}. Add the club and court once you've booked.`,
+          });
+          handleOpenChange(false);
+          router.push({ pathname: "/match/[id]", params: { id: matchId } });
+        },
+        onError: (error) =>
+          toast.show({
+            variant: "danger",
+            label: "Couldn’t publish your match",
+            description: error.message,
+          }),
+      },
+    );
   }
 
   return (
@@ -261,6 +297,12 @@ export function CreateMatchSheet({ isOpen, onOpenChange }: CreateMatchSheetProps
                 />
               </Field>
             </View>
+
+            {isInPast ? (
+              <Text accessibilityRole="alert" className="-mt-1 font-semibold text-[13px] text-danger">
+                That time has passed. Pick a later time.
+              </Text>
+            ) : null}
 
             <Slider
               value={levelRange}
