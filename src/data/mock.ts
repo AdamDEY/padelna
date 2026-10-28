@@ -538,6 +538,8 @@ openMatches.push({
 const clubDetailsById: Record<string, Omit<ClubDetails, keyof Club>> = {
   "club-lac": {
     address: "Les Berges du Lac 2, Tunis",
+    // Placeholder number until clubs have real phones
+    phone: "+216 71 000 000",
     photoCount: 6,
     indoorCourts: 4,
     outdoorCourts: 2,

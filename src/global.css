@@ -117,6 +117,9 @@
   --color-lime-soft: #e4f59e;
   --color-lime-foreground: #2e3a0a;
 
+  /* Call button on the booking notice */
+  --color-call: #1f8a5b;
+
   --color-attention: #8a3a12;
   --color-attention-soft: #fbe8da;
   --color-attention-action: #a44a1e;

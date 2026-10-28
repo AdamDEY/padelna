@@ -81,6 +81,8 @@ function defaultLevelRange(level: number): [number, number] {
 type CreateMatchSheetProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Club to preselect (e.g. from a club page); the host can still change it */
+  initialClubName?: string;
 };
 
 /**
@@ -88,7 +90,7 @@ type CreateMatchSheetProps = {
  * court you pick the club and court; without one, a note says to add them once
  * booked. The match type explains whether the result counts toward your level.
  */
-export function CreateMatchSheet({ isOpen, onOpenChange }: CreateMatchSheetProps) {
+export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: CreateMatchSheetProps) {
   const { toast } = useToast();
   const accent = useCSSVariable("--color-accent") as string;
   const { data: clubs = [] } = useClubs();
@@ -99,7 +101,11 @@ export function CreateMatchSheet({ isOpen, onOpenChange }: CreateMatchSheetProps
   const lastDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + DAYS_AHEAD);
 
   const [isBooked, setIsBooked] = useState(true);
-  const [club, setClub] = useState<Option | undefined>();
+  // Until the host picks one, the club follows `initialClubName` (clubs may load after the sheet)
+  const [pickedClub, setClub] = useState<Option | undefined>();
+  const initialClub = clubs.find((item) => item.name === initialClubName);
+  const club =
+    pickedClub ?? (initialClub ? { value: initialClub.id, label: initialClub.name } : undefined);
   const [court, setCourt] = useState<Option | undefined>();
   const [startsAt, setStartsAt] = useState(defaultStart);
   // Until the host moves the slider, the range follows their level (which may load after the sheet)

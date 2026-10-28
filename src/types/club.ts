@@ -22,6 +22,8 @@ export type Club = {
 /** Everything the Club detail screen shows */
 export type ClubDetails = Club & {
   address: string;
+  /** Reception number, "+216 71 000 000" */
+  phone?: string;
   /** How many photos the club has; the hero shows "1 / N" */
   photoCount: number;
   indoorCourts: number;
