@@ -86,7 +86,7 @@ export default function ProfileSetup() {
       }
       await saveProfile(data.user.id, about, game);
       // The starting-level result screen isn't built yet, so setup goes straight to onboarding.
-      // The quiz answers aren't saved until it is.
+      // The quiz answers aren't scored yet; saveProfile gives everyone level 6.
       router.push("/onboarding");
     } catch (error) {
       toast.show({
