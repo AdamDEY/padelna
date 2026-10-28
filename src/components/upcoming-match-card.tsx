@@ -24,7 +24,7 @@ export function UpcomingMatchCard({ match, me, onPress, onInvite }: UpcomingMatc
     match.host.id === me.id
       ? "You’re hosting"
       : `Hosted by ${match.host.firstName} ${match.host.lastName.charAt(0)}.`;
-  const details = `${match.clubName} · ${match.courtName} · ${hostLine}`;
+  const details = [match.clubName, match.courtName, hostLine].filter(Boolean).join(" · ");
   const tintIndices = stackTintIndices(match.players);
 
   return (

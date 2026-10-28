@@ -88,4 +88,6 @@ export type MatchDetails = {
   price?: number;
   host?: Player;
   note?: string;
+  /** Set for matches that come from the database, to link to the club */
+  clubId?: string;
 };

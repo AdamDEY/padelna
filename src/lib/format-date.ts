@@ -40,6 +40,17 @@ export function formatCountdown(date: Date, now = new Date()) {
   return `In ${days} days`;
 }
 
+/** "2 days 4 h", "3 h 20 min", "45 min", or "Started" once it's under way */
+export function formatStartsIn(date: Date, now = new Date()) {
+  const minutes = Math.floor((date.getTime() - now.getTime()) / 60_000);
+  if (minutes <= 0) return "Started";
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  if (days > 0) return `${days} ${days === 1 ? "day" : "days"} ${hours} h`;
+  if (hours > 0) return `${hours} h ${minutes % 60} min`;
+  return `${minutes} min`;
+}
+
 const weekdayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short" });
 
 /** "Today · 20:00", "Tomorrow · 18:30", "Sun · 10:00" within a week, else "Sat 25 Oct · 18:00" */
