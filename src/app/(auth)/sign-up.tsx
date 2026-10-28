@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { Page } from "@/components/page";
-import { supabase } from "@/lib/supabase";
+import { signUp } from "@/repositories/auth-repository";
 import { isEmail, MIN_PASSWORD_LENGTH } from "@/lib/validation";
 
 export default function SignUp() {
@@ -23,13 +23,20 @@ export default function SignUp() {
     setSubmitted(true);
     if (!isEmail(email) || password.length < MIN_PASSWORD_LENGTH || !acceptedTerms) return;
     setIsCreating(true);
-    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
-    setIsCreating(false);
-    if (error) {
-      toast.show({ variant: "danger", label: "Couldn’t create your account", description: error.message });
+    let hasSession: boolean;
+    try {
+      ({ hasSession } = await signUp(email, password));
+    } catch (error) {
+      toast.show({
+        variant: "danger",
+        label: "Couldn’t create your account",
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
       return;
+    } finally {
+      setIsCreating(false);
     }
-    if (data.session) {
+    if (hasSession) {
       router.replace("/setup");
     } else {
       // Email confirmation is on: there is no session until the player confirms

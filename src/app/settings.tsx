@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useNavigation, usePreventRemove } from "expo-router";
 import {
   Button,
   FieldError,
@@ -6,13 +6,14 @@ import {
   Label,
   PressableFeedback,
   Select,
+  Spinner,
   TextArea,
   TextField,
   useToast,
 } from "heroui-native";
 import { Lock, LogOut, Plus, X } from "lucide-react-native";
-import { useState } from "react";
-import { Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, Text, View } from "react-native";
 
 import { DeleteAccountSheet } from "@/components/delete-account-sheet";
 import { Dropdown } from "@/components/dropdown";
@@ -29,8 +30,11 @@ import {
 } from "@/components/settings-section";
 import type { Hand, PlayStyle, Side } from "@/components/setup-game-step";
 import { allClubs, cities, me, myAccount, myClubNames, myProfile, upcomingMatches } from "@/data/mock";
+import { myProfileKey, useMyAccount } from "@/hooks/useMyProfile";
 import { queryClient } from "@/lib/query-client";
-import { supabase } from "@/lib/supabase";
+import { deleteOwnAccount, signOut } from "@/repositories/auth-repository";
+import { updateProfile } from "@/repositories/profile-repository";
+import type { MyAccount } from "@/types/account";
 
 const BIO_MAX_LENGTH = 150;
 const cityOptions = cities.map((city) => ({ value: city, label: city }));
@@ -56,29 +60,93 @@ const hostedMatch = upcomingMatches.find((match) => match.host.id === me.id);
 
 /** Edit profile and settings, opened from the Profile hero's top-right button. */
 export default function Settings() {
+  const { data: account, error, refetch, isRefetching } = useMyAccount();
+
+  if (!account) {
+    return (
+      <Page underStatusBar>
+        <Page.Header bar back leading={<Text className="font-black text-[20px] text-foreground">Edit profile</Text>} />
+        <Page.Body scroll={false} className="items-center justify-center gap-3">
+          {error ? (
+            <>
+              <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
+                Couldn’t load your profile
+              </Text>
+              <Text className="text-center font-normal text-[14px] text-muted">{error.message}</Text>
+              <Button variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
+                Try again
+              </Button>
+            </>
+          ) : (
+            <Spinner accessibilityLabel="Loading your profile" />
+          )}
+        </Page.Body>
+      </Page>
+    );
+  }
+
+  return <SettingsForm account={account} />;
+}
+
+/** The form itself; it starts from the saved profile, so it only mounts once that has loaded. */
+function SettingsForm({ account }: { account: MyAccount }) {
   const { toast } = useToast();
+  const navigation = useNavigation();
   const [photoUri, setPhotoUri] = useState<string>();
-  const [firstName, setFirstName] = useState(me.firstName);
-  const [lastName, setLastName] = useState(me.lastName);
-  const [city, setCity] = useState(myProfile.city);
-  const [bio, setBio] = useState(myAccount.bio);
-  const [hand, setHand] = useState<Hand>(myAccount.hand);
-  const [side, setSide] = useState<Side>(myAccount.side);
-  const [playStyle, setPlayStyle] = useState<PlayStyle>(myAccount.playStyle);
+  const [firstName, setFirstName] = useState(account.firstName);
+  const [lastName, setLastName] = useState(account.lastName);
+  const [city, setCity] = useState(account.city);
+  const [bio, setBio] = useState(account.bio);
+  const [hand, setHand] = useState<Hand>(account.hand);
+  const [side, setSide] = useState<Side>(account.side);
+  const [playStyle, setPlayStyle] = useState<PlayStyle>(account.playStyle);
   const [clubs, setClubs] = useState(myClubNames);
   const [notifications, setNotifications] = useState(myAccount.notifications);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  // Leaving after a save, log out or delete must not trigger the discard warning, so the
+  // navigation runs in an effect once the warning has been switched off
+  const [leaving, setLeaving] = useState<"back" | "sign-in">();
+
+  const hasChanges =
+    photoUri !== undefined ||
+    firstName !== account.firstName ||
+    lastName !== account.lastName ||
+    city !== account.city ||
+    bio !== account.bio ||
+    hand !== account.hand ||
+    side !== account.side ||
+    playStyle !== account.playStyle;
+
+  usePreventRemove(hasChanges && leaving === undefined, ({ data }) => {
+    Alert.alert("Discard your changes?", "What you edited won’t be saved.", [
+      { text: "Keep editing", style: "cancel" },
+      { text: "Discard", style: "destructive", onPress: () => navigation.dispatch(data.action) },
+    ]);
+  });
 
   const firstNameError = submitted && firstName.trim() === "";
   const lastNameError = submitted && lastName.trim() === "";
 
-  function save() {
+  async function save() {
     setSubmitted(true);
-    if (!firstName.trim() || !lastName.trim()) return;
-    // Nothing is saved yet; the API will update the profile
-    toast.show({ variant: "success", label: "Profile saved" });
-    router.back();
+    if (!firstName.trim() || !lastName.trim() || isSaving) return;
+    setIsSaving(true);
+    try {
+      await updateProfile(account.id, { firstName, lastName, city, bio, hand, side, playStyle, photoUri });
+      await queryClient.invalidateQueries({ queryKey: myProfileKey });
+      toast.show({ variant: "success", label: "Profile saved" });
+      setLeaving("back");
+    } catch (error) {
+      toast.show({
+        variant: "danger",
+        label: "Couldn’t save your profile",
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   // The account rows open their own screens once those exist
@@ -89,29 +157,45 @@ export default function Settings() {
   function leaveToSignIn() {
     // The next player to sign in on this device must not see this profile
     queryClient.clear();
-    router.dismissAll();
-    router.replace("/sign-in");
+    setLeaving("sign-in");
   }
+
+  useEffect(() => {
+    if (leaving === "back") {
+      router.back();
+    } else if (leaving === "sign-in") {
+      router.dismissAll();
+      router.replace("/sign-in");
+    }
+  }, [leaving]);
 
   async function logOut() {
     // Signing out clears the session on the device even if the network call fails
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.show({ variant: "danger", label: "Couldn’t log you out", description: error.message });
+    try {
+      await signOut();
+    } catch (error) {
+      toast.show({
+        variant: "danger",
+        label: "Couldn’t log you out",
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
       return;
     }
     leaveToSignIn();
   }
 
   async function deleteAccount() {
-    const { error } = await supabase.rpc("delete_own_account");
-    if (error) {
-      toast.show({ variant: "danger", label: "Couldn’t delete your account", description: error.message });
+    try {
+      await deleteOwnAccount();
+    } catch (error) {
+      toast.show({
+        variant: "danger",
+        label: "Couldn’t delete your account",
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
       return;
     }
     setIsDeleteOpen(false);
-    // The account is gone on the server; this clears the session left on the device
-    await supabase.auth.signOut({ scope: "local" });
     toast.show({ label: "Your account was deleted", description: "We're sorry to see you go." });
     leaveToSignIn();
   }
@@ -130,7 +214,7 @@ export default function Settings() {
           </Text>
         }
       >
-        <Button size="sm" onPress={save} className="h-10 rounded-xl px-4">
+        <Button size="sm" onPress={save} isDisabled={isSaving} className="h-10 rounded-xl px-4">
           Save
         </Button>
       </Page.Header>
@@ -139,7 +223,17 @@ export default function Settings() {
         <PhotoPicker
           uri={photoUri}
           onChange={setPhotoUri}
-          current={<PlayerAvatar player={me} size={92} />}
+          current={
+            <PlayerAvatar
+              player={{
+                id: account.id,
+                firstName: account.firstName,
+                lastName: account.lastName,
+                avatarUrl: account.avatarUrl,
+              }}
+              size={92}
+            />
+          }
         />
 
         <SettingsSection title="About you" layout="form">
@@ -235,7 +329,7 @@ export default function Settings() {
           </View>
           <View className="flex-1 gap-0.5">
             <Text className="font-bold text-[15px] text-foreground">
-              Level {myProfile.level.toFixed(1)}
+              Level {(account.level ?? myProfile.level).toFixed(1)}
             </Text>
             <Text className="font-normal text-[13px] leading-[18px] text-muted">
               Can’t be edited. It moves with your match scores and player reviews.
@@ -246,12 +340,12 @@ export default function Settings() {
         <SettingsSection title="Account">
           <SettingsRow
             caption="Phone"
-            label={`+216 ${myAccount.phone}`}
+            label={`+216 ${formatPhone(account.phone)}`}
             onPress={() => comingSoon("Changing your phone")}
           />
           <SettingsRow
             caption="Email"
-            label={myAccount.email}
+            label={account.email ?? "No email"}
             onPress={() => comingSoon("Changing your email")}
           />
           <SettingsRow label="Change password" onPress={() => comingSoon("Changing your password")} />
@@ -303,7 +397,7 @@ export default function Settings() {
         isOpen={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
         losses={[
-          `Your level ${myProfile.level.toFixed(1)} and its history`,
+          `Your level ${(account.level ?? myProfile.level).toFixed(1)} and its history`,
           `${myProfile.matchesPlayed} matches, stats and feed posts`,
           `${myProfile.reviewCount} reviews and ${myProfile.friendCount} friends`,
           "Your match chats",
@@ -317,6 +411,11 @@ export default function Settings() {
       />
     </Page>
   );
+}
+
+/** "20123456" as "20 123 456" */
+function formatPhone(digits: string) {
+  return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5)}`;
 }
 
 /** A club you play at, as a solid pill with a remove button. */

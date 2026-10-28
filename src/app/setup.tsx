@@ -14,10 +14,10 @@ import { initialGameValues, SetupGameStep } from "@/components/setup-game-step";
 import { SetupProgress } from "@/components/setup-progress";
 import { SetupQuizStep } from "@/components/setup-quiz-step";
 import { levelQuizQuestions } from "@/data/level-quiz";
-import { saveProfile } from "@/lib/profile";
+import { myProfileKey } from "@/hooks/useMyProfile";
 import { queryClient } from "@/lib/query-client";
-import { supabase } from "@/lib/supabase";
-import { myProfileKey } from "@/lib/use-my-profile";
+import { getCurrentUser } from "@/repositories/auth-repository";
+import { saveProfile } from "@/repositories/profile-repository";
 
 type Step = 1 | 2 | 3;
 
@@ -81,12 +81,12 @@ export default function ProfileSetup() {
     if (isSaving) return;
     setIsSaving(true);
     try {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
+      const user = await getCurrentUser();
+      if (!user) {
         router.replace("/sign-in");
         return;
       }
-      await saveProfile(data.user.id, about, game);
+      await saveProfile(user.id, about, game);
       await queryClient.invalidateQueries({ queryKey: myProfileKey });
       // The starting-level result screen isn't built yet, so setup goes straight to onboarding.
       // The quiz answers aren't scored yet; saveProfile gives everyone level 6.

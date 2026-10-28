@@ -6,8 +6,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Page } from "@/components/page";
 import { PadelnaLogo } from "@/components/padelna-logo";
-import { hasProfile } from "@/lib/profile";
-import { supabase } from "@/lib/supabase";
+import { signIn as signInWithPassword } from "@/repositories/auth-repository";
+import { hasProfile } from "@/repositories/profile-repository";
 import { isEmail, isEmailOrPhone } from "@/lib/validation";
 
 // The design is drawn for a 44 pt status bar; taller ones push everything down
@@ -37,18 +37,21 @@ export default function SignIn() {
       return;
     }
     setIsSigningIn(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: identifier.trim(),
-      password,
-    });
-    if (error) {
+    let userId: string;
+    try {
+      userId = await signInWithPassword(identifier, password);
+    } catch (error) {
       setIsSigningIn(false);
-      toast.show({ variant: "danger", label: "Couldn’t sign you in", description: error.message });
+      toast.show({
+        variant: "danger",
+        label: "Couldn’t sign you in",
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
       return;
     }
     try {
       // A player who signed up but never finished setup picks it up where they left off
-      router.replace((await hasProfile(data.user.id)) ? "/" : "/setup");
+      router.replace((await hasProfile(userId)) ? "/" : "/setup");
     } catch {
       setIsSigningIn(false);
       toast.show({ variant: "danger", label: "Something went wrong", description: "Please try again." });
