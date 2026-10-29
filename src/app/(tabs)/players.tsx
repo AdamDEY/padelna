@@ -7,6 +7,7 @@ import { ConnectionRequestsBanner } from "@/components/connection-requests-banne
 import { ConnectionRequestsSheet } from "@/components/connection-requests-sheet";
 import { Page } from "@/components/page";
 import { PlayedWithTile } from "@/components/played-with-tile";
+import { PlayerSheet } from "@/components/player-sheet";
 import { PlayerSuggestionRow } from "@/components/player-suggestion-row";
 import { SectionHeader } from "@/components/section-header";
 import {
@@ -43,6 +44,13 @@ function inRows<T>(items: T[], size: number) {
 export default function Players() {
   const [query, setQuery] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
+  // Kept after the sheet closes so its content doesn't vanish mid-animation
+  const [selected, setSelected] = useState<PlayerSuggestion>();
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  function preview(player: PlayerSuggestion) {
+    setSelected(player);
+    setIsPreviewing(true);
+  }
   const { data: requests = [] } = useConnectionRequests();
   const isSearching = query.trim().length >= MIN_SEARCH_LENGTH;
 
@@ -71,9 +79,10 @@ export default function Players() {
           ) : null}
         </View>
 
-        {isSearching ? <SearchResults query={query} /> : <Suggestions />}
+        {isSearching ? <SearchResults query={query} onPreview={preview} /> : <Suggestions onPreview={preview} />}
       </Page.Body>
 
+      <PlayerSheet player={selected} isOpen={isPreviewing} onOpenChange={setIsPreviewing} />
       <ConnectionRequestsSheet
         requests={requests}
         isOpen={isReviewing}
@@ -83,7 +92,9 @@ export default function Players() {
   );
 }
 
-function Suggestions() {
+type PreviewProps = { onPreview: (player: PlayerSuggestion) => void };
+
+function Suggestions({ onPreview }: PreviewProps) {
   const playedWith = usePlayedWith();
   const atMyClubs = usePlayersAtMyClubs();
   const { data: myClubs = [] } = useMyClubs();
@@ -101,7 +112,7 @@ function Suggestions() {
             inRows(players, TILES_PER_ROW).map((row, index) => (
               <View key={index} className="flex-row gap-2">
                 {row.map((player) => (
-                  <PlayedWithTile key={player.id} player={player} />
+                  <PlayedWithTile key={player.id} player={player} onPress={() => onPreview(player)} />
                 ))}
                 {/* Empty cells keep the last row's faces in their columns */}
                 {Array.from({ length: TILES_PER_ROW - row.length }, (_, cell) => (
@@ -128,6 +139,7 @@ function Suggestions() {
               <PlayerSuggestionRow
                 key={player.id}
                 player={player}
+                onPress={() => onPreview(player)}
                 action={<ConnectButton player={player} />}
               />
             ))
@@ -138,7 +150,7 @@ function Suggestions() {
   );
 }
 
-function SearchResults({ query }: { query: string }) {
+function SearchResults({ query, onPreview }: PreviewProps & { query: string }) {
   const results = useSearchPlayers(query);
 
   return (
@@ -149,6 +161,7 @@ function SearchResults({ query }: { query: string }) {
             <PlayerSuggestionRow
               key={player.id}
               player={player}
+              onPress={() => onPreview(player)}
               action={<ConnectButton player={player} />}
             />
           ))

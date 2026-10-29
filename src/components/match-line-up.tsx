@@ -19,6 +19,9 @@ type MatchLineUpProps = {
   onTakeSpot?: (seat: number) => void;
   /** Text under an open seat; the host's own view says "Open" instead of "You?" */
   openSeatLabel?: string;
+  /** Tapping a player opens their profile; guests and `myId` aren't tappable */
+  onPlayerPress?: (player: Player) => void;
+  myId?: string;
 };
 
 /** Two teams facing each other, with dashed "You?" seats for open spots. */
@@ -28,6 +31,8 @@ export function MatchLineUp({
   newPlayerIds,
   onTakeSpot,
   openSeatLabel = "You?",
+  onPlayerPress,
+  myId,
 }: MatchLineUpProps) {
   const seats = Array.from({ length: capacity }, (_, i) => players[i]);
   const half = Math.ceil(capacity / 2);
@@ -45,7 +50,14 @@ export function MatchLineUp({
           <View className="flex-1 flex-row justify-around">
             {team.map((player, seatIndex) =>
               player ? (
-                <Seat key={player.id} player={player} isNew={newPlayerIds.has(player.id)} />
+                <Seat
+                  key={player.id}
+                  player={player}
+                  isNew={newPlayerIds.has(player.id)}
+                  onPress={
+                    onPlayerPress && isOpenable(player, myId) ? () => onPlayerPress(player) : undefined
+                  }
+                />
               ) : (
                 <OpenSeat
                   key={`open-${seatIndex}`}
@@ -63,12 +75,20 @@ export function MatchLineUp({
   );
 }
 
-function Seat({ player, isNew }: { player: Player; isNew: boolean }) {
+/** Players on the app other than you; the host's guests have no profile to show */
+export function isOpenable(player: Player, myId?: string) {
+  return !player.id.startsWith("guest-") && player.id !== myId;
+}
+
+function Seat({ player, isNew, onPress }: { player: Player; isNew: boolean; onPress?: () => void }) {
   const level = player.level?.toFixed(1);
 
   return (
-    <View
-      accessible
+    <PressableFeedback
+      isDisabled={!onPress}
+      onPress={onPress}
+      accessibilityRole={onPress ? "button" : undefined}
+      accessibilityHint={onPress ? "Shows their profile" : undefined}
       accessibilityLabel={`${player.firstName}${level ? `, level ${level}` : ""}${isNew ? ", new player" : ""}`}
       className="items-center gap-1"
     >
@@ -86,7 +106,7 @@ function Seat({ player, isNew }: { player: Player; isNew: boolean }) {
           </View>
         )
       ) : null}
-    </View>
+    </PressableFeedback>
   );
 }
 

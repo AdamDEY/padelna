@@ -11,6 +11,8 @@ const sizes = {
   sm: { box: "h-7 rounded-[10px] px-2.5", text: "text-[12px]", icon: 0, hitSlop: 8 },
   // design: 34 px buttons at the end of a player row
   md: { box: "h-[34px] rounded-xl px-3", text: "text-[13px]", icon: 14, hitSlop: 5 },
+  // design: 52 px blue button in the player sheet
+  lg: { box: "h-[52px] rounded-2xl px-4", text: "text-[16px]", icon: 18, hitSlop: 0 },
 } as const;
 
 type ConnectButtonProps = {
@@ -20,13 +22,14 @@ type ConnectButtonProps = {
 
 /**
  * Connect / Pending / Accept / Connected for one player. Connect is the light blue
- * secondary button, as everywhere in the app; Accept answers a request they sent you.
+ * secondary button, as everywhere in the app (the large one in the player sheet is blue, as designed); Accept answers a request they sent you.
  */
 export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
   const { toast } = useToast();
   const requestConnection = useRequestConnection();
   const respondToConnection = useRespondToConnection();
   const style = sizes[size];
+  const stateBox = size === "lg" ? "w-full" : "";
   const isBusy = requestConnection.isPending || respondToConnection.isPending;
 
   function showError(error: Error) {
@@ -44,6 +47,7 @@ export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
         className={cn(
           "flex-row items-center justify-center gap-1 border",
           style.box,
+          stateBox,
           isConnected ? "border-success-soft bg-success-soft" : "border-line-input bg-surface",
         )}
       >
@@ -61,7 +65,7 @@ export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
   const isReceived = player.connection === "received";
   return (
     <Button
-      variant="secondary"
+      variant={size === "lg" ? "primary" : "secondary"}
       size="sm"
       isDisabled={isBusy}
       hitSlop={style.hitSlop}
@@ -82,7 +86,7 @@ export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
               onError: showError,
             })
       }
-      className={cn("min-w-0", style.box)}
+      className={cn("min-w-0", style.box, size === "lg" && "w-full")}
     >
       <Button.Label className={style.text}>{isReceived ? "Accept" : "Connect"}</Button.Label>
     </Button>

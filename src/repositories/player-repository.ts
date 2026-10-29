@@ -1,7 +1,7 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
-import type { ConnectionState, PlayerSuggestion } from "@/types/player";
+import type { ConnectionState, PlayerDetails, PlayerSuggestion } from "@/types/player";
 
 // How long to wait before reconnecting after the live connection fails
 const RECONNECT_DELAY_MS = 5_000;
@@ -17,6 +17,18 @@ type SuggestionRow = {
   avatar_url: string | null;
   connection: ConnectionState;
   club_name: string | null;
+  mutual_count: number;
+};
+
+type DetailsRow = {
+  side: PlayerDetails["side"];
+  hand: PlayerDetails["hand"];
+  bio: string;
+  friend_count: number;
+  club_names: string[];
+  played_together: number;
+  last_played_together_at: string | null;
+  connection: ConnectionState;
   mutual_count: number;
 };
 
@@ -72,6 +84,25 @@ export function fetchConnectionRequests() {
 /** Players whose name, or a club they've played at, matches `query` (2+ characters). */
 export function searchPlayers(query: string) {
   return fetchList("search_players", { p_query: query });
+}
+
+/** How a player plays, their bio, friends, clubs and your history together. */
+export async function fetchPlayerDetails(playerId: string): Promise<PlayerDetails> {
+  const { data, error } = await supabase.rpc("get_player_profile", { p_player_id: playerId });
+  if (error) throw error;
+  const row = (data as DetailsRow[])[0];
+  if (!row) throw new Error("This player isn’t available.");
+  return {
+    side: row.side,
+    hand: row.hand,
+    bio: row.bio,
+    friendCount: row.friend_count,
+    clubNames: row.club_names,
+    playedTogether: row.played_together,
+    lastPlayedTogetherAt: row.last_played_together_at ? new Date(row.last_played_together_at) : undefined,
+    connection: row.connection,
+    mutualFriendCount: row.mutual_count,
+  };
 }
 
 /** Sends a connection request, or accepts theirs if they already asked you. */

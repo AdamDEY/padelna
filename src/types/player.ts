@@ -20,3 +20,31 @@ export type PlayerSuggestion = Player & {
   /** The club they last played at, when there is one */
   clubName?: string;
 };
+
+/** What the player preview and full profile show beyond the card */
+export type PlayerDetails = {
+  side: "left" | "right" | "both";
+  hand: "left" | "right";
+  bio: string;
+  friendCount: number;
+  /** Up to two clubs they've played at most */
+  clubNames: string[];
+  /** Full matches you've both played in */
+  playedTogether: number;
+  lastPlayedTogetherAt?: Date;
+  /** How you relate to them, for sheets opened from outside the Players lists */
+  connection: ConnectionState;
+  mutualFriendCount: number;
+};
+
+/** Numbers on another player's profile. Mocked until results and reviews are saved per player. */
+export type PlayerStats = {
+  matches: number;
+  won: number;
+  lost: number;
+  reviews: number;
+  /** "Fair play" with how many players said so */
+  tags: { label: string; count: number }[];
+  asPartners: { won: number; lost: number };
+  asOpponents: { won: number; lost: number };
+};

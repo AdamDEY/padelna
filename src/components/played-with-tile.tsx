@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { ConnectButton } from "@/components/connect-button";
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -6,16 +6,25 @@ import type { PlayerSuggestion } from "@/types/player";
 
 type PlayedWithTileProps = {
   player: PlayerSuggestion;
+  /** Opens the player's preview */
+  onPress?: () => void;
 };
 
 /** Face, first name and a small Connect button, four to a row (design: Find players · You played with). */
-export function PlayedWithTile({ player }: PlayedWithTileProps) {
+export function PlayedWithTile({ player, onPress }: PlayedWithTileProps) {
   return (
     <View className="flex-1 items-center gap-1">
-      <PlayerAvatar player={player} size={48} />
-      <Text numberOfLines={1} className="font-bold text-[13px] text-foreground">
-        {player.firstName}
-      </Text>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${player.firstName}, view profile`}
+        className="items-center gap-1 self-stretch"
+      >
+        <PlayerAvatar player={player} size={48} />
+        <Text numberOfLines={1} className="font-bold text-[13px] text-foreground">
+          {player.firstName}
+        </Text>
+      </Pressable>
       <ConnectButton player={player} size="sm" />
     </View>
   );

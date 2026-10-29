@@ -73,7 +73,7 @@ export function PlayerAvatar({
   return (
     <Avatar
       alt={`${player.firstName} ${player.lastName}`}
-      className={cn(ringClassName && "border-2", ringClassName, className)}
+      className={cn("rounded-full", ringClassName && "border-2", ringClassName, className)}
       style={{ width: outer, height: outer }}
     >
       {player.avatarUrl ? <Avatar.Image source={{ uri: player.avatarUrl }} /> : null}

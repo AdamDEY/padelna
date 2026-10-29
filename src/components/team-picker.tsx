@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
+import { isOpenable } from "@/components/match-line-up";
 import { PlayerAvatar } from "@/components/player-avatar";
 import type { Player } from "@/types/player";
 
@@ -31,10 +32,21 @@ type TeamPickerProps = {
   onSelectSeat?: (seat: number) => void;
   /** Your preferred side, to point out the open seats that match it */
   preferredSide?: "left" | "right" | "both";
+  /** Tapping a player opens their profile; guests and `myId` aren't tappable */
+  onPlayerPress?: (player: Player) => void;
+  myId?: string;
 };
 
 /** Two teams of two with dashed open seats to pick from (design: Match detail · join). */
-export function TeamPicker({ seats, selectedSeat, me, onSelectSeat, preferredSide }: TeamPickerProps) {
+export function TeamPicker({
+  seats,
+  selectedSeat,
+  me,
+  onSelectSeat,
+  preferredSide,
+  onPlayerPress,
+  myId,
+}: TeamPickerProps) {
   const half = seats.length / 2;
   const teams = [seats.slice(0, half), seats.slice(half)];
 
@@ -78,7 +90,18 @@ export function TeamPicker({ seats, selectedSeat, me, onSelectSeat, preferredSid
                     return <MySeat key={seat} me={me} sideLabel={sideLabel} />;
                   }
                   if (player) {
-                    return <FilledSeat key={seat} player={player} sideLabel={sideLabel} />;
+                    return (
+                      <FilledSeat
+                        key={seat}
+                        player={player}
+                        sideLabel={sideLabel}
+                        onPress={
+                          onPlayerPress && isOpenable(player, myId)
+                            ? () => onPlayerPress(player)
+                            : undefined
+                        }
+                      />
+                    );
                   }
                   return (
                     <OpenSeat
@@ -99,12 +122,23 @@ export function TeamPicker({ seats, selectedSeat, me, onSelectSeat, preferredSid
   );
 }
 
-function FilledSeat({ player, sideLabel }: { player: Player; sideLabel: string }) {
+function FilledSeat({
+  player,
+  sideLabel,
+  onPress,
+}: {
+  player: Player;
+  sideLabel: string;
+  onPress?: () => void;
+}) {
   const level = player.level?.toFixed(1);
 
   return (
-    <View
-      accessible
+    <PressableFeedback
+      isDisabled={!onPress}
+      onPress={onPress}
+      accessibilityRole={onPress ? "button" : undefined}
+      accessibilityHint={onPress ? "Shows their profile" : undefined}
       accessibilityLabel={`${player.firstName}, ${sideLabel.toLowerCase()} side${level ? `, level ${level}` : ""}`}
       className="w-[70px] items-center gap-[3px]"
     >
@@ -116,7 +150,7 @@ function FilledSeat({ player, sideLabel }: { player: Player; sideLabel: string }
         {sideLabel}
         {level ? ` · ${level}` : ""}
       </Text>
-    </View>
+    </PressableFeedback>
   );
 }
 
