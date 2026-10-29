@@ -107,7 +107,7 @@ export function ResultPostCard({ post, headerAction }: ResultPostCardProps) {
       {post.confirmed ? (
         <View className="flex-row items-center gap-1">
           <Icon as={ShieldCheck} size={14} color="success" />
-          <Text className="font-bold text-[12px] text-success">Score confirmed by all 4</Text>
+          <Text className="font-bold text-[12px] text-success">Score confirmed by both teams</Text>
         </View>
       ) : null}
     </View>

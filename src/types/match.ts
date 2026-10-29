@@ -1,3 +1,4 @@
+import type { SetScore } from "@/lib/padel-score";
 import type { Player } from "@/types/player";
 
 /** A match you have joined or are hosting */
@@ -61,13 +62,29 @@ export type ShareableMatch = {
   missing: "score" | "photo";
 };
 
-/** A finished match still waiting for its result and player ratings */
+/** A finished match waiting for you: the host adds its score, the other team confirms it */
 export type PendingReview = {
   matchId: string;
   playedAt: Date;
   clubName: string;
-  /** Last moment the result can be added */
+  action: "add" | "confirm";
+  /** Last moment to add or confirm the score */
   closesAt: Date;
+};
+
+/**
+ * A match's score. One player from each team has to agree: the host's team sends it
+ * and the other team confirms (or corrects it, and then the host's team confirms).
+ */
+export type MatchScore = {
+  /** Games per set: [team 1 (seats 1–2), team 2 (seats 3–4)] */
+  sets: SetScore[];
+  /** "expired": nobody confirmed it in time, so it never counts */
+  status: "pending" | "confirmed" | "expired";
+  submittedBy: string;
+  submittedTeam: 1 | 2;
+  /** When a pending score expires */
+  expiresAt: Date;
 };
 
 /** Everything the Match detail screen shows, for open matches and your own */
@@ -95,4 +112,8 @@ export type MatchDetails = {
    * of the host, or undefined for an open seat. `players` leaves the open ones out.
    */
   seats?: (Player | undefined)[];
+  /** Database matches only: whether every seat was taken, so a score can be added */
+  isFull?: boolean;
+  /** Once the host has sent one */
+  score?: MatchScore;
 };

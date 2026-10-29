@@ -1,21 +1,27 @@
 import { router } from "expo-router";
 import { Button, PressableFeedback, useToast } from "heroui-native";
-import { CalendarDays, Check, Clock, MapPin, MessageSquare } from "lucide-react-native";
+import { CalendarDays, Check, Clock, MapPin, MessageSquare, Trophy, Users } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Alert, Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
 import { MatchLineUp } from "@/components/match-line-up";
+import { MatchScoreCard } from "@/components/match-score-card";
 import { Page } from "@/components/page";
+import { SaveScoreSheet } from "@/components/save-score-sheet";
 import { SettingsRow, SettingsSection } from "@/components/settings-section";
-import { useCancelMatch, useLeaveMatch } from "@/hooks/useMatches";
+import { useCancelMatch, useConfirmScore, useLeaveMatch } from "@/hooks/useMatches";
+import { useMyAccount } from "@/hooks/useMyProfile";
 import { InfoNote } from "@/components/info-note";
 import { formatMatchDay, formatStartsIn } from "@/lib/format-date";
+import { teamOf } from "@/lib/padel-score";
 import type { MatchDetails } from "@/types/match";
 import type { LucideIcon } from "lucide-react-native";
 
 // The countdown shows minutes at its finest, so refresh it once a minute
 const COUNTDOWN_REFRESH_MS = 60_000;
+// How long after the match the host can add its score (same as the database)
+const SCORE_SAVE_WINDOW_MS = 7 * 86_400_000;
 
 function formatTime(date: Date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
@@ -29,22 +35,37 @@ type MyMatchProps = {
 
 /**
  * Match detail for a match you're in (design: Your match · hosting / joined):
- * countdown, line-up, and host tools or a Leave button.
+ * countdown, line-up, and host tools or a Leave button. Once it's over, the score takes
+ * their place: the host adds it and one player from the other team confirms it.
  */
 export function MyMatch({ match, role }: MyMatchProps) {
   const { toast } = useToast();
   const cancelMatch = useCancelMatch();
   const leaveMatch = useLeaveMatch();
+  const confirmScore = useConfirmScore();
+  const { data: account } = useMyAccount();
   const isHost = role === "host";
   const [now, setNow] = useState(() => new Date());
+  const [scoreSheet, setScoreSheet] = useState<"add" | "correct" | "edit">();
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), COUNTDOWN_REFRESH_MS);
     return () => clearInterval(timer);
   }, []);
 
+  const endsAt = new Date(match.startsAt.getTime() + match.durationMinutes * 60_000);
   const start = formatTime(match.startsAt);
-  const end = formatTime(new Date(match.startsAt.getTime() + match.durationMinutes * 60_000));
+  const end = formatTime(endsAt);
+  const isOver = now >= endsAt;
+  const myId = account?.id ?? "";
+  const score = match.score;
+  const myTeam = teamOf(match, myId);
+  const isPending = score?.status === "pending";
+  // The other team confirms or corrects; the one who sent it can still edit it
+  const canConfirm = isPending && myTeam !== undefined && myTeam !== score.submittedTeam;
+  const canEdit = isPending && score.submittedBy === myId;
+  const isTooLateToAdd = now.getTime() >= endsAt.getTime() + SCORE_SAVE_WINDOW_MS;
+  const canAdd = isOver && isHost && !score && match.isFull !== false && !isTooLateToAdd;
   const place = match.isCourtBooked
     ? [match.clubName, match.courtName].filter(Boolean).join(" · ")
     : "Court not booked yet";
@@ -84,6 +105,14 @@ export function MyMatch({ match, role }: MyMatchProps) {
           }),
       },
     ]);
+  }
+
+  function confirm() {
+    confirmScore.mutate(match.id, {
+      onSuccess: () => toast.show({ variant: "success", label: "Score confirmed" }),
+      onError: (error) =>
+        toast.show({ variant: "danger", label: "Couldn’t confirm the score", description: error.message }),
+    });
   }
 
   function confirmCancel() {
@@ -137,9 +166,9 @@ export function MyMatch({ match, role }: MyMatchProps) {
         <View className="gap-3 rounded-[24px] bg-accent p-[18px]">
           <View className="flex-row items-center justify-between">
             <Text className="font-bold text-[12px] uppercase tracking-[0.8px] text-primary-tint-text">
-              Starts in
+              {isOver ? "Played" : "Starts in"}
             </Text>
-            {isHost ? (
+            {isHost && !isOver ? (
               <View className="flex-row items-center gap-1 rounded-[10px] bg-lime px-2.5 py-1">
                 <Icon as={match.isCourtBooked ? Check : Clock} size={12} color="lime-foreground" />
                 <Text className="font-bold text-[12px] text-lime-foreground">
@@ -149,7 +178,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
             ) : null}
           </View>
           <Text className="font-black text-[32px] leading-[32px] tracking-[-0.8px] text-accent-foreground">
-            {formatStartsIn(match.startsAt, now)}
+            {isOver ? "Match finished" : formatStartsIn(match.startsAt, now)}
           </Text>
           <View className="gap-0.5">
             <Text className="font-bold text-[16px] text-accent-foreground">
@@ -159,12 +188,23 @@ export function MyMatch({ match, role }: MyMatchProps) {
           </View>
         </View>
 
-        {!isHost && !match.isCourtBooked ? (
+        {isOver ? (
+          <ScoreSection
+            match={match}
+            myId={myId}
+            hostName={match.host?.firstName ?? "The host"}
+            canAdd={canAdd}
+            isTooLateToAdd={isTooLateToAdd}
+          />
+        ) : null}
+
+        {!isOver && !isHost && !match.isCourtBooked ? (
           <InfoNote icon={Clock} tone="warning" title="Court not booked yet.">
             {`${match.host?.firstName ?? "The host"} will confirm once it’s reserved.`}
           </InfoNote>
         ) : null}
 
+        {!isOver ? (
         <View className="flex-row gap-2.5">
           <ActionTile icon={MapPin} label="Directions" onPress={() => comingSoon("Directions")} />
           <ActionTile icon={CalendarDays} label="Calendar" onPress={() => comingSoon("Calendar")} />
@@ -174,13 +214,14 @@ export function MyMatch({ match, role }: MyMatchProps) {
             onPress={() => comingSoon("Group chat")}
           />
         </View>
+        ) : null}
 
         <View className="gap-3 rounded-[20px] border border-line bg-surface p-3.5">
           <View className="flex-row items-baseline justify-between">
             <Text accessibilityRole="header" className="font-black text-[15px] text-foreground">
               Line-up · {match.players.length}/{match.capacity}
             </Text>
-            {isHost ? (
+            {isHost && !isOver ? (
               <PressableFeedback
                 onPress={() => comingSoon("Swapping teams")}
                 accessibilityRole="button"
@@ -198,7 +239,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
           />
         </View>
 
-        {isHost ? (
+        {isHost && !isOver ? (
         <SettingsSection title="Host tools">
           <SettingsRow
             label="Edit time, level or type"
@@ -218,20 +259,92 @@ export function MyMatch({ match, role }: MyMatchProps) {
         ) : null}
       </Page.Body>
 
-      <Page.Footer>
-        <Button
-          size="lg"
-          variant="outline"
-          onPress={isHost ? confirmCancel : confirmLeave}
-          isDisabled={cancelMatch.isPending || leaveMatch.isPending}
-          className="border-attention-outline bg-surface"
-        >
-          <Button.Label className="text-attention-action">
-            {isHost ? "Cancel match" : "Leave match"}
-          </Button.Label>
-        </Button>
-      </Page.Footer>
+      {!isOver ? (
+        <Page.Footer>
+          <Button
+            size="lg"
+            variant="outline"
+            onPress={isHost ? confirmCancel : confirmLeave}
+            isDisabled={cancelMatch.isPending || leaveMatch.isPending}
+            className="border-attention-outline bg-surface"
+          >
+            <Button.Label className="text-attention-action">
+              {isHost ? "Cancel match" : "Leave match"}
+            </Button.Label>
+          </Button>
+        </Page.Footer>
+      ) : canAdd ? (
+        <Page.Footer>
+          <Button size="lg" onPress={() => setScoreSheet("add")}>
+            Add the score
+          </Button>
+        </Page.Footer>
+      ) : canConfirm ? (
+        <Page.Footer className="gap-1">
+          <Button size="lg" onPress={confirm} isDisabled={confirmScore.isPending}>
+            Confirm score
+          </Button>
+          <Button variant="ghost" onPress={() => setScoreSheet("correct")}>
+            <Button.Label className="text-muted">Not right? Enter the real score</Button.Label>
+          </Button>
+        </Page.Footer>
+      ) : canEdit ? (
+        <Page.Footer>
+          <Button size="lg" variant="secondary" onPress={() => setScoreSheet("edit")}>
+            Edit score
+          </Button>
+        </Page.Footer>
+      ) : null}
+
+      {account ? (
+        <SaveScoreSheet
+          match={match}
+          myId={myId}
+          mode={scoreSheet ?? "add"}
+          isOpen={scoreSheet !== undefined}
+          onOpenChange={(open) => !open && setScoreSheet(undefined)}
+        />
+      ) : null}
     </Page>
+  );
+}
+
+type ScoreSectionProps = {
+  match: MatchDetails;
+  myId: string;
+  hostName: string;
+  canAdd: boolean;
+  isTooLateToAdd: boolean;
+};
+
+/** The score once it's sent, or a note on what happens next when there's none. */
+function ScoreSection({ match, myId, hostName, canAdd, isTooLateToAdd }: ScoreSectionProps) {
+  if (match.score) return <MatchScoreCard match={{ ...match, score: match.score }} myId={myId} />;
+  if (match.isFull === false) {
+    return (
+      <InfoNote icon={Users} tone="warning" title="No score for this match.">
+        It didn’t have 4 players.
+      </InfoNote>
+    );
+  }
+  if (canAdd) {
+    return (
+      <InfoNote icon={Trophy} title="How did it go?">
+        Add the score set by set. One player from the other team confirms it.
+      </InfoNote>
+    );
+  }
+  if (isTooLateToAdd) {
+    return (
+      <InfoNote icon={Clock} tone="warning" title="No score was added.">
+        The time to add one has passed.
+      </InfoNote>
+    );
+  }
+  return (
+    <InfoNote icon={Clock} title={`Waiting for ${hostName}’s score.`}>
+      {`${hostName} adds it, then one player from the other team confirms it.`}
+    </InfoNote>
   );
 }
 

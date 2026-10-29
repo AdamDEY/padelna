@@ -1,15 +1,19 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+import type { SetScore } from "@/lib/padel-score";
 import { queryClient } from "@/lib/query-client";
 import {
   cancelMatch,
+  confirmScore,
   createMatch,
   fetchClubs,
   fetchMatch,
+  fetchMyPendingScores,
   fetchMyUpcomingMatches,
   fetchOpenMatches,
   joinMatch,
   leaveMatch,
+  submitScore,
 } from "@/repositories/match-repository";
 
 // Live updates can fail without any sign (a dropped connection, a phone that was asleep), so
@@ -20,11 +24,13 @@ export const clubsKey = ["clubs"] as const;
 export const myMatchesKey = ["my-matches"] as const;
 export const openMatchesKey = ["open-matches"] as const;
 export const matchKey = (id: string) => ["match", id] as const;
+export const pendingScoresKey = ["pending-scores"] as const;
 
 // Everything a match change can touch: the lists and the match itself (or every match)
 export function refreshMatches(matchId?: string) {
   queryClient.invalidateQueries({ queryKey: myMatchesKey });
   queryClient.invalidateQueries({ queryKey: openMatchesKey });
+  queryClient.invalidateQueries({ queryKey: pendingScoresKey });
   queryClient.invalidateQueries({ queryKey: matchId ? matchKey(matchId) : ["match"] });
 }
 
@@ -103,5 +109,30 @@ export function useLeaveMatch() {
   return useMutation({
     mutationFn: leaveMatch,
     onSuccess: (_, matchId) => refreshMatches(matchId),
+  });
+}
+
+/** Finished matches whose score you can add or confirm. */
+export function usePendingScores() {
+  return useQuery({
+    queryKey: pendingScoresKey,
+    queryFn: fetchMyPendingScores,
+    refetchInterval: SAFETY_REFETCH_MS,
+  });
+}
+
+export function useSubmitScore() {
+  return useMutation({
+    mutationFn: ({ matchId, sets }: { matchId: string; sets: SetScore[] }) =>
+      submitScore(matchId, sets),
+    // Refresh on failure too: the other team may have confirmed or corrected it meanwhile
+    onSettled: (_, __, { matchId }) => refreshMatches(matchId),
+  });
+}
+
+export function useConfirmScore() {
+  return useMutation({
+    mutationFn: confirmScore,
+    onSettled: (_, __, matchId) => refreshMatches(matchId),
   });
 }

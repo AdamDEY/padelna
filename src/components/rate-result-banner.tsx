@@ -1,5 +1,5 @@
 import { PressableFeedback } from "heroui-native";
-import { ChevronRight, Star } from "lucide-react-native";
+import { ChevronRight, ShieldCheck, Trophy } from "lucide-react-native";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -13,25 +13,31 @@ type RateResultBannerProps = {
   onPress?: () => void;
 };
 
-/** Peach reminder to add a finished match's result and rate the players. */
+const copy = {
+  add: { title: "Add the score", icon: Trophy },
+  confirm: { title: "Confirm the score", icon: ShieldCheck },
+} as const;
+
+/** Peach reminder that a finished match's score is waiting for you to add or confirm. */
 export function RateResultBanner({ review, onPress }: RateResultBannerProps) {
   const daysLeft = Math.max(daysUntil(review.closesAt), 0);
   const deadline =
     daysLeft === 0 ? "last day" : `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`;
   const details = `${weekdayFormat.format(review.playedAt)} match at ${review.clubName} · ${deadline}`;
+  const { title, icon } = copy[review.action];
 
   return (
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`Add result and rate players. ${details}`}
+      accessibilityLabel={`${title}. ${details}`}
     >
       <View className="flex-row items-center gap-3 rounded-[20px] bg-court-peach px-4 py-3.5">
         <View className="size-11 items-center justify-center rounded-full bg-surface">
-          <Icon as={Star} size={22} color="avatar-peach-foreground" />
+          <Icon as={icon} size={22} color="avatar-peach-foreground" />
         </View>
         <View className="flex-1">
-          <Text className="font-bold text-[15px] text-foreground">Add result & rate players</Text>
+          <Text className="font-bold text-[15px] text-foreground">{title}</Text>
           <Text className="font-normal text-[13px] text-attention">
             {details}
           </Text>

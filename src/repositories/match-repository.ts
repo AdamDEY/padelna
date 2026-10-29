@@ -3,13 +3,22 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
 import type { Club } from "@/types/club";
-import type { MatchDetails, OpenMatch, UpcomingMatch } from "@/types/match";
+import { teamOf, type SetScore } from "@/lib/padel-score";
+import type {
+  MatchDetails,
+  MatchScore,
+  OpenMatch,
+  PendingReview,
+  UpcomingMatch,
+} from "@/types/match";
 import type { Player } from "@/types/player";
 
 // Padel is 2 vs 2
 const CAPACITY = 4;
 // A match that started less than this long ago still counts as upcoming (it lasts 90 minutes)
 const STILL_PLAYING_MS = 90 * 60_000;
+// How long after a match the host can still add its score (same as the database)
+const SCORE_SAVE_WINDOW_MS = 7 * 86_400_000;
 // How long to wait before reconnecting after the live connection fails
 const RECONNECT_DELAY_MS = 5_000;
 // Postgres: exclusion constraint violation, i.e. the host already has a match at that time
@@ -19,7 +28,8 @@ const MATCH_SELECT = `
   id, host_id, starts_at, duration_minutes, level_min, level_max, kind,
   players_needed, price, note, status,
   court:courts(number, club:clubs(id, name)),
-  match_players(seat, player_id)
+  match_players(seat, player_id),
+  score:match_scores(team1_games, team2_games, status, submitted_by, submitted_team, expires_at)
 `;
 
 type MatchRow = {
@@ -36,6 +46,17 @@ type MatchRow = {
   status: "open" | "cancelled";
   court: { number: number; club: { id: string; name: string } } | null;
   match_players: { seat: number; player_id: string }[];
+  // One-to-one, so PostgREST embeds an object (or null), not a list
+  score: ScoreRow | null;
+};
+
+type ScoreRow = {
+  team1_games: number[];
+  team2_games: number[];
+  status: "pending" | "confirmed";
+  submitted_by: string;
+  submitted_team: 1 | 2;
+  expires_at: string;
 };
 
 type PlayerCardRow = {
@@ -190,6 +211,11 @@ export function subscribeToMatchChanges(onChange: (matchId?: string) => void) {
         const old = (change.old as { match_id?: string }) ?? {};
         onChange(row.match_id ?? old.match_id);
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "match_scores" }, (change) => {
+        const row = (change.new as { match_id?: string }) ?? {};
+        const old = (change.old as { match_id?: string }) ?? {};
+        onChange(row.match_id ?? old.match_id);
+      })
       .subscribe((status) => {
         if (isStopped) return;
         // Events sent while the phone was offline or asleep are lost, so catch up on every (re)connect
@@ -221,6 +247,67 @@ export async function joinMatch(matchId: string, seat: number) {
 export async function leaveMatch(matchId: string) {
   const { error } = await supabase.rpc("leave_match", { p_match_id: matchId });
   if (error) throw error;
+}
+
+/**
+ * Sends a finished match's score: the host's first version, the other team's correction,
+ * or an edit by whoever sent it. Throws with a readable message when it can't.
+ */
+export async function submitScore(matchId: string, sets: SetScore[]) {
+  const { error } = await supabase.rpc("submit_score", {
+    p_match_id: matchId,
+    p_team1_games: sets.map((set) => set[0]),
+    p_team2_games: sets.map((set) => set[1]),
+  });
+  if (error) throw error;
+}
+
+/** Confirms the score the other team sent. */
+export async function confirmScore(matchId: string) {
+  const { error } = await supabase.rpc("confirm_score", { p_match_id: matchId });
+  if (error) throw error;
+}
+
+/**
+ * Finished matches where it's your turn: you host one with no score yet, or the other
+ * team sent a score you can confirm. Most recent first.
+ */
+export async function fetchMyPendingScores(): Promise<PendingReview[]> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("You’re signed out. Sign in again.");
+
+  const now = Date.now();
+  const { data, error } = await supabase
+    .from("match_players")
+    .select(`matches!inner(${MATCH_SELECT})`)
+    .eq("player_id", user.id)
+    .eq("matches.status", "open")
+    .gte("matches.starts_at", new Date(now - STILL_PLAYING_MS - SCORE_SAVE_WINDOW_MS).toISOString())
+    .lte("matches.starts_at", new Date(now - STILL_PLAYING_MS).toISOString());
+  if (error) throw error;
+
+  const rows = (data as unknown as { matches: MatchRow }[])
+    .map((row) => row.matches)
+    .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
+  const cards = await fetchPlayerCards(rows);
+
+  return rows.flatMap((row): PendingReview[] => {
+    const match = toMatchDetails(row, cards);
+    const endsAt = new Date(match.startsAt.getTime() + match.durationMinutes * 60_000);
+    const base = { matchId: match.id, playedAt: match.startsAt, clubName: match.clubName || "Your match" };
+    const score = match.score;
+
+    if (!match.isFull) return [];
+    if (!score) {
+      return row.host_id === user.id
+        ? [{ ...base, action: "add", closesAt: new Date(endsAt.getTime() + SCORE_SAVE_WINDOW_MS) }]
+        : [];
+    }
+    if (score.status === "pending" && teamOf(match, user.id) !== score.submittedTeam) {
+      return [{ ...base, action: "confirm", closesAt: score.expiresAt }];
+    }
+    return [];
+  });
 }
 
 /** Open matches you host or play in that haven't finished, soonest first. */
@@ -309,5 +396,20 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     price: row.price ?? undefined,
     host: cards.get(row.host_id),
     note: row.note || undefined,
+    // The host and their guests, plus one row per player who joined
+    isFull: row.match_players.length === row.players_needed + 1,
+    score: row.score ? toMatchScore(row.score) : undefined,
+  };
+}
+
+function toMatchScore(row: ScoreRow): MatchScore {
+  const expiresAt = new Date(row.expires_at);
+  const isExpired = row.status === "pending" && expiresAt.getTime() < Date.now();
+  return {
+    sets: row.team1_games.map((games, index): SetScore => [games, row.team2_games[index]]),
+    status: isExpired ? "expired" : row.status,
+    submittedBy: row.submitted_by,
+    submittedTeam: row.submitted_team,
+    expiresAt,
   };
 }

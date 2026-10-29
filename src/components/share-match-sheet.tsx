@@ -68,14 +68,14 @@ export function ShareMatchSheet({ isOpen, onOpenChange, matches }: ShareMatchShe
           <PressableFeedback
             onPress={() => comingSoon("Logging a match")}
             accessibilityRole="button"
-            accessibilityHint="Tag the 3 other players, they confirm it"
+            accessibilityHint="Tag the other 3 players; an opponent confirms it"
           >
             <View className="flex-row items-center gap-3">
               <OptionHeader
                 icon={<Icon as={Plus} size={22} color="lime-foreground" />}
                 iconClassName="bg-court-lime"
                 title="Log a match played elsewhere"
-                description="Tag the 3 other players, they confirm it"
+                description="Tag the other 3 players; an opponent confirms it"
               />
               <Icon as={ChevronRight} size={20} color="muted" />
             </View>
