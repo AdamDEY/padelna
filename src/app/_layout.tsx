@@ -16,6 +16,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Uniwind } from "uniwind";
 
+import { useAuthState } from "@/hooks/useAuthState";
 import { useMatchesRealtime } from "@/hooks/useMatchesRealtime";
 import { usePrepareHome } from "@/hooks/usePrepareHome";
 import { queryClient } from "@/lib/query-client";
@@ -29,6 +30,7 @@ export default function RootLayout() {
   useMatchesRealtime();
   // Home's data loads behind the splash screen, in parallel with the fonts
   const isHomeReady = usePrepareHome();
+  const authState = useAuthState();
 
   const [fontsLoaded, fontError] = useFonts({
     Nunito_400Regular,
@@ -39,20 +41,42 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if ((fontsLoaded || fontError) && isHomeReady) {
+    if ((fontsLoaded || fontError) && isHomeReady && authState !== "loading") {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError, isHomeReady]);
+  }, [fontsLoaded, fontError, isHomeReady, authState]);
 
-  if (!fontsLoaded && !fontError) {
+  if ((!fontsLoaded && !fontError) || authState === "loading") {
     return null;
   }
+
+  const isSignedIn = authState !== "signedOut";
+  const isReady = authState === "ready";
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <HeroUINativeProvider>
-          <Stack screenOptions={{ headerShown: false }} />
+          {/* Players only see the screens that fit where they are. A screen that stops being
+              allowed (signing out, say) sends them to the first allowed one below. */}
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Protected guard={!isSignedIn}>
+              <Stack.Screen name="(auth)" />
+            </Stack.Protected>
+            <Stack.Protected guard={isReady}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="settings" />
+              <Stack.Screen name="clubs" />
+              <Stack.Screen name="club/[id]/index" />
+              <Stack.Screen name="club/[id]/reviews" />
+              <Stack.Screen name="match/[id]" />
+              <Stack.Screen name="design-check" />
+            </Stack.Protected>
+            <Stack.Protected guard={isSignedIn}>
+              <Stack.Screen name="setup" />
+              <Stack.Screen name="onboarding" />
+            </Stack.Protected>
+          </Stack>
         </HeroUINativeProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
