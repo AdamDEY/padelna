@@ -118,7 +118,7 @@ export const pastMatches: PastMatch[] = [
     playedAt: inDays(-7, 18),
     clubName: "Lac Padel Arena",
     courtName: "Court 2",
-    won: true,
+    result: "won",
     sets: [
       [6, 4],
       [3, 6],
@@ -129,7 +129,7 @@ export const pastMatches: PastMatch[] = [
     id: "match-past-2",
     playedAt: inDays(-12, 20),
     clubName: "La Marsa Padel",
-    won: false,
+    result: "lost",
     sets: [
       [4, 6],
       [5, 7],
