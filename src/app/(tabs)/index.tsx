@@ -9,6 +9,7 @@ import { HomeHeader } from "@/components/home-header";
 import { NextMatchCard } from "@/components/next-match-card";
 import { OpenMatchCard } from "@/components/open-match-card";
 import { Page } from "@/components/page";
+import { ScoreReminder } from "@/components/score-reminder";
 import { SectionHeader } from "@/components/section-header";
 import { clubsNearby, myLevel } from "@/data/mock";
 import { myMatchesKey, openMatchesKey, useHomeOpenMatches, useMyUpcomingMatches } from "@/hooks/useMatches";
@@ -110,6 +111,7 @@ export default function Home() {
 
       <CreateMatchButton onPress={() => setIsCreating(true)} />
       <CreateMatchSheet isOpen={isCreating} onOpenChange={setIsCreating} />
+      <ScoreReminder />
     </Page>
   );
 }

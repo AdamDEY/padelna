@@ -13,11 +13,12 @@ import { PastMatchRow } from "@/components/past-match-row";
 import { RateResultBanner } from "@/components/rate-result-banner";
 import { SectionHeader } from "@/components/section-header";
 import { UpcomingMatchCard } from "@/components/upcoming-match-card";
-import { myLevel, pastMatches } from "@/data/mock";
+import { myLevel } from "@/data/mock";
 import {
   myMatchesKey,
   openMatchesKey,
   pendingScoresKey,
+  useMyPastMatches,
   useMyUpcomingMatches,
   useOpenMatches,
   usePendingScores,
@@ -189,6 +190,7 @@ function MyMatches() {
   const { data: account } = useMyAccount();
   const { data: upcomingMatches, error, refetch, isRefetching } = useMyUpcomingMatches();
   const { data: pendingScores = [] } = usePendingScores();
+  const { data: pastMatches } = useMyPastMatches();
 
   return (
     <>
@@ -234,9 +236,20 @@ function MyMatches() {
 
       <View className="gap-2">
         <SectionHeader size="sm" title="Past" actionLabel="History" />
-        {pastMatches.map((match) => (
-          <PastMatchRow key={match.id} match={match} />
+        {pastMatches?.map((match) => (
+          <PastMatchRow
+            key={match.id}
+            match={match}
+            onPress={() => router.push({ pathname: "/match/[id]", params: { id: match.id } })}
+          />
         ))}
+        {pastMatches === undefined ? (
+          <Spinner accessibilityLabel="Loading your past matches" className="self-start" />
+        ) : pastMatches.length === 0 ? (
+          <Text className="font-normal text-[14px] text-muted">
+            Matches you play show up here once they’re over.
+          </Text>
+        ) : null}
       </View>
     </>
   );

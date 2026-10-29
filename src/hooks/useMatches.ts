@@ -8,6 +8,7 @@ import {
   createMatch,
   fetchClubs,
   fetchMatch,
+  fetchMyPastMatches,
   fetchMyPendingScores,
   fetchMyUpcomingMatches,
   fetchOpenMatches,
@@ -22,6 +23,8 @@ const SAFETY_REFETCH_MS = 30_000;
 
 export const clubsKey = ["clubs"] as const;
 export const myMatchesKey = ["my-matches"] as const;
+// Under myMatchesKey, so anything that reloads your matches reloads your history too
+export const pastMatchesKey = [...myMatchesKey, "past"] as const;
 export const openMatchesKey = ["open-matches"] as const;
 export const matchKey = (id: string) => ["match", id] as const;
 export const pendingScoresKey = ["pending-scores"] as const;
@@ -109,6 +112,15 @@ export function useLeaveMatch() {
   return useMutation({
     mutationFn: leaveMatch,
     onSuccess: (_, matchId) => refreshMatches(matchId),
+  });
+}
+
+/** Matches you played that are over, most recent first. */
+export function useMyPastMatches() {
+  return useQuery({
+    queryKey: pastMatchesKey,
+    queryFn: fetchMyPastMatches,
+    refetchInterval: SAFETY_REFETCH_MS,
   });
 }
 

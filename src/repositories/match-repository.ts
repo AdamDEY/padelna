@@ -3,11 +3,12 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
 import type { Club } from "@/types/club";
-import { teamOf, type SetScore } from "@/lib/padel-score";
+import { teamOf, winningTeam, type SetScore } from "@/lib/padel-score";
 import type {
   MatchDetails,
   MatchScore,
   OpenMatch,
+  PastMatch,
   PendingReview,
   UpcomingMatch,
 } from "@/types/match";
@@ -19,6 +20,8 @@ const CAPACITY = 4;
 const STILL_PLAYING_MS = 90 * 60_000;
 // How long after a match the host can still add its score (same as the database)
 const SCORE_SAVE_WINDOW_MS = 7 * 86_400_000;
+// How many finished matches My matches lists
+const PAST_MATCH_LIMIT = 30;
 // How long to wait before reconnecting after the live connection fails
 const RECONNECT_DELAY_MS = 5_000;
 // Postgres: exclusion constraint violation, i.e. the host already has a match at that time
@@ -307,6 +310,58 @@ export async function fetchMyPendingScores(): Promise<PendingReview[]> {
       return [{ ...base, action: "confirm", closesAt: score.expiresAt }];
     }
     return [];
+  });
+}
+
+/** Matches you played that are over and had all 4 players, most recent first. */
+export async function fetchMyPastMatches(): Promise<PastMatch[]> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("You’re signed out. Sign in again.");
+
+  const { data, error } = await supabase
+    .from("match_players")
+    .select(`matches!inner(${MATCH_SELECT})`)
+    .eq("player_id", user.id)
+    .eq("matches.status", "open")
+    .lte("matches.starts_at", new Date(Date.now() - STILL_PLAYING_MS).toISOString());
+  if (error) throw error;
+
+  const rows = (data as unknown as { matches: MatchRow }[])
+    .map((row) => row.matches)
+    .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+    .slice(0, PAST_MATCH_LIMIT);
+  const cards = await fetchPlayerCards(rows);
+
+  return rows.flatMap((row): PastMatch[] => {
+    const match = toMatchDetails(row, cards);
+    // A match that never had 4 players wasn't played
+    if (!match.isFull) return [];
+
+    const { score } = match;
+    const myTeam = teamOf(match, user.id);
+    const winner = score ? winningTeam(score.sets) : undefined;
+    const result: PastMatch["result"] =
+      !score || score.status === "expired"
+        ? "none"
+        : score.status === "pending" || winner === undefined || myTeam === undefined
+          ? "unconfirmed"
+          : winner === myTeam
+            ? "won"
+            : "lost";
+    return [
+      {
+        id: match.id,
+        playedAt: match.startsAt,
+        clubName: match.clubName || "Court not booked",
+        courtName: match.courtName,
+        result,
+        // Shown from your side: your games first
+        sets:
+          score && score.status !== "expired"
+            ? score.sets.map(([a, b]): [number, number] => (myTeam === 2 ? [b, a] : [a, b]))
+            : [],
+      },
+    ];
   });
 }
 

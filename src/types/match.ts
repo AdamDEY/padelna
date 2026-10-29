@@ -47,7 +47,8 @@ export type PastMatch = {
   playedAt: Date;
   clubName: string;
   courtName?: string;
-  won: boolean;
+  /** "unconfirmed": a score was sent but the other team hasn't agreed; "none": no score counts */
+  result: "won" | "lost" | "unconfirmed" | "none";
   sets: [number, number][];
 };
 
