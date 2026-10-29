@@ -1,10 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 import { queryClient } from "@/lib/query-client";
 import {
   fetchConnectionRequests,
   fetchMyClubs,
+  fetchPlayerDetails,
   fetchPlayedWith,
   fetchPlayersAtMyClubs,
   requestConnection,
@@ -12,6 +13,7 @@ import {
   searchPlayers,
   subscribeToConnectionChanges,
 } from "@/repositories/player-repository";
+import type { PlayerSuggestion } from "@/types/player";
 
 // Search waits for this many characters, like the database
 const MIN_SEARCH_LENGTH = 2;
@@ -66,4 +68,39 @@ export function useRespondToConnection() {
 /** Reloads the Players lists when a request arrives or is answered, while the screen is open. */
 export function useConnectionsRealtime() {
   useEffect(() => subscribeToConnectionChanges(() => void refreshPlayers()), []);
+}
+
+export function usePlayerDetails(playerId: string | undefined) {
+  return useQuery({
+    queryKey: [...playersKey, "details", playerId],
+    queryFn: () => fetchPlayerDetails(playerId!),
+    enabled: playerId !== undefined,
+  });
+}
+
+/**
+ * The player as the lists now know them. A sheet keeps the player it was opened with,
+ * so this picks up a connection that changed since (Connect pressed, request accepted).
+ */
+export function useFreshPlayer(player: PlayerSuggestion | undefined) {
+  return useSyncExternalStore(
+    (onChange) => queryClient.getQueryCache().subscribe(onChange),
+    () => {
+      if (!player) return undefined;
+      // Several lists can hold the same player; the one loaded last is right
+      let latest = { player, at: 0 };
+      for (const query of queryClient.getQueryCache().findAll({ queryKey: playersKey })) {
+        const list = Array.isArray(query.state.data) ? (query.state.data as unknown[]) : [];
+        const found = list.find(
+          (item): item is PlayerSuggestion =>
+            typeof item === "object" &&
+            item !== null &&
+            "connection" in item &&
+            (item as PlayerSuggestion).id === player.id,
+        );
+        if (found && query.state.dataUpdatedAt > latest.at) latest = { player: found, at: query.state.dataUpdatedAt };
+      }
+      return latest.player;
+    },
+  );
 }

@@ -8,6 +8,7 @@ import { Icon } from "@/components/icon";
 import { MatchLineUp } from "@/components/match-line-up";
 import { MatchScoreCard } from "@/components/match-score-card";
 import { Page } from "@/components/page";
+import { PlayerSheet } from "@/components/player-sheet";
 import { SaveScoreSheet } from "@/components/save-score-sheet";
 import { SettingsRow, SettingsSection } from "@/components/settings-section";
 import { useCancelMatch, useConfirmScore, useLeaveMatch } from "@/hooks/useMatches";
@@ -16,6 +17,7 @@ import { InfoNote } from "@/components/info-note";
 import { formatMatchDay, formatStartsIn } from "@/lib/format-date";
 import { teamOf } from "@/lib/padel-score";
 import type { MatchDetails } from "@/types/match";
+import type { Player } from "@/types/player";
 import type { LucideIcon } from "lucide-react-native";
 
 // The countdown shows minutes at its finest, so refresh it once a minute
@@ -47,6 +49,8 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const isHost = role === "host";
   const [now, setNow] = useState(() => new Date());
   const [scoreSheet, setScoreSheet] = useState<"add" | "correct" | "edit">();
+  const [viewedPlayer, setViewedPlayer] = useState<Player>();
+  const [isViewingPlayer, setIsViewingPlayer] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), COUNTDOWN_REFRESH_MS);
@@ -236,6 +240,11 @@ export function MyMatch({ match, role }: MyMatchProps) {
             capacity={match.capacity}
             newPlayerIds={new Set()}
             openSeatLabel="Open"
+            onPlayerPress={(player) => {
+              setViewedPlayer(player);
+              setIsViewingPlayer(true);
+            }}
+            myId={account?.id}
           />
         </View>
 
@@ -305,6 +314,11 @@ export function MyMatch({ match, role }: MyMatchProps) {
           onOpenChange={(open) => !open && setScoreSheet(undefined)}
         />
       ) : null}
+      <PlayerSheet
+        player={viewedPlayer}
+        isOpen={isViewingPlayer}
+        onOpenChange={setIsViewingPlayer}
+      />
     </Page>
   );
 }

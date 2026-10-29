@@ -8,7 +8,7 @@ import type {
   ShareableMatch,
   UpcomingMatch,
 } from "@/types/match";
-import type { Player } from "@/types/player";
+import type { Player, PlayerStats } from "@/types/player";
 import type { PlayerProfile } from "@/types/profile";
 import type { ResultPost } from "@/types/post";
 
@@ -787,3 +787,19 @@ export function getMatchDetails(id: string): MatchDetails | undefined {
   }
   return undefined;
 }
+
+// Another player's results and reviews aren't stored yet, so every profile shows these
+export const mockPlayerStats: PlayerStats = {
+  matches: 48,
+  won: 30,
+  lost: 18,
+  reviews: 22,
+  tags: [
+    { label: "Fair play", count: 18 },
+    { label: "On time", count: 15 },
+    { label: "Strong smash", count: 11 },
+    { label: "Great teammate", count: 7 },
+  ],
+  asPartners: { won: 1, lost: 0 },
+  asOpponents: { won: 0, lost: 1 },
+};

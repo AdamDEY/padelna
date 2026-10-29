@@ -10,6 +10,7 @@ import { IconButton } from "@/components/icon-button";
 import { MyMatch } from "@/components/my-match";
 import { Page } from "@/components/page";
 import { PlayerAvatar } from "@/components/player-avatar";
+import { PlayerSheet } from "@/components/player-sheet";
 import { seatInfo, TeamPicker } from "@/components/team-picker";
 import { allClubs, getMatchDetails, me, myLevel } from "@/data/mock";
 import type { Player } from "@/types/player";
@@ -47,6 +48,9 @@ export default function MatchDetail() {
   const [hasAsked, setHasAsked] = useState(false);
   // The seat you tapped, until you confirm with the Join button
   const [selectedSeat, setSelectedSeat] = useState<number>();
+  // Kept after the sheet closes so its content doesn't vanish mid-animation
+  const [viewedPlayer, setViewedPlayer] = useState<Player>();
+  const [isViewingPlayer, setIsViewingPlayer] = useState(false);
 
   if (isStored && (stored.isPending || isAccountPending)) {
     return (
@@ -281,6 +285,16 @@ export default function MatchDetail() {
               me={self}
               preferredSide={account?.side}
               onSelectSeat={canPick ? setSelectedSeat : undefined}
+              // Mock matches' players have no profile in the database
+              onPlayerPress={
+                isStored
+                  ? (player) => {
+                      setViewedPlayer(player);
+                      setIsViewingPlayer(true);
+                    }
+                  : undefined
+              }
+              myId={account?.id}
             />
             {fit !== undefined && !isMine ? (
               <View
@@ -351,6 +365,11 @@ export default function MatchDetail() {
           </Button>
         )}
       </Page.Footer>
+      <PlayerSheet
+        player={viewedPlayer}
+        isOpen={isViewingPlayer}
+        onOpenChange={setIsViewingPlayer}
+      />
     </Page>
   );
 }
