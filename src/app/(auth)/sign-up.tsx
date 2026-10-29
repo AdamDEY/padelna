@@ -3,6 +3,7 @@ import { Button, Checkbox, FieldError, Input, Label, TextField, useToast } from 
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { SocialAuthButtons } from "@/components/social-auth-buttons";
 import { Page } from "@/components/page";
 import { signUp } from "@/repositories/auth-repository";
 import { isEmail, MIN_PASSWORD_LENGTH } from "@/lib/validation";
@@ -121,6 +122,8 @@ export default function SignUp() {
         <Button size="lg" onPress={createAccount} isDisabled={isCreating}>
           Create account
         </Button>
+
+        <SocialAuthButtons />
       </Page.Body>
 
       <Page.Footer className="items-center">

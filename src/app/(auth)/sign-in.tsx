@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { SocialAuthButtons } from "@/components/social-auth-buttons";
 import { Page } from "@/components/page";
 import { PadelnaLogo } from "@/components/padelna-logo";
 import { signIn as signInWithPassword } from "@/repositories/auth-repository";
@@ -143,6 +144,8 @@ export default function SignIn() {
           <Button size="lg" onPress={signIn} isDisabled={isSigningIn} className="mt-1">
             Sign in
           </Button>
+
+          <SocialAuthButtons />
         </View>
       </Page.Body>
 

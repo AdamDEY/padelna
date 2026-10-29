@@ -9,7 +9,8 @@
     "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.padelna.app"
+      "bundleIdentifier": "com.padelna.app",
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.padelna.app",
@@ -41,6 +42,13 @@
           "photosPermission": "Padelna uses your photos so you can add a profile picture.",
           "cameraPermission": false,
           "microphonePermission": false
+        }
+      ],
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.933365905057-44pci2o6njimk2r37oa18lm51c0o8ipv"
         }
       ]
     ],

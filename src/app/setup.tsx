@@ -14,9 +14,10 @@ import { initialGameValues, SetupGameStep } from "@/components/setup-game-step";
 import { SetupProgress } from "@/components/setup-progress";
 import { SetupQuizStep } from "@/components/setup-quiz-step";
 import { levelQuizQuestions } from "@/data/level-quiz";
+import { profileExistsKey } from "@/hooks/useAuthState";
 import { myProfileKey } from "@/hooks/useMyProfile";
 import { queryClient } from "@/lib/query-client";
-import { getCurrentUser } from "@/repositories/auth-repository";
+import { getCurrentUser, getSuggestedName } from "@/repositories/auth-repository";
 import { saveProfile } from "@/repositories/profile-repository";
 
 type Step = 1 | 2 | 3;
@@ -43,6 +44,19 @@ export default function ProfileSetup() {
   const advanceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => () => clearTimeout(advanceTimer.current), []);
+
+  // Players who signed in with Google already gave their name, so start from it
+  useEffect(() => {
+    getSuggestedName()
+      .then(({ firstName, lastName }) =>
+        setAbout((current) => ({
+          ...current,
+          firstName: current.firstName || firstName,
+          lastName: current.lastName || lastName,
+        })),
+      )
+      .catch(() => {});
+  }, []);
 
   function goTo(next: Step, nextQuestion = 0) {
     clearTimeout(advanceTimer.current);
@@ -88,6 +102,8 @@ export default function ProfileSetup() {
       }
       await saveProfile(user.id, about, game);
       await queryClient.invalidateQueries({ queryKey: myProfileKey });
+      // Setup is done: from now on the app opens on Home
+      queryClient.setQueryData(profileExistsKey(user.id), true);
       // The starting-level result screen isn't built yet, so setup goes straight to onboarding.
       // The quiz answers aren't scored yet; saveProfile gives everyone level 6.
       router.push("/onboarding");
