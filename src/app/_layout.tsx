@@ -18,6 +18,7 @@ import { Uniwind } from "uniwind";
 
 import { useAuthState } from "@/hooks/useAuthState";
 import { useMatchesRealtime } from "@/hooks/useMatchesRealtime";
+import { useConnectionsRealtime } from "@/hooks/usePlayers";
 import { usePrepareHome } from "@/hooks/usePrepareHome";
 import { queryClient } from "@/lib/query-client";
 
@@ -28,6 +29,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useMatchesRealtime();
+  useConnectionsRealtime();
   // Home's data loads behind the splash screen, in parallel with the fonts
   const isHomeReady = usePrepareHome();
   const authState = useAuthState();

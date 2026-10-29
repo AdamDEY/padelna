@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
 
 import { ClubRow } from "@/components/club-row";
+import { ConnectionRequestsBanner } from "@/components/connection-requests-banner";
+import { ConnectionRequestsSheet } from "@/components/connection-requests-sheet";
 import { CreateMatchButton } from "@/components/create-match-button";
 import { CreateMatchSheet } from "@/components/create-match-sheet";
 import { HomeHeader } from "@/components/home-header";
@@ -13,6 +15,7 @@ import { ScoreReminder } from "@/components/score-reminder";
 import { SectionHeader } from "@/components/section-header";
 import { clubsNearby, myLevel } from "@/data/mock";
 import { myMatchesKey, openMatchesKey, useHomeOpenMatches, useMyUpcomingMatches } from "@/hooks/useMatches";
+import { connectionRequestsKey, useConnectionRequests } from "@/hooks/usePlayers";
 import { myProfileKey, useMyProfile } from "@/hooks/useMyProfile";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
 import { queryClient } from "@/lib/query-client";
@@ -27,7 +30,7 @@ const FLOATING_BUTTON_SPACE = 72;
 // Pull to refresh reloads everything Home shows that comes from Supabase
 function refreshHome() {
   return Promise.all(
-    [myProfileKey, myMatchesKey, openMatchesKey].map((queryKey) =>
+    [myProfileKey, myMatchesKey, openMatchesKey, connectionRequestsKey].map((queryKey) =>
       queryClient.refetchQueries({ queryKey }),
     ),
   );
@@ -35,6 +38,8 @@ function refreshHome() {
 
 export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
+  const [isReviewing, setIsReviewing] = useState(false);
+  const { data: requests = [] } = useConnectionRequests();
   const { data: profile } = useMyProfile();
   const level = profile?.level ?? myLevel;
   const { data: upcoming } = useMyUpcomingMatches();
@@ -61,6 +66,10 @@ export default function Home() {
         />
       </Page.Fixed>
       <Page.Body onRefresh={refreshHome}>
+        {requests.length > 0 ? (
+          <ConnectionRequestsBanner requesters={requests} onReview={() => setIsReviewing(true)} />
+        ) : null}
+
         {nextMatch ? (
           <NextMatchCard
             match={nextMatch}
@@ -111,6 +120,11 @@ export default function Home() {
 
       <CreateMatchButton onPress={() => setIsCreating(true)} />
       <CreateMatchSheet isOpen={isCreating} onOpenChange={setIsCreating} />
+      <ConnectionRequestsSheet
+        requests={requests}
+        isOpen={isReviewing}
+        onOpenChange={setIsReviewing}
+      />
       <ScoreReminder />
     </Page>
   );
