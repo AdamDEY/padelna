@@ -167,7 +167,7 @@ Credibility is the core of the app, so level and match status always use the sam
 | Out-of-range chip | #EEF0F3 pill, `muted` text | Match above or below your level |
 | Starting level tag | Sand pill (#FBF1D3 / #6B4F00) | Level from the quiz, not yet shaped by matches |
 | Fit line | Green tick + "Great fit for your level" | Match suits you |
-| Score confirmed | Green shield + "Score confirmed by all 4" | Result is trusted |
+| Score confirmed | Green shield + "Score confirmed by both teams" | Result is trusted |
 | Court booked / not booked | Green tick pill / sand clock note | Booking status set by the host |
 | WIN tag | `lime-soft` micro chip | Winning team in a result |
 | Reputation tags | `primary-soft` pills with counts, e.g. "Fair play · 12" | What other players say |

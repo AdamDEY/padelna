@@ -13,12 +13,14 @@ import { PastMatchRow } from "@/components/past-match-row";
 import { RateResultBanner } from "@/components/rate-result-banner";
 import { SectionHeader } from "@/components/section-header";
 import { UpcomingMatchCard } from "@/components/upcoming-match-card";
-import { myLevel, pastMatches, pendingReviews } from "@/data/mock";
+import { myLevel, pastMatches } from "@/data/mock";
 import {
   myMatchesKey,
   openMatchesKey,
+  pendingScoresKey,
   useMyUpcomingMatches,
   useOpenMatches,
+  usePendingScores,
 } from "@/hooks/useMatches";
 import { useMyAccount, useMyProfile } from "@/hooks/useMyProfile";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
@@ -46,7 +48,7 @@ function dayLabel(date: Date) {
 // Pull to refresh reloads both lists, whichever tab you're on
 function refreshMatches() {
   return Promise.all(
-    [openMatchesKey, myMatchesKey].map((queryKey) => queryClient.refetchQueries({ queryKey })),
+    [openMatchesKey, myMatchesKey, pendingScoresKey].map((queryKey) => queryClient.refetchQueries({ queryKey })),
   );
 }
 
@@ -186,11 +188,18 @@ function OpenMatches() {
 function MyMatches() {
   const { data: account } = useMyAccount();
   const { data: upcomingMatches, error, refetch, isRefetching } = useMyUpcomingMatches();
+  const { data: pendingScores = [] } = usePendingScores();
 
   return (
     <>
-      {pendingReviews.map((review) => (
-        <RateResultBanner key={review.matchId} review={review} />
+      {pendingScores.map((review) => (
+        <RateResultBanner
+          key={review.matchId}
+          review={review}
+          onPress={() =>
+            router.push({ pathname: "/match/[id]", params: { id: review.matchId } })
+          }
+        />
       ))}
 
       <View className="gap-2.5">

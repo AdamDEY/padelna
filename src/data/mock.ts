@@ -5,7 +5,6 @@ import type {
   NextMatch,
   OpenMatch,
   PastMatch,
-  PendingReview,
   ShareableMatch,
   UpcomingMatch,
 } from "@/types/match";
@@ -112,15 +111,6 @@ export const upcomingMatches: UpcomingMatch[] = [
 ];
 
 export const nextMatch: NextMatch = upcomingMatches[0];
-
-export const pendingReviews: PendingReview[] = [
-  {
-    matchId: "match-0",
-    playedAt: inDays(-1, 19),
-    clubName: "Gammarth Padel",
-    closesAt: inDays(2, 23, 59),
-  },
-];
 
 export const pastMatches: PastMatch[] = [
   {

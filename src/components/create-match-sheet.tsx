@@ -384,7 +384,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
               </InfoNote>
             ) : (
               <InfoNote icon={Trophy} title="This one counts.">
-                Once all 4 players confirm the score, the result is used to adjust your level.
+                Once both teams agree on the score, the result is used to adjust your level.
               </InfoNote>
             )}
           </BottomSheetScrollView>

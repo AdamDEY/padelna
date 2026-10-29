@@ -75,8 +75,8 @@ Screens are built from the Padelna design canvas: https://claude.ai/artifact/F3x
 - **Layout:** `Page` (+ `usePageMargins()`; `Page.Header bar` gives the white settings-style header, used with `<Page underStatusBar>`), `SettingsSection` / `SettingsRow` / `SettingsSwitchRow` / `SettingsFieldLabel` (settings cards and rows), `SectionHeader`, `CourtHero` (tinted court illustration hero with optional ball and right action), `CourtPlaceholder`.
 - **Controls:** `IconButton` (variants, `showDot`), `SegmentedControl` (same look as HeroUI Tabs on Matches, but works inside bottom sheets; use it for every segmented control; `size="sm"` for four short options), `Dropdown` (HeroUI Select with a custom trigger, works in sheets and screens), `OptionTile` (icon-over-label choice tile), `AnswerCard` (radio-style answer, design.md "Answer card"), `PhotoPicker` (round profile photo, `expo-image-picker`; `current` shows the existing avatar), `ChoiceChips`, `FilterChip`, `DateStrip`, `StarRating`, `CreateMatchButton` (Home FAB).
 - **Display:** `SetupProgress` (3-segment "n of 3" bar), `Icon`, `PlayerAvatar` (+ `shortNameOf`, `stackTintIndices`), `LevelChip`, `InfoNote` (info / warning), `MatchLineUp`, `LevelChart`, `WinRateBars`, `PadelnaLogo`.
-- **Cards and rows:** `NextMatchCard`, `OpenMatchCard`, `UpcomingMatchCard`, `MatchListItem`, `PastMatchRow`, `ResultPostCard`, `ClubRow`, `ClubListItem`, `ClubMatchRow`, `ClubReviewCard`, `ClubReviewDetailCard`, `ClubReviewsSummary`, `RateResultBanner`, `ProfileHero`, `HomeHeader`.
-- **Sheets:** `CreateMatchSheet`, `RateClubSheet`, `ConnectSheet`, `ShareMatchSheet`, `DeleteAccountSheet` (type DELETE to confirm).
+- **Cards and rows:** `NextMatchCard`, `OpenMatchCard`, `UpcomingMatchCard`, `MatchListItem`, `PastMatchRow`, `ResultPostCard`, `MatchScoreCard` (score set by set + confirmation status), `ClubRow`, `ClubListItem`, `ClubMatchRow`, `ClubReviewCard`, `ClubReviewDetailCard`, `ClubReviewsSummary`, `RateResultBanner`, `ProfileHero`, `HomeHeader`.
+- **Sheets:** `CreateMatchSheet`, `RateClubSheet`, `ConnectSheet`, `ShareMatchSheet`, `DeleteAccountSheet` (type DELETE to confirm), `SaveScoreSheet` (add, correct or edit a score).
 
 ## Code style
 
@@ -107,6 +107,7 @@ Match the existing files; read a neighbouring component before writing a new one
 - **Every match lasts 90 minutes.** Start times are in **half-hour steps** (07:00–23:00), picked from a dropdown.
 - Match type is Friendly or Competitive. Friendly results don't change your level; competitive results count toward level. Show that as a hint when creating a match, and use **different colours** for friendly vs competitive result cards/scoreboards.
 - A match's court is either booked (show club + court, green "Court booked") or not yet (sand "Not booked yet" note asking the host to add the club and court later).
+- **Scores need one player from each team.** Once a match is over the host adds the score (set by set, best of three); one player from the other team confirms it or enters the real score, which a player from the host's team then confirms. A score nobody confirms within 48 hours expires and never counts. The rules live in the `submit_score` / `confirm_score` database functions and `src/lib/padel-score.ts`.
 - Level fit uses `src/lib/level-fit.ts` (great / good / above / below); outside your range you "Ask to join" instead of "Join match".
 - Connect buttons use the light blue **secondary** button everywhere.
 - Prices are per player, in TND. Phone numbers are Tunisian (`+216`, 8 digits).
