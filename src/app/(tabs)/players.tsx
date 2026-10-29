@@ -13,7 +13,6 @@ import { SectionHeader } from "@/components/section-header";
 import {
   playersKey,
   useConnectionRequests,
-  useConnectionsRealtime,
   useMyClubs,
   usePlayedWith,
   usePlayersAtMyClubs,
@@ -54,7 +53,6 @@ export default function Players() {
   const { data: requests = [] } = useConnectionRequests();
   const isSearching = query.trim().length >= MIN_SEARCH_LENGTH;
 
-  useConnectionsRealtime();
 
   return (
     <Page>
