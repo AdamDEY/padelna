@@ -8,6 +8,7 @@ import {
   createMatch,
   fetchClubs,
   fetchMatch,
+  fetchMatchPhotoUrl,
   fetchMyPastMatches,
   fetchMyPendingScores,
   fetchMyUpcomingMatches,
@@ -15,6 +16,7 @@ import {
   joinMatch,
   leaveMatch,
   submitScore,
+  uploadMatchPhoto,
 } from "@/repositories/match-repository";
 
 // Live updates can fail without any sign (a dropped connection, a phone that was asleep), so
@@ -146,5 +148,25 @@ export function useConfirmScore() {
   return useMutation({
     mutationFn: confirmScore,
     onSettled: (_, __, matchId) => refreshMatches(matchId),
+  });
+}
+
+// Signed links last an hour; ask for a new one well before that
+const PHOTO_URL_STALE_MS = 45 * 60_000;
+
+/** A link to show a match photo, while it's valid. */
+export function useMatchPhotoUrl(path: string | undefined) {
+  return useQuery({
+    queryKey: ["match-photo", path],
+    queryFn: () => fetchMatchPhotoUrl(path!),
+    enabled: path !== undefined,
+    staleTime: PHOTO_URL_STALE_MS,
+  });
+}
+
+export function useUploadMatchPhoto() {
+  return useMutation({
+    mutationFn: ({ matchId, uri }: { matchId: string; uri: string }) => uploadMatchPhoto(matchId, uri),
+    onSettled: (_, __, { matchId }) => refreshMatches(matchId),
   });
 }

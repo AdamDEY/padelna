@@ -86,6 +86,8 @@ export type MatchScore = {
   submittedTeam: 1 | 2;
   /** When a pending score expires */
   expiresAt: Date;
+  /** Storage path of the team photo the host added; shown through a signed URL */
+  photoPath?: string;
 };
 
 /** Everything the Match detail screen shows, for open matches and your own */

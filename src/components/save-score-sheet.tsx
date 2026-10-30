@@ -12,7 +12,8 @@ import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
 import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
-import { useSubmitScore } from "@/hooks/useMatches";
+import { TeamPhotoPicker } from "@/components/team-photo-picker";
+import { useMatchPhotoUrl, useSubmitScore, useUploadMatchPhoto } from "@/hooks/useMatches";
 import { formatMatchDay } from "@/lib/format-date";
 import { winningTeam, type SetScore } from "@/lib/padel-score";
 import type { MatchDetails } from "@/types/match";
@@ -74,8 +75,15 @@ type SaveScoreSheetProps = {
 export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: SaveScoreSheetProps) {
   const { toast } = useToast();
   const submitScore = useSubmitScore();
+  const uploadPhoto = useUploadMatchPhoto();
   const [boxes, setBoxes] = useState<Boxes>(() => toBoxes(match.score?.sets));
   const [submitted, setSubmitted] = useState(false);
+  // A photo picked in this sheet; undefined keeps the saved one (if any)
+  const [pickedPhoto, setPickedPhoto] = useState<string>();
+  // Only the host adds the team photo, with their score or an edit of it
+  const canAddPhoto = match.host?.id === myId && mode !== "correct";
+  const { data: savedPhotoUrl } = useMatchPhotoUrl(canAddPhoto ? match.score?.photoPath : undefined);
+  const isSaving = submitScore.isPending || uploadPhoto.isPending;
   const inputs = useRef<(InputRef | null)[]>([]);
 
   // Each time the sheet opens, start over; corrections and edits start from the score that was sent
@@ -85,6 +93,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
     if (isOpen) {
       setBoxes(toBoxes(mode === "add" ? undefined : match.score?.sets));
       setSubmitted(false);
+      setPickedPhoto(undefined);
     }
   }
 
@@ -105,29 +114,48 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
     if (digit !== "") inputs.current[index + 1]?.focus();
   }
 
-  function save() {
+  async function save() {
     setSubmitted(true);
     if (!isValid) return;
-    submitScore.mutate(
-      { matchId: match.id, sets },
-      {
-        onSuccess: () => {
-          toast.show({
-            variant: "success",
-            label: mode === "edit" ? "Score updated" : "Score sent",
-            description: "One player from the other team confirms it.",
-          });
-          onOpenChange(false);
-        },
-        onError: (error) =>
-          toast.show({ variant: "danger", label: "Couldn’t save the score", description: error.message }),
-      },
-    );
+    try {
+      await submitScore.mutateAsync({ matchId: match.id, sets });
+    } catch (error) {
+      toast.show({
+        variant: "danger",
+        label: "Couldn’t save the score",
+        description: (error as Error).message,
+      });
+      return;
+    }
+
+    // The score is what matters; a photo that fails to upload doesn't undo it
+    if (pickedPhoto) {
+      try {
+        await uploadPhoto.mutateAsync({ matchId: match.id, uri: pickedPhoto });
+      } catch (error) {
+        toast.show({
+          variant: "danger",
+          label: "Score sent, but the photo didn’t upload",
+          description: (error as Error).message,
+        });
+        onOpenChange(false);
+        return;
+      }
+    }
+
+    toast.show({
+      variant: "success",
+      label: mode === "edit" ? "Score updated" : "Score sent",
+      description: "One player from the other team confirms it.",
+    });
+    onOpenChange(false);
   }
 
   return (
     <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
-      <BottomSheet.Portal>
+      {/* A plain view instead of iOS's full-window overlay, so the photo library
+          opens in front of the sheet instead of behind it */}
+      <BottomSheet.Portal disableFullWindowOverlay>
         <BottomSheet.Overlay />
         <BottomSheet.Content
           keyboardBehavior="interactive"
@@ -214,11 +242,20 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
             </Text>
           ) : null}
 
+          {canAddPhoto ? (
+            <TeamPhotoPicker
+              uri={pickedPhoto ?? savedPhotoUrl}
+              onChange={setPickedPhoto}
+              // A saved photo can be replaced, not removed (nothing deletes it yet)
+              canRemove={pickedPhoto !== undefined}
+            />
+          ) : null}
+
           <View className="gap-2">
             <Text className="text-center font-normal text-[13px] text-muted">
               One player from the other team confirms the score.
             </Text>
-            <Button size="lg" onPress={save} isDisabled={submitScore.isPending}>
+            <Button size="lg" onPress={save} isDisabled={isSaving}>
               {mode === "edit" ? "Save changes" : mode === "correct" ? "Send the real score" : "Save score"}
             </Button>
           </View>

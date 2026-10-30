@@ -22,6 +22,9 @@ const STILL_PLAYING_MS = 90 * 60_000;
 const SCORE_SAVE_WINDOW_MS = 7 * 86_400_000;
 // How many finished matches My matches lists
 const PAST_MATCH_LIMIT = 30;
+// Match photos are private; their links work this long before the app asks for a new one
+const PHOTO_LINK_SECONDS = 60 * 60;
+const PHOTO_BUCKET = "match-photos";
 // How long to wait before reconnecting after the live connection fails
 const RECONNECT_DELAY_MS = 5_000;
 // Postgres: exclusion constraint violation, i.e. the host already has a match at that time
@@ -32,7 +35,7 @@ const MATCH_SELECT = `
   players_needed, price, note, status,
   court:courts(number, club:clubs(id, name)),
   match_players(seat, player_id),
-  score:match_scores(team1_games, team2_games, status, submitted_by, submitted_team, expires_at)
+  score:match_scores(team1_games, team2_games, status, submitted_by, submitted_team, expires_at, photo_path)
 `;
 
 type MatchRow = {
@@ -60,6 +63,7 @@ type ScoreRow = {
   submitted_by: string;
   submitted_team: 1 | 2;
   expires_at: string;
+  photo_path: string | null;
 };
 
 type PlayerCardRow = {
@@ -265,6 +269,35 @@ export async function submitScore(matchId: string, sets: SetScore[]) {
   if (error) throw error;
 }
 
+/**
+ * Uploads the host's team photo into the match's folder and attaches it to the score.
+ * Each upload gets its own file name, so a replaced photo never shows from the cache.
+ */
+export async function uploadMatchPhoto(matchId: string, uri: string) {
+  const response = await fetch(uri);
+  const body = await response.arrayBuffer();
+  const contentType = response.headers.get("content-type") ?? "image/jpeg";
+  const extension = contentType.split("/")[1] ?? "jpg";
+  const path = `${matchId}/${Date.now()}.${extension}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(PHOTO_BUCKET)
+    .upload(path, body, { contentType });
+  if (uploadError) throw uploadError;
+
+  const { error } = await supabase.rpc("set_match_photo", { p_match_id: matchId, p_path: path });
+  if (error) throw error;
+}
+
+/** A short-lived link to a match photo; only the match's players get one. */
+export async function fetchMatchPhotoUrl(path: string) {
+  const { data, error } = await supabase.storage
+    .from(PHOTO_BUCKET)
+    .createSignedUrl(path, PHOTO_LINK_SECONDS);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
 /** Confirms the score the other team sent. */
 export async function confirmScore(matchId: string) {
   const { error } = await supabase.rpc("confirm_score", { p_match_id: matchId });
@@ -466,5 +499,6 @@ function toMatchScore(row: ScoreRow): MatchScore {
     submittedBy: row.submitted_by,
     submittedTeam: row.submitted_team,
     expiresAt,
+    photoPath: row.photo_path ?? undefined,
   };
 }
