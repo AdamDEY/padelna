@@ -22,7 +22,6 @@ import {
   myClubNames,
   myFriendIds,
   risingPlayers,
-  shareableMatches,
   tunisiaCities,
   tunisiaPosts,
 } from "@/data/mock";
@@ -96,11 +95,7 @@ export default function Community() {
         requestedIds={requestedIds}
         onToggleRequest={toggleRequest}
       />
-      <ShareMatchSheet
-        isOpen={isShareOpen}
-        onOpenChange={setIsShareOpen}
-        matches={shareableMatches}
-      />
+      <ShareMatchSheet isOpen={isShareOpen} onOpenChange={setIsShareOpen} />
     </Page>
   );
 }
