@@ -24,6 +24,8 @@ export const connectionRequestsKey = [...playersKey, "requests"] as const;
 
 // Every list on the Players screen shows connection states, so a change reloads them all
 function refreshPlayers() {
+  // The Friends feed shows who's a friend, so it changes with connections too
+  void queryClient.invalidateQueries({ queryKey: ["friends-feed"] });
   return queryClient.invalidateQueries({ queryKey: playersKey });
 }
 
