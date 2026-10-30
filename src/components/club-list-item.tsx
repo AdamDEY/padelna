@@ -1,5 +1,6 @@
 import { PressableFeedback } from "heroui-native";
 import { Star } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { CourtPlaceholder } from "@/components/court-placeholder";
@@ -12,18 +13,15 @@ function formatDistance(km: number) {
 
 /** A club in the All clubs list: thumbnail, name, rating, place, open matches. */
 export function ClubListItem({ club, onPress }: { club: Club; onPress?: () => void }) {
+  const { t } = useTranslation();
   const details = [
     club.area,
     club.region,
     formatDistance(club.distanceKm),
-    club.courtCount === 1 ? "1 court" : `${club.courtCount} courts`,
+    t("club.courts", { count: club.courtCount }),
   ].join(" · ");
   const openMatches =
-    club.openMatchCount === 0
-      ? null
-      : club.openMatchCount === 1
-        ? "1 open match"
-        : `${club.openMatchCount} open matches`;
+    club.openMatchCount === 0 ? null : t("club.openMatches", { count: club.openMatchCount });
 
   return (
     <PressableFeedback
@@ -31,10 +29,10 @@ export function ClubListItem({ club, onPress }: { club: Club; onPress?: () => vo
       accessibilityRole="button"
       accessibilityLabel={[
         club.name,
-        `rated ${club.rating.toFixed(1)}`,
+        t("clubs.ratedA11y", { rating: club.rating.toFixed(1) }),
         details,
-        openMatches ?? "no open matches",
-        club.isMyClub ? "your club" : null,
+        openMatches ?? t("clubs.noOpenMatchesA11y"),
+        club.isMyClub ? t("clubs.yourClubA11y") : null,
       ]
         .filter(Boolean)
         .join(", ")}
@@ -60,11 +58,11 @@ export function ClubListItem({ club, onPress }: { club: Club; onPress?: () => vo
                 {openMatches}
               </Text>
             ) : (
-              <Text className="font-semibold text-[11px] text-muted">No open matches</Text>
+              <Text className="font-semibold text-[11px] text-muted">{t("clubs.noOpenMatches")}</Text>
             )}
             {club.isMyClub ? (
               <Text className="overflow-hidden rounded-[9px] bg-primary-soft px-2 py-[3px] font-bold text-[11px] text-primary-dark">
-                Your club
+                {t("clubs.yourClub")}
               </Text>
             ) : null}
           </View>

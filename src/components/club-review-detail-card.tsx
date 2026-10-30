@@ -1,6 +1,9 @@
 import { cn, PressableFeedback } from "heroui-native";
+import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
+import { translateCourt } from "@/i18n";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { daysUntil, formatTimeAgo } from "@/lib/format-date";
 import type { ClubReview, ReviewScores } from "@/types/club";
@@ -8,22 +11,23 @@ import type { ClubReview, ReviewScores } from "@/types/club";
 // Scores at or below this show in orange, like weak aspects elsewhere
 const LOW_SCORE = 2;
 
-const courtScoreLabels: [keyof ReviewScores, string][] = [
-  ["surface", "Surface"],
-  ["glass", "Glass"],
-  ["lighting", "Lighting"],
+type ScoreItem = [keyof ReviewScores, "clubReviews.surface" | "clubReviews.glass" | "clubReviews.lighting" | "clubReviews.gearScore" | "clubReviews.rooms" | "clubReviews.staffScore"];
+
+const courtScoreLabels: ScoreItem[] = [
+  ["surface", "clubReviews.surface"],
+  ["glass", "clubReviews.glass"],
+  ["lighting", "clubReviews.lighting"],
 ];
-const clubScoreLabels: [keyof ReviewScores, string][] = [
-  ["gear", "Gear"],
-  ["rooms", "Rooms"],
-  ["staff", "Staff"],
+const clubScoreLabels: ScoreItem[] = [
+  ["gear", "clubReviews.gearScore"],
+  ["rooms", "clubReviews.rooms"],
+  ["staff", "clubReviews.staffScore"],
 ];
 
 function reviewedAgo(date: Date) {
   const days = -daysUntil(date);
-  if (days >= 2 && days < 7) return `${days} days ago`;
-  if (days >= 7 && days < 14) return "1 week ago";
-  if (days >= 14 && days < 35) return `${Math.floor(days / 7)} weeks ago`;
+  if (days >= 2 && days < 7) return t("time.daysAgo", { count: days });
+  if (days >= 7 && days < 35) return t("time.weeksAgo", { count: Math.floor(days / 7) });
   return formatTimeAgo(date);
 }
 
@@ -42,9 +46,10 @@ export function ClubReviewDetailCard({
   markedHelpful,
   onToggleHelpful,
 }: ClubReviewDetailCardProps) {
+  const { t } = useTranslation();
   const details = [
-    review.courtName,
-    isIndoor === undefined ? null : isIndoor ? "indoor" : "outdoor",
+    translateCourt(review.courtName),
+    isIndoor === undefined ? null : t(isIndoor ? "clubReviews.indoor" : "clubReviews.outdoor"),
     review.playedTime,
     reviewedAgo(review.postedAt),
   ]
@@ -60,7 +65,9 @@ export function ClubReviewDetailCard({
           <Text numberOfLines={1} className="font-bold text-[14px] text-foreground">
             {shortNameOf(review.author)}
             {review.timesPlayedHere ? (
-              <Text className="text-success"> · played here {review.timesPlayedHere}×</Text>
+              <Text className="text-success">
+                {t("clubReviews.playedHere", { count: review.timesPlayedHere })}
+              </Text>
             ) : null}
           </Text>
           <Text numberOfLines={1} className="font-normal text-[12px] text-muted">
@@ -71,8 +78,8 @@ export function ClubReviewDetailCard({
 
       {review.scores ? (
         <View className="gap-1.5">
-          <ScoreRow label={review.courtName} scores={review.scores} items={courtScoreLabels} />
-          <ScoreRow label="Club" scores={review.scores} items={clubScoreLabels} />
+          <ScoreRow label={translateCourt(review.courtName)} scores={review.scores} items={courtScoreLabels} />
+          <ScoreRow label={t("clubReviews.clubRow")} scores={review.scores} items={clubScoreLabels} />
         </View>
       ) : null}
 
@@ -83,7 +90,7 @@ export function ClubReviewDetailCard({
           onPress={onToggleHelpful}
           accessibilityRole="button"
           accessibilityState={{ selected: markedHelpful }}
-          accessibilityLabel={`Helpful, ${helpfulCount} players${markedHelpful ? ", including you" : ""}`}
+          accessibilityLabel={`${t("clubReviews.helpfulA11y", { count: helpfulCount })}${markedHelpful ? t("clubReviews.includingYou") : ""}`}
           hitSlop={6}
           className={cn(
             "h-8 justify-center rounded-[10px] px-2.5",
@@ -96,11 +103,11 @@ export function ClubReviewDetailCard({
               markedHelpful ? "text-primary-dark" : "text-foreground",
             )}
           >
-            Helpful · {helpfulCount}
+            {t("clubReviews.helpful", { count: helpfulCount })}
           </Text>
         </PressableFeedback>
         {review.clubReplied ? (
-          <Text className="font-normal text-[12px] text-muted">Club replied</Text>
+          <Text className="font-normal text-[12px] text-muted">{t("clubReviews.replied")}</Text>
         ) : null}
       </View>
     </View>
@@ -114,21 +121,23 @@ function ScoreRow({
 }: {
   label: string;
   scores: ReviewScores;
-  items: [keyof ReviewScores, string][];
+  items: ScoreItem[];
 }) {
+  const { t } = useTranslation();
   const rated = items.filter(([key]) => scores[key] !== undefined);
   if (rated.length === 0) return null;
 
   return (
     <View className="flex-row items-center gap-1.5">
       <Text className="w-14 font-bold text-[11px] uppercase tracking-[0.5px] text-muted">{label}</Text>
-      {rated.map(([key, name]) => {
+      {rated.map(([key, nameKey]) => {
+        const name = t(nameKey);
         const value = scores[key]!;
         const low = value <= LOW_SCORE;
         return (
           <Text
             key={key}
-            accessibilityLabel={`${name} ${value} out of 5`}
+            accessibilityLabel={t("clubReviews.scoreA11y", { name, value })}
             className={cn(
               "overflow-hidden rounded-[10px] px-2 py-[5px] font-semibold text-[12px]",
               low ? "bg-attention-soft text-attention" : "bg-background text-foreground",

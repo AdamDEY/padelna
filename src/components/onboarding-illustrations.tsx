@@ -1,10 +1,12 @@
 import { cn } from "heroui-native";
 import { Ban, Check, ShieldCheck, type LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View, type ViewStyle } from "react-native";
 import { useCSSVariable } from "uniwind";
 
 import { Icon } from "@/components/icon";
+import { translateLabel } from "@/i18n";
 import { PlayerAvatar } from "@/components/player-avatar";
 import type { Player } from "@/types/player";
 
@@ -43,11 +45,12 @@ function IllustrationFrame({ className, children }: { className: string; childre
 
 /** 1 · Find players: player cards scattered over a court. */
 export function FindPlayersIllustration() {
+  const { t } = useTranslation();
   const shadow = useFloatingShadow();
   const cards = [
-    { player: amira, tint: TINT.peach, meta: "Right side · Lac", level: "4.0", style: { start: 34, top: 64 } },
-    { player: mehdi, tint: TINT.mint, meta: "Left side · Gammarth", level: "4.5", style: { end: 30, top: 158 } },
-    { player: salma, tint: TINT.lilac, meta: "Both sides · Marsa", level: "4.0", style: { start: 50, top: 252 } },
+    { player: amira, tint: TINT.peach, meta: `${t("side.rightSide")} · Lac`, level: "4.0", style: { start: 34, top: 64 } },
+    { player: mehdi, tint: TINT.mint, meta: `${t("side.leftSide")} · Gammarth`, level: "4.5", style: { end: 30, top: 158 } },
+    { player: salma, tint: TINT.lilac, meta: `${t("playerSheet.bothSides")} · Marsa`, level: "4.0", style: { start: 50, top: 252 } },
   ];
 
   return (
@@ -79,14 +82,19 @@ export function FindPlayersIllustration() {
 
 /** 2 · Trusted level: a level card shaped by reviews, with reputation tags. */
 export function TrustedLevelIllustration() {
+  const { t } = useTranslation();
   const shadow = useFloatingShadow();
-  const tags = ["Fair play · 12", "Great teammate · 9", "On time · 11"];
+  const tags = [
+    `${translateLabel("tags", "Fair play")} · 12`,
+    `${translateLabel("tags", "Great teammate")} · 9`,
+    `${translateLabel("tags", "On time")} · 11`,
+  ];
 
   return (
     <IllustrationFrame className="gap-3.5 bg-court-lime">
       <View className="w-[250px] items-center gap-2 rounded-[22px] bg-surface p-5" style={shadow}>
         <PlayerAvatar player={youssef} size={64} tintIndex={TINT.blue} />
-        <Text className="font-semibold text-[13px] text-muted">Level after 14 reviews</Text>
+        <Text className="font-semibold text-[13px] text-muted">{t("onboarding.levelAfter", { count: 14 })}</Text>
         <View className="flex-row items-center gap-2">
           <Text className="font-black text-[44px] leading-[46px] tracking-[-1px] text-foreground">
             4.5
@@ -112,11 +120,12 @@ export function TrustedLevelIllustration() {
 
 /** 3 · Fair play: a shield over the house rules. */
 export function FairPlayIllustration() {
+  const { t } = useTranslation();
   const shadow = useFloatingShadow();
   const rules: { label: string; icon: LucideIcon; negative?: boolean }[] = [
-    { label: "Honest scores", icon: Check },
-    { label: "Honest ratings", icon: Check },
-    { label: "Sabotage = banned", icon: Ban, negative: true },
+    { label: t("onboarding.honestScores"), icon: Check },
+    { label: t("onboarding.honestRatings"), icon: Check },
+    { label: t("onboarding.sabotage"), icon: Ban, negative: true },
   ];
 
   return (
@@ -151,6 +160,7 @@ export function FairPlayIllustration() {
 
 /** 4 · Community: a shared match result, like a feed post. */
 export function CommunityIllustration() {
+  const { t } = useTranslation();
   const shadow = useFloatingShadow();
   const players = [
     { player: youssef, tint: TINT.blue },
@@ -176,7 +186,7 @@ export function CommunityIllustration() {
             ))}
           </View>
           <View>
-            <Text className="font-bold text-[13px] text-foreground">Sunday match</Text>
+            <Text className="font-bold text-[13px] text-foreground">{t("onboarding.sundayMatch")}</Text>
             <Text className="font-normal text-[11px] text-muted">Lac Padel Arena · 2h</Text>
           </View>
         </View>
@@ -187,7 +197,7 @@ export function CommunityIllustration() {
         <View className="flex-row items-center justify-between">
           <Text className="font-black text-[20px] tracking-[-0.3px] text-foreground">6–4 · 7–5</Text>
           <Text className="overflow-hidden rounded-[10px] bg-lime-soft px-2.5 py-1 font-bold text-[12px] text-lime-foreground">
-            Won
+            {t("result.won")}
           </Text>
         </View>
       </View>

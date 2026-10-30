@@ -3,6 +3,7 @@ import { setStatusBarStyle } from "expo-status-bar";
 import { Button, cn, PressableFeedback, Spinner } from "heroui-native";
 import { ChevronRight } from "lucide-react-native";
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -10,11 +11,13 @@ import { Icon } from "@/components/icon";
 import { LevelChart } from "@/components/level-chart";
 import { Page } from "@/components/page";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
+import { translateLabel } from "@/i18n";
 import { ProfileHero } from "@/components/profile-hero";
 import { WinRateBars } from "@/components/win-rate-bars";
 import { useMyProfile } from "@/hooks/useMyProfile";
 
 export default function Profile() {
+  const { t } = useTranslation();
   const { data: profile, error, refetch, isRefetching } = useMyProfile();
 
   const insets = useSafeAreaInsets();
@@ -54,15 +57,15 @@ export default function Profile() {
           {error ? (
             <>
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-                Couldn’t load your profile
+                {t("profile.loadFailed")}
               </Text>
               <Text className="text-center font-normal text-[14px] text-muted">{error.message}</Text>
               <Button variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
-                Try again
+                {t("matches.tryAgain")}
               </Button>
             </>
           ) : (
-            <Spinner accessibilityLabel="Loading your profile" />
+            <Spinner accessibilityLabel={t("profile.loading")} />
           )}
         </Page.Body>
       </Page>
@@ -74,10 +77,10 @@ export default function Profile() {
   const levelChange = latest && first ? latest.level - first.level : 0;
 
   const links = [
-    { label: "Match history", value: `${profile.matchesPlayed} matches` },
-    { label: "Reviews", value: String(profile.reviewCount) },
-    { label: "Friends", value: String(profile.friendCount) },
-    { label: "About me" },
+    { label: t("profile.matchHistory"), value: t("profile.matchesCount", { count: profile.matchesPlayed }) },
+    { label: t("profile.reviews"), value: String(profile.reviewCount) },
+    { label: t("profile.friends"), value: String(profile.friendCount) },
+    { label: t("profile.aboutMe") },
   ];
 
   return (
@@ -90,11 +93,14 @@ export default function Profile() {
         <Card>
           <View className="flex-row items-baseline justify-between">
             <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-              Your level over time
+              {t("profile.levelOverTime")}
             </Text>
             {levelChange > 0 ? (
               <Text className="font-bold text-[13px] text-success">
-                ▲ {levelChange.toFixed(1)} in {profile.levelHistory.length} months
+                {t("profile.levelUp", {
+                  change: levelChange.toFixed(1),
+                  count: profile.levelHistory.length,
+                })}
               </Text>
             ) : null}
           </View>
@@ -103,7 +109,7 @@ export default function Profile() {
 
         <Card className="gap-3.5">
           <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-            Where you win
+            {t("profile.whereYouWin")}
           </Text>
           <WinRateBars groups={profile.winRates} />
         </Card>
@@ -111,9 +117,9 @@ export default function Profile() {
         <Card>
           <View className="flex-row items-baseline justify-between">
             <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-              Best partners
+              {t("profile.bestPartners")}
             </Text>
-            <Text className="font-normal text-[12px] text-muted">Win rate together</Text>
+            <Text className="font-normal text-[12px] text-muted">{t("profile.winRateTogether")}</Text>
           </View>
           {profile.bestPartners.map(({ player, matches, wins }) => {
             const rate = Math.round((wins / matches) * 100);
@@ -121,14 +127,19 @@ export default function Profile() {
               <PressableFeedback
                 key={player.id}
                 accessibilityRole="button"
-                accessibilityLabel={`${shortNameOf(player)}, ${matches} matches, ${wins} wins, ${rate}% win rate together`}
+                accessibilityLabel={t("profile.partnerA11y", {
+                  name: shortNameOf(player),
+                  matches: t("profile.matchesCount", { count: matches }),
+                  wins: t("profile.winsCount", { count: wins }),
+                  rate,
+                })}
                 className="flex-row items-center gap-3"
               >
                 <PlayerAvatar player={player} size={40} />
                 <View className="flex-1">
                   <Text className="font-bold text-[15px] text-foreground">{shortNameOf(player)}</Text>
                   <Text className="font-normal text-[12px] text-muted">
-                    {matches} matches · {wins} wins
+                    {t("profile.matchesCount", { count: matches })} · {t("profile.winsCount", { count: wins })}
                   </Text>
                 </View>
                 <Text className="font-black text-[15px] text-accent">{rate}%</Text>
@@ -139,7 +150,7 @@ export default function Profile() {
 
         <Card className="gap-2.5">
           <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-            What players say
+            {t("playerSheet.whatPlayersSay")}
           </Text>
           <View className="flex-row flex-wrap gap-2">
             {profile.reputationTags.map((tag) => (
@@ -147,7 +158,7 @@ export default function Profile() {
                 key={tag.label}
                 className="overflow-hidden rounded-[14px] bg-primary-soft px-3 py-[7px] font-bold text-[13px] text-primary-dark"
               >
-                {tag.label} · {tag.count}
+                {translateLabel("tags", tag.label)} · {tag.count}
               </Text>
             ))}
           </View>

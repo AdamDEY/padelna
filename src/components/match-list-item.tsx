@@ -1,29 +1,14 @@
 import { Button, PressableFeedback } from "heroui-native";
 import { Check } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
 import { LevelRangeChip } from "@/components/level-chip";
 import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
+import { formatTime } from "@/lib/format-date";
 import { isPlayableFit, type LevelFit } from "@/lib/level-fit";
 import type { OpenMatch } from "@/types/match";
-
-const timeFormat = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-});
-
-function fitLabel(fit: LevelFit, isMixed?: boolean) {
-  const base = fit === "great" ? "Great fit for your level" : "Good fit";
-  return isMixed ? `${base} · Mixed match` : base;
-}
-
-function outOfRangeLabel(fit: LevelFit) {
-  return fit === "above"
-    ? "Above your level. You can still ask the host to join."
-    : "Below your level. You can still ask the host to join.";
-}
 
 type MatchListItemProps = {
   match: OpenMatch;
@@ -35,24 +20,39 @@ type MatchListItemProps = {
 
 /** An open match in the Matches list: time block, club, level, players, spots and fit. */
 export function MatchListItem({ match, fit, onPress, onAskToJoin }: MatchListItemProps) {
-  const time = timeFormat.format(match.startsAt);
+  const { t } = useTranslation();
+  const time = formatTime(match.startsAt);
   const playable = isPlayableFit(fit);
   const spotsLeft = Math.max(match.capacity - match.players.length, 0);
-  const spotsLabel = `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"}`;
+  const spotsLabel = t("match.spots", { count: spotsLeft });
   const priceLabel = match.price !== undefined ? `${match.price} TND` : undefined;
   const tintIndices = stackTintIndices(match.players);
-  const note = playable ? fitLabel(fit, match.isMixed) : outOfRangeLabel(fit);
+  const fitText = fit === "great" ? t("matchItem.greatFit") : t("matchItem.goodFit");
+  const note = playable
+    ? match.isMixed
+      ? t("matchItem.mixed", { fit: fitText })
+      : fitText
+    : t(fit === "above" ? "matchItem.above" : "matchItem.below");
 
   return (
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${time}, ${match.durationMinutes} minutes, ${match.clubName}, level ${match.levelMin.toFixed(1)} to ${match.levelMax.toFixed(1)}, ${spotsLabel} left${priceLabel ? `, ${priceLabel}` : ""}. ${note}`}
+      accessibilityLabel={`${[
+        time,
+        t("matchItem.minutesLong", { count: match.durationMinutes }),
+        match.clubName,
+        t("level.range", { min: match.levelMin.toFixed(1), max: match.levelMax.toFixed(1) }),
+        t("match.spotsLeft", { count: spotsLeft }),
+        priceLabel,
+      ]
+        .filter(Boolean)
+        .join(", ")}. ${note}`}
     >
       <View className="flex-row gap-3.5 rounded-[20px] border border-line bg-surface p-3.5">
         <View className="w-[60px] items-center justify-center rounded-[14px] bg-fill">
           <Text className="font-black text-[17px] text-foreground">{time}</Text>
-          <Text className="font-normal text-[12px] text-muted">{match.durationMinutes} min</Text>
+          <Text className="font-normal text-[12px] text-muted">{t("time.minutes", { count: match.durationMinutes })}</Text>
         </View>
 
         <View className="min-w-0 flex-1 gap-2">
@@ -98,7 +98,7 @@ export function MatchListItem({ match, fit, onPress, onAskToJoin }: MatchListIte
                 hitSlop={5}
                 className="h-[34px] self-start rounded-xl px-3.5"
               >
-                Ask to join
+                {t("matchItem.askToJoin")}
               </Button>
             </>
           )}

@@ -1,5 +1,6 @@
 import { Button, cn } from "heroui-native";
 import type { LucideIcon } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -28,13 +29,14 @@ export function IconButton({
   onPress,
   className,
 }: IconButtonProps) {
+  const { t } = useTranslation();
   const isPrimary = variant === "primary";
 
   return (
     <Button
       variant={isPrimary ? "primary" : "outline"}
       isIconOnly
-      accessibilityLabel={showDot ? `${label}, unread` : label}
+      accessibilityLabel={showDot ? t("common.unread", { label }) : label}
       onPress={onPress}
       className={cn("size-11 rounded-full", !isPrimary && "border-line", className)}
     >

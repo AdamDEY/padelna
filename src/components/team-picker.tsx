@@ -1,6 +1,7 @@
 import { cn, PressableFeedback } from "heroui-native";
 import { Check, Plus } from "lucide-react-native";
 import { Fragment } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -47,6 +48,7 @@ export function TeamPicker({
   onPlayerPress,
   myId,
 }: TeamPickerProps) {
+  const { t } = useTranslation();
   const half = seats.length / 2;
   const teams = [seats.slice(0, half), seats.slice(half)];
 
@@ -59,7 +61,7 @@ export function TeamPicker({
           <Fragment key={teamIndex}>
             {teamIndex > 0 ? (
               <Text
-                accessibilityLabel="versus"
+                accessibilityLabel={t("team.versus")}
                 className="self-center font-black text-[12px] text-muted-icon"
               >
                 VS
@@ -77,13 +79,13 @@ export function TeamPicker({
                   isSelectedTeam ? "text-accent" : "text-muted",
                 )}
               >
-                Team {teamIndex === 0 ? "A" : "B"}
+                {t("team.name", { team: teamIndex === 0 ? "A" : "B" })}
               </Text>
               <View className="flex-row justify-around self-stretch">
                 {team.map((player, index) => {
                   const seat = teamIndex * half + index + 1;
                   const { side } = seatInfo(seat, seats.length);
-                  const sideLabel = side === "left" ? "Left" : "Right";
+                  const sideLabel = t(side === "left" ? "side.left" : "side.right");
                   const isMine = seat === selectedSeat;
 
                   if (isMine && me) {
@@ -131,6 +133,7 @@ function FilledSeat({
   sideLabel: string;
   onPress?: () => void;
 }) {
+  const { t } = useTranslation();
   const level = player.level?.toFixed(1);
 
   return (
@@ -138,8 +141,8 @@ function FilledSeat({
       isDisabled={!onPress}
       onPress={onPress}
       accessibilityRole={onPress ? "button" : undefined}
-      accessibilityHint={onPress ? "Shows their profile" : undefined}
-      accessibilityLabel={`${player.firstName}, ${sideLabel.toLowerCase()} side${level ? `, level ${level}` : ""}`}
+      accessibilityHint={onPress ? t("team.showsProfile") : undefined}
+      accessibilityLabel={`${player.firstName}, ${t("team.sideA11y", { side: sideLabel.toLowerCase() })}${level ? `, ${t("team.levelA11y", { level })}` : ""}`}
       className="w-[70px] items-center gap-[3px]"
     >
       <PlayerAvatar player={player} size={AVATAR_SIZE} />
@@ -156,12 +159,13 @@ function FilledSeat({
 
 /** The seat you picked: your avatar with a ring and a tick. */
 function MySeat({ me, sideLabel }: { me: Player; sideLabel: string }) {
+  const { t } = useTranslation();
   const level = me.level?.toFixed(1);
 
   return (
     <View
       accessible
-      accessibilityLabel={`You, ${sideLabel.toLowerCase()} side${level ? `, level ${level}` : ""}, selected`}
+      accessibilityLabel={`${t("team.you")}, ${t("team.sideA11y", { side: sideLabel.toLowerCase() })}${level ? `, ${t("team.levelA11y", { level })}` : ""}, ${t("team.selected")}`}
       className="w-[70px] items-center gap-[3px]"
     >
       <View>
@@ -170,7 +174,7 @@ function MySeat({ me, sideLabel }: { me: Player; sideLabel: string }) {
           <Icon as={Check} size={12} color="accent-foreground" />
         </View>
       </View>
-      <Text className="font-black text-[13px] text-accent">You</Text>
+      <Text className="font-black text-[13px] text-accent">{t("team.you")}</Text>
       <Text className="font-normal text-[11px] text-muted">
         {sideLabel}
         {level ? ` · ${level}` : ""}
@@ -190,6 +194,8 @@ function OpenSeat({
   isYourSide: boolean;
   onPress?: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <View className="w-[70px] items-center gap-[3px]">
       <View>
@@ -197,7 +203,7 @@ function OpenSeat({
           onPress={onPress}
           isDisabled={!onPress}
           accessibilityRole="button"
-          accessibilityLabel={`Take the ${sideLabel.toLowerCase()} spot in Team ${team}`}
+          accessibilityLabel={t("team.takeSpot", { side: sideLabel.toLowerCase(), team })}
           className="items-center justify-center rounded-full border-2 border-dashed border-accent bg-surface"
           style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
         >
@@ -205,11 +211,11 @@ function OpenSeat({
         </PressableFeedback>
         {onPress && isYourSide ? (
           <Text className="absolute -top-[9px] self-center overflow-hidden rounded-[7px] bg-lime-soft px-1.5 py-px font-bold text-[10px] text-lime-foreground">
-            Your side
+            {t("team.yourSide")}
           </Text>
         ) : null}
       </View>
-      <Text className="font-bold text-[13px] text-accent">{onPress ? "Tap to join" : "Open"}</Text>
+      <Text className="font-bold text-[13px] text-accent">{onPress ? t("team.tapToJoin") : t("team.open")}</Text>
       <Text className="font-normal text-[11px] text-muted">{sideLabel}</Text>
     </View>
   );

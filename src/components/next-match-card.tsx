@@ -1,5 +1,6 @@
 import { PressableFeedback } from "heroui-native";
 import { ChevronRight } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -14,6 +15,7 @@ type NextMatchCardProps = {
 
 /** Home: the blue "Your next match" card. The whole card opens the match. */
 export function NextMatchCard({ match, onPress }: NextMatchCardProps) {
+  const { t } = useTranslation();
   const dateTime = formatMatchDateTime(match.startsAt);
   const countdown = formatCountdown(match.startsAt);
   const place = [match.clubName, match.courtName].filter(Boolean).join(" · ");
@@ -23,12 +25,12 @@ export function NextMatchCard({ match, onPress }: NextMatchCardProps) {
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`Your next match, ${countdown}, ${dateTime}, ${place}. Open details`}
+      accessibilityLabel={t("home.nextMatch.a11y", { countdown, dateTime, place })}
       className="gap-3.5 rounded-3xl bg-accent p-[18px]"
     >
       <View className="flex-row items-center justify-between">
         <Text className="font-bold text-[12px] uppercase tracking-[0.8px] text-primary-tint-text">
-          Your next match
+          {t("home.nextMatch.title")}
         </Text>
         <View className="rounded-[10px] bg-lime px-2.5 py-1">
           <Text className="font-bold text-[12px] text-lime-foreground">{countdown}</Text>
@@ -56,7 +58,7 @@ export function NextMatchCard({ match, onPress }: NextMatchCardProps) {
           ))}
         </View>
         <View className="flex-row items-center gap-1">
-          <Text className="font-bold text-[14px] text-accent-foreground">Details</Text>
+          <Text className="font-bold text-[14px] text-accent-foreground">{t("home.nextMatch.details")}</Text>
           <Icon as={ChevronRight} size={18} color="accent-foreground" />
         </View>
       </View>

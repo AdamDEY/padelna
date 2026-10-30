@@ -1,6 +1,8 @@
 import { Image } from "expo-image";
 import { cn } from "heroui-native";
+import { t } from "i18next";
 import { Clock, ShieldCheck, type LucideIcon } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -28,12 +30,12 @@ const kindTones = {
   friendly: {
     bg: "bg-primary-soft",
     text: "text-primary-dark",
-    label: "Friendly",
+    label: "match.kind.friendly",
   },
   competitive: {
     bg: "bg-foreground",
     text: "text-accent-foreground",
-    label: "Competitive",
+    label: "match.kind.competitive",
   },
 } as const;
 
@@ -42,7 +44,7 @@ function names(team: Player[], myId: string) {
   const others = team
     .filter((player) => player !== mine)
     .map((player) => player.firstName);
-  return (mine ? ["You", ...others] : others).join(" · ");
+  return (mine ? [t("common.you"), ...others] : others).join(" · ");
 }
 
 /** The status line above the score: who has to act next, or that it's settled. */
@@ -55,13 +57,13 @@ function statusOf(
   if (score.status === "confirmed") {
     return {
       tone: statusTones.confirmed,
-      label: "Score confirmed by both teams",
+      label: t("score.confirmed"),
     };
   }
   if (score.status === "expired") {
     return {
       tone: statusTones.expired,
-      label: "Not confirmed in time · doesn’t count",
+      label: t("score.expired"),
     };
   }
   const deadline = formatShortMatchDateTime(score.expiresAt);
@@ -72,7 +74,7 @@ function statusOf(
       .map((player) => player.firstName);
     return {
       tone: statusTones.waiting,
-      label: `Waiting for ${others.join(" or ")} · until ${deadline}`,
+      label: t("score.waitingFor", { names: others.join(t("score.or")), deadline }),
     };
   }
   const sender = match.seats?.find(
@@ -80,7 +82,7 @@ function statusOf(
   );
   return {
     tone: statusTones.waiting,
-    label: `Sent by ${sender?.firstName ?? "the other team"} · confirm by ${deadline}`,
+    label: t("score.sentBy", { name: sender?.firstName ?? t("score.otherTeam"), deadline }),
   };
 }
 
@@ -94,6 +96,7 @@ type MatchScoreCardProps = {
  * 900, the loser's muted, with a WIN tag and a line saying where confirmation stands.
  */
 export function MatchScoreCard({ match, myId }: MatchScoreCardProps) {
+  const { t } = useTranslation();
   const { score } = match;
   const seats = match.seats ?? match.players;
   const teams = [seats.slice(0, 2), seats.slice(2, 4)].map((team) =>
@@ -110,7 +113,7 @@ export function MatchScoreCard({ match, myId }: MatchScoreCardProps) {
         <Image
           source={{ uri: photoUrl }}
           contentFit="cover"
-          accessibilityLabel="Team photo"
+          accessibilityLabel={t("score.photo")}
           accessibilityIgnoresInvertColors
           style={{ height: PHOTO_HEIGHT, borderRadius: 20 }}
         />
@@ -121,7 +124,7 @@ export function MatchScoreCard({ match, myId }: MatchScoreCardProps) {
             accessibilityRole="header"
             className="font-black text-[15px] text-foreground"
           >
-            Score
+            {t("score.title")}
           </Text>
           <Text
             className={cn(
@@ -130,7 +133,7 @@ export function MatchScoreCard({ match, myId }: MatchScoreCardProps) {
               kind.text,
             )}
           >
-            {kind.label}
+            {t(kind.label)}
           </Text>
         </View>
 
@@ -154,7 +157,7 @@ export function MatchScoreCard({ match, myId }: MatchScoreCardProps) {
             <View
               key={teamIndex}
               accessible
-              accessibilityLabel={`${teamNames}${isWinner ? ", won" : ", lost"}: ${score.sets
+              accessibilityLabel={`${teamNames}${isWinner ? `, ${t("score.won")}` : `, ${t("score.lost")}`}: ${score.sets
                 .map((set) => set[teamIndex])
                 .join(", ")}`}
               className="flex-row items-center gap-1.5"
@@ -185,7 +188,7 @@ export function MatchScoreCard({ match, myId }: MatchScoreCardProps) {
                 </Text>
                 {isWinner ? (
                   <Text className="overflow-hidden rounded-md bg-lime-soft px-1.5 py-0.5 font-bold text-[11px] text-lime-foreground">
-                    WIN
+                    {t("score.win")}
                   </Text>
                 ) : null}
               </View>

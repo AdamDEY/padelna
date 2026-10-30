@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import { BottomSheet, Button, cn, Slider, useToast } from "heroui-native";
 import { Check, Clock, Info, MapPin, Minus, Plus, Trophy } from "lucide-react-native";
 import { useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 // Gesture Handler's Pressable: React Native's doesn't get taps inside the sheet
 import { Pressable as GesturePressable } from "react-native-gesture-handler";
@@ -20,7 +21,7 @@ import { SegmentedControl } from "@/components/segmented-control";
 import { myLevel as placeholderLevel } from "@/data/mock";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useClubs, useCreateMatch } from "@/hooks/useMatches";
-import { daysUntil, formatMatchDay } from "@/lib/format-date";
+import { dateLocale, daysUntil, formatMatchDay } from "@/lib/format-date";
 
 // Room the pinned Publish button takes, so the last field can scroll above it
 const FOOTER_SPACE = 104;
@@ -42,20 +43,8 @@ const TIME_OPTIONS: Option[] = Array.from({ length: 33 }, (_, i) => {
 
 type MatchKind = "friendly" | "competitive";
 
-const kindOptions: Option[] = [
-  { value: "friendly", label: "Friendly" },
-  { value: "competitive", label: "Competitive" },
-];
-
 function formatTime(date: Date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
-
-function dayLabel(date: Date) {
-  const days = daysUntil(date);
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  return formatMatchDay(date);
 }
 
 /** Today at 18:00, or the next half hour if that's already past (tomorrow 18:00 after 23:00) */
@@ -91,6 +80,7 @@ type CreateMatchSheetProps = {
  * booked. The match type explains whether the result counts toward your level.
  */
 export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: CreateMatchSheetProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const accent = useCSSVariable("--color-accent") as string;
   const { data: clubs = [] } = useClubs();
@@ -111,7 +101,11 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
   // Until the host moves the slider, the range follows their level (which may load after the sheet)
   const [pickedRange, setLevelRange] = useState<[number, number]>();
   const levelRange = pickedRange ?? defaultLevelRange(myLevel);
-  const [kind, setKind] = useState<Option>(kindOptions[0]);
+  const [kind, setKind] = useState<MatchKind>("friendly");
+  const kindOptions: Option[] = [
+    { value: "friendly", label: t("match.kind.friendly") },
+    { value: "competitive", label: t("match.kind.competitive") },
+  ];
   const [playersNeeded, setPlayersNeeded] = useState(2);
 
   const selectedClub = clubs.find((item) => item.id === club?.value);
@@ -134,7 +128,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
       setCourt(undefined);
       setStartsAt(defaultStart());
       setLevelRange(undefined);
-      setKind(kindOptions[0]);
+      setKind("friendly");
       setPlayersNeeded(2);
     }
     onOpenChange(open);
@@ -156,9 +150,16 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
 
   const timeValue = TIME_OPTIONS.find((option) => option.value === formatTime(startsAt));
 
+  function dayLabel(date: Date) {
+    const days = daysUntil(date);
+    if (days === 0) return t("time.today");
+    if (days === 1) return t("time.tomorrow");
+    return formatMatchDay(date);
+  }
+
   function publish() {
     if (startsAt.getTime() <= Date.now()) {
-      toast.show({ variant: "danger", label: "That time has passed", description: "Pick a later time." });
+      toast.show({ variant: "danger", label: t("createMatch.timePassed"), description: t("createMatch.pickLater") });
       return;
     }
     const when = `${dayLabel(startsAt)} · ${formatTime(startsAt)}`;
@@ -168,18 +169,18 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
         startsAt,
         levelMin: levelRange[0],
         levelMax: levelRange[1],
-        kind: kind.value as MatchKind,
+        kind,
         playersNeeded,
       },
       {
         onSuccess: (matchId) => {
           toast.show({
             variant: "success",
-            label: "Match published",
+            label: t("createMatch.published"),
             description:
               isBooked && club
-                ? `${when} at ${club.label}, Court ${court?.label}. Players at your level can join.`
-                : `${when}. Add the club and court once you've booked.`,
+                ? t("createMatch.publishedBooked", { when, club: club.label, court: court?.label })
+                : t("createMatch.publishedNotBooked", { when }),
           });
           handleOpenChange(false);
           router.push({ pathname: "/match/[id]", params: { id: matchId } });
@@ -187,7 +188,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
         onError: (error) =>
           toast.show({
             variant: "danger",
-            label: "Couldn’t publish your match",
+            label: t("createMatch.publishFailed"),
             description: error.message,
           }),
       },
@@ -210,7 +211,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
             <BottomSheetFooter {...props}>
               <View className="bg-overlay px-5 pt-3" style={{ paddingBottom: BOTTOM_ACTION_GAP }}>
                 <Button size="lg" isDisabled={!canPublish} onPress={publish}>
-                  Publish match
+                  {t("createMatch.publish")}
                 </Button>
               </View>
             </BottomSheetFooter>
@@ -218,7 +219,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
         >
           <View className="flex-row items-center justify-between px-5 pb-3 pt-1">
             <BottomSheet.Title className="font-black text-[24px] tracking-[-0.4px] text-foreground">
-              Create a match
+              {t("createMatch.title")}
             </BottomSheet.Title>
             <BottomSheet.Close className="size-10 rounded-full bg-fill" />
           </View>
@@ -227,24 +228,24 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: FOOTER_SPACE, gap: 14 }}
           >
-            <Field label="Is the court booked?">
+            <Field label={t("createMatch.courtBooked")}>
               <SegmentedControl
                 value={isBooked ? "yes" : "no"}
                 onChange={(value) => setIsBooked(value === "yes")}
                 options={[
-                  { value: "yes", label: "Yes, booked", icon: Check },
-                  { value: "no", label: "Not yet" },
+                  { value: "yes", label: t("createMatch.yesBooked"), icon: Check },
+                  { value: "no", label: t("createMatch.notYet") },
                 ]}
               />
             </Field>
 
             {isBooked ? (
               <View className="flex-row gap-2.5">
-                <Field label="Club" className="flex-[2]">
+                <Field label={t("createMatch.club")} className="flex-[2]">
                   <Dropdown
-                    label="Club"
+                    label={t("createMatch.club")}
                     icon={MapPin}
-                    placeholder="Choose a club"
+                    placeholder={t("createMatch.chooseClub")}
                     options={clubs.map((item) => ({ value: item.id, label: item.name }))}
                     value={club}
                     onChange={(option) => {
@@ -253,9 +254,9 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
                     }}
                   />
                 </Field>
-                <Field label="Court no." className="flex-1">
+                <Field label={t("createMatch.courtNumber")} className="flex-1">
                   <Dropdown
-                    label="Court number"
+                    label={t("createMatch.courtNumberA11y")}
                     placeholder="–"
                     options={courtOptions}
                     value={court}
@@ -265,20 +266,19 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
                 </Field>
               </View>
             ) : (
-              <InfoNote icon={Clock} tone="warning" title="Book your court first.">
-                You can publish now and add the club and court once it&apos;s booked. Players will see
-                &quot;Not booked yet&quot; until then.
+              <InfoNote icon={Clock} tone="warning" title={t("createMatch.bookFirstTitle")}>
+                {t("createMatch.bookFirstText")}
               </InfoNote>
             )}
 
             <View className="flex-row gap-2.5">
-              <Field label="Date" className="flex-1">
+              <Field label={t("createMatch.date")} className="flex-1">
                 <PickerBox>
                   <DateTimePicker
                     value={startsAt}
                     mode="date"
                     display="compact"
-                    locale="en-GB"
+                    locale={dateLocale()}
                     minimumDate={now}
                     maximumDate={lastDay}
                     accentColor={accent}
@@ -289,12 +289,12 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
                 </PickerBox>
               </Field>
               <Field
-                label="Time"
-                detail={`· ${MATCH_MINUTES} min`}
+                label={t("createMatch.time")}
+                detail={`· ${t("time.minutes", { count: MATCH_MINUTES })}`}
                 className="flex-1"
               >
                 <Dropdown
-                  label="Start time"
+                  label={t("createMatch.startTime")}
                   placeholder="18:00"
                   options={TIME_OPTIONS}
                   value={timeValue}
@@ -306,7 +306,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
 
             {isInPast ? (
               <Text accessibilityRole="alert" className="-mt-1 font-semibold text-[13px] text-danger">
-                That time has passed. Pick a later time.
+                {t("createMatch.timePassed")}. {t("createMatch.pickLater")}
               </Text>
             ) : null}
 
@@ -319,7 +319,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
               className="gap-2"
             >
               <View className="flex-row items-baseline justify-between">
-                <Text className="font-bold text-[14px] text-foreground">Level range</Text>
+                <Text className="font-bold text-[14px] text-foreground">{t("createMatch.levelRange")}</Text>
                 <Text className="font-black text-[15px] text-accent">
                   {levelRange[0].toFixed(1)} – {levelRange[1].toFixed(1)}
                 </Text>
@@ -337,40 +337,40 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
               <View className="flex-row justify-between">
                 <Text className="font-semibold text-[12px] text-muted">{MIN_LEVEL.toFixed(1)}</Text>
                 <Text className="font-semibold text-[12px] text-muted">
-                  Your level {myLevel.toFixed(1)}
+                  {t("level.yours", { level: myLevel.toFixed(1) })}
                 </Text>
                 <Text className="font-semibold text-[12px] text-muted">{MAX_LEVEL.toFixed(1)}</Text>
               </View>
             </Slider>
 
             <View className="flex-row gap-2.5">
-              <Field label="Match type" className="flex-1">
+              <Field label={t("createMatch.matchType")} className="flex-1">
                 <Dropdown
-                  label="Match type"
-                  placeholder="Friendly"
+                  label={t("createMatch.matchType")}
+                  placeholder={t("match.kind.friendly")}
                   options={kindOptions}
-                  value={kind}
-                  onChange={(option) => option && setKind(option)}
+                  value={kindOptions.find((option) => option.value === kind)}
+                  onChange={(option) => option && setKind(option.value as MatchKind)}
                 />
               </Field>
-              <Field label="Players needed" className="flex-1">
+              <Field label={t("createMatch.playersNeeded")} className="flex-1">
                 <View className="h-[52px] flex-row items-center justify-between rounded-[14px] border border-line-input bg-surface px-1.5">
                   <StepButton
                     icon={Minus}
-                    label="Fewer players"
+                    label={t("createMatch.fewerPlayers")}
                     disabled={playersNeeded <= 1}
                     onPress={() => setPlayersNeeded((n) => Math.max(1, n - 1))}
                   />
                   <Text
                     accessibilityLiveRegion="polite"
-                    accessibilityLabel={`${playersNeeded} players needed`}
+                    accessibilityLabel={t("createMatch.playersNeededCount", { count: playersNeeded })}
                     className="font-black text-[18px] text-foreground"
                   >
                     {playersNeeded}
                   </Text>
                   <StepButton
                     icon={Plus}
-                    label="More players"
+                    label={t("createMatch.morePlayers")}
                     disabled={playersNeeded >= 3}
                     onPress={() => setPlayersNeeded((n) => Math.min(3, n + 1))}
                   />
@@ -378,13 +378,13 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
               </Field>
             </View>
 
-            {(kind.value as MatchKind) === "friendly" ? (
-              <InfoNote icon={Info} title="Just for fun.">
-                The result won&apos;t change your level.
+            {kind === "friendly" ? (
+              <InfoNote icon={Info} title={t("createMatch.friendlyTitle")}>
+                {t("createMatch.friendlyText")}
               </InfoNote>
             ) : (
-              <InfoNote icon={Trophy} title="This one counts.">
-                Once both teams agree on the score, the result is used to adjust your level.
+              <InfoNote icon={Trophy} title={t("createMatch.competitiveTitle")}>
+                {t("createMatch.competitiveText")}
               </InfoNote>
             )}
           </BottomSheetScrollView>

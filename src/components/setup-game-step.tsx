@@ -1,5 +1,6 @@
 import { cn } from "heroui-native";
 import { Scale, Shield, Target, Zap, type LucideIcon } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -16,42 +17,18 @@ export type GameValues = { hand: Hand; side: Side; playStyle: PlayStyle };
 // Preselected like the design; most players are right-handed
 export const initialGameValues: GameValues = { hand: "right", side: "right", playStyle: "balanced" };
 
-const handOptions: { value: Hand; label: string }[] = [
-  { value: "right", label: "Right hand" },
-  { value: "left", label: "Left hand" },
-];
+const sideValues: Side[] = ["left", "right", "both"];
+const sideLabelKeys = {
+  left: "settings.handLeft",
+  right: "settings.handRight",
+  both: "settings.sideBoth",
+} as const;
 
-const sideOptions: { value: Side; label: string }[] = [
-  { value: "left", label: "Left" },
-  { value: "right", label: "Right" },
-  { value: "both", label: "Both" },
-];
-
-const playStyles: { value: PlayStyle; label: string; icon: LucideIcon; description: string }[] = [
-  {
-    value: "aggressive",
-    label: "Aggressive",
-    icon: Zap,
-    description: "you go to the net and finish points fast.",
-  },
-  {
-    value: "balanced",
-    label: "Balanced",
-    icon: Scale,
-    description: "a bit of everything, comfortable anywhere on court.",
-  },
-  {
-    value: "defensive",
-    label: "Defensive",
-    icon: Shield,
-    description: "you love long rallies and get every ball back.",
-  },
-  {
-    value: "tactical",
-    label: "Tactical",
-    icon: Target,
-    description: "you build points with placement and patience.",
-  },
+const playStyles: { value: PlayStyle; icon: LucideIcon }[] = [
+  { value: "aggressive", icon: Zap },
+  { value: "balanced", icon: Scale },
+  { value: "defensive", icon: Shield },
+  { value: "tactical", icon: Target },
 ];
 
 type SetupGameStepProps = {
@@ -61,14 +38,19 @@ type SetupGameStepProps = {
 
 /** Profile setup step 2, "Your game": hand, preferred side and play style. */
 export function SetupGameStep({ values, onChange }: SetupGameStepProps) {
-  const style = playStyles.find((item) => item.value === values.playStyle)!;
+  const { t } = useTranslation();
+  const handOptions: { value: Hand; label: string }[] = [
+    { value: "right", label: t("setup.rightHand") },
+    { value: "left", label: t("setup.leftHand") },
+  ];
+  const styleLabel = t(`playStyle.${values.playStyle}`);
 
   return (
     <>
-      <Page.Title description="Helps us pair you with the right partner.">Your game</Page.Title>
+      <Page.Title description={t("setup.gameText")}>{t("setup.gameTitle")}</Page.Title>
 
       <View className="gap-2.5">
-        <Text className="font-bold text-[15px] text-foreground">I play with my</Text>
+        <Text className="font-bold text-[15px] text-foreground">{t("setup.playWith")}</Text>
         <SegmentedControl
           options={handOptions}
           value={values.hand}
@@ -77,27 +59,27 @@ export function SetupGameStep({ values, onChange }: SetupGameStepProps) {
       </View>
 
       <View className="gap-2.5">
-        <Text className="font-bold text-[15px] text-foreground">Preferred side</Text>
+        <Text className="font-bold text-[15px] text-foreground">{t("settings.preferredSide")}</Text>
         <View accessibilityRole="radiogroup" className="flex-row gap-2.5">
-          {sideOptions.map((option) => (
+          {sideValues.map((side) => (
             <OptionTile
-              key={option.value}
-              label={option.label}
-              isSelected={values.side === option.value}
-              onPress={() => onChange({ ...values, side: option.value })}
-              renderIcon={(isSelected) => <SideDiagram side={option.value} isSelected={isSelected} />}
+              key={side}
+              label={t(sideLabelKeys[side])}
+              isSelected={values.side === side}
+              onPress={() => onChange({ ...values, side })}
+              renderIcon={(isSelected) => <SideDiagram side={side} isSelected={isSelected} />}
             />
           ))}
         </View>
       </View>
 
       <View className="gap-2.5">
-        <Text className="font-bold text-[15px] text-foreground">Your play style</Text>
+        <Text className="font-bold text-[15px] text-foreground">{t("setup.yourPlayStyle")}</Text>
         <View accessibilityRole="radiogroup" className="flex-row gap-2">
           {playStyles.map((option) => (
             <OptionTile
               key={option.value}
-              label={option.label}
+              label={t(`playStyle.${option.value}`)}
               compact
               isSelected={values.playStyle === option.value}
               onPress={() => onChange({ ...values, playStyle: option.value })}
@@ -119,7 +101,8 @@ export function SetupGameStep({ values, onChange }: SetupGameStepProps) {
           ))}
         </View>
         <Text className="font-normal text-[13px] leading-[18px] text-muted">
-          <Text className="font-bold text-foreground">{style.label}:</Text> {style.description}
+          <Text className="font-bold text-foreground">{styleLabel}:</Text>{" "}
+          {t(`setup.desc.${values.playStyle}`)}
         </Text>
       </View>
     </>

@@ -12,11 +12,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { HeroUINativeProvider } from "heroui-native";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Uniwind } from "uniwind";
 
 import { useAuthState } from "@/hooks/useAuthState";
+import { restoreLanguage } from "@/i18n";
 import { useMatchesRealtime } from "@/hooks/useMatchesRealtime";
 import { useConnectionsRealtime } from "@/hooks/usePlayers";
 import { usePrepareHome } from "@/hooks/usePrepareHome";
@@ -33,6 +34,11 @@ export default function RootLayout() {
   // Home's data loads behind the splash screen, in parallel with the fonts
   const isHomeReady = usePrepareHome();
   const authState = useAuthState();
+  // The saved language is applied behind the splash screen, so nothing flashes in the wrong one
+  const [isLanguageReady, setIsLanguageReady] = useState(false);
+  useEffect(() => {
+    restoreLanguage().finally(() => setIsLanguageReady(true));
+  }, []);
 
   const [fontsLoaded, fontError] = useFonts({
     Nunito_400Regular,
@@ -43,12 +49,12 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if ((fontsLoaded || fontError) && isHomeReady && authState !== "loading") {
+    if ((fontsLoaded || fontError) && isHomeReady && isLanguageReady && authState !== "loading") {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError, isHomeReady, authState]);
+  }, [fontsLoaded, fontError, isHomeReady, isLanguageReady, authState]);
 
-  if ((!fontsLoaded && !fontError) || authState === "loading") {
+  if ((!fontsLoaded && !fontError) || !isLanguageReady || authState === "loading") {
     return null;
   }
 

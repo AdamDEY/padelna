@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { BottomSheet, Button, cn, useToast } from "heroui-native";
 import {
   CalendarDays,
@@ -6,6 +7,7 @@ import {
   Flag,
 } from "lucide-react-native";
 import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import type GorhomBottomSheet from "@gorhom/bottom-sheet";
 import {
@@ -38,9 +40,16 @@ const FULL_INDEX = 1;
 const BOTTOM_ACTION_GAP = 24;
 
 const sideLabels = {
-  left: "Left side",
-  right: "Right side",
-  both: "Both sides",
+  left: "side.leftSide",
+  right: "side.rightSide",
+  both: "playerSheet.bothSides",
+} as const;
+
+const tagKeys = {
+  "Fair play": true,
+  "On time": true,
+  "Strong smash": true,
+  "Great teammate": true,
 } as const;
 
 type PlayerSheetProps = {
@@ -139,7 +148,7 @@ export function PlayerSheet({
 }
 
 function sideAndCity(player: PlayerSuggestion, details?: PlayerDetails) {
-  return [details ? sideLabels[details.side] : null, player.city]
+  return [details ? t(sideLabels[details.side]) : null, player.city]
     .filter(Boolean)
     .join(" · ");
 }
@@ -153,6 +162,8 @@ function Header({
   details?: PlayerDetails;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-row items-center gap-3.5">
       <PlayerAvatar player={player} size={68} />
@@ -175,7 +186,7 @@ function Header({
             {player.level.toFixed(1)}
           </Text>
           <Text className="font-bold text-[11px] text-success">
-            {mockPlayerStats.reviews} reviews
+            {t("playerSheet.reviews", { count: mockPlayerStats.reviews })}
           </Text>
         </View>
       ) : null}
@@ -188,9 +199,13 @@ function Strong({ children }: { children: ReactNode }) {
 }
 
 function Tag({ label, count }: { label: string; count: number }) {
+  const { t } = useTranslation();
+  // Tags come from sample data for now; an unknown one shows as written
+  const name = label in tagKeys ? t(`playerSheet.tags.${label as keyof typeof tagKeys}`) : label;
+
   return (
     <Text className="overflow-hidden rounded-xl bg-accent-soft px-2.5 py-1.5 font-bold text-[12px] text-accent-soft-foreground">
-      {label} · {count}
+      {name} · {count}
     </Text>
   );
 }
@@ -204,6 +219,7 @@ type PreviewProps = {
 };
 
 function Preview({ player, details, onHeight, onExpand }: PreviewProps) {
+  const { t } = useTranslation();
   const mutual = player.mutualFriendCount ?? 0;
   const stats = mockPlayerStats;
 
@@ -215,18 +231,18 @@ function Preview({ player, details, onHeight, onExpand }: PreviewProps) {
     >
       <Header player={player} details={details}>
         <Text className="font-normal text-[13px] text-muted">
-          <Strong>{mutual}</Strong> mutual {mutual === 1 ? "friend" : "friends"}
+          <Strong>{mutual}</Strong> {t("playerSheet.mutualFriends", { count: mutual })}
         </Text>
       </Header>
 
       <View className="flex-row gap-2">
         {[
-          { value: String(stats.matches), label: "Matches" },
+          { value: String(stats.matches), label: t("playerSheet.matches") },
           {
             value: `${Math.round((stats.won / stats.matches) * 100)}%`,
-            label: "Win rate",
+            label: t("playerSheet.winRate"),
           },
-          { value: String(stats.reviews), label: "Reviews" },
+          { value: String(stats.reviews), label: t("playerSheet.reviewsLabel") },
         ].map((stat) => (
           <View
             key={stat.label}
@@ -260,7 +276,7 @@ function Preview({ player, details, onHeight, onExpand }: PreviewProps) {
           onPress={onExpand}
           className="h-[52px] flex-1 rounded-2xl"
         >
-          <Button.Label className="text-[16px]">Full profile</Button.Label>
+          <Button.Label className="text-[16px]">{t("playerSheet.fullProfile")}</Button.Label>
           <Icon as={ChevronUp} size={16} color="primary-dark" />
         </Button>
       </View>
@@ -269,20 +285,21 @@ function Preview({ player, details, onHeight, onExpand }: PreviewProps) {
 }
 
 function PlayedTogether({ details }: { details?: PlayerDetails }) {
+  const { t } = useTranslation();
   if (!details || details.playedTogether === 0) return null;
   const times =
     details.playedTogether === 1
-      ? "once"
+      ? t("playerSheet.once")
       : details.playedTogether === 2
-        ? "twice"
-        : `${details.playedTogether} times`;
+        ? t("playerSheet.twice")
+        : t("playerSheet.times", { count: details.playedTogether });
   return (
     <View className="flex-row items-center gap-2.5">
       <Icon as={CalendarDays} size={18} color="accent" />
       <Text className="flex-1 font-normal text-[14px] text-ink-2">
-        You’ve played together <Strong>{times}</Strong>
+        {t("playerSheet.playedTogether")} <Strong>{times}</Strong>
         {details.lastPlayedTogetherAt
-          ? ` · last on ${formatMatchDay(details.lastPlayedTogetherAt)}`
+          ? t("playerSheet.lastOn", { date: formatMatchDay(details.lastPlayedTogetherAt) })
           : ""}
       </Text>
     </View>
@@ -296,6 +313,7 @@ type FullProfileProps = {
 };
 
 function FullProfile({ player, details, onCollapse }: FullProfileProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const stats: PlayerStats = mockPlayerStats;
   const winRate = Math.round((stats.won / stats.matches) * 100);
@@ -307,7 +325,7 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
         <Button
           isIconOnly
           variant="ghost"
-          accessibilityLabel="Show less"
+          accessibilityLabel={t("playerSheet.showLess")}
           onPress={onCollapse}
           className="size-9 rounded-full bg-background"
         >
@@ -316,8 +334,8 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
         <Header player={player} details={details}>
           <Text className="font-normal text-[13px] text-muted">
             {details ? <Strong>{details.friendCount}</Strong> : null}
-            {details ? " friends · " : ""}
-            <Strong>{player.mutualFriendCount ?? 0}</Strong> mutual
+            {details ? ` ${t("playerSheet.friendsWord", { count: details.friendCount })}` : ""}
+            <Strong>{player.mutualFriendCount ?? 0}</Strong> {t("playerSheet.mutualShort")}
           </Text>
         </Header>
         {details?.bio ? (
@@ -337,18 +355,18 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
           {[
             {
               value: String(stats.matches),
-              label: "Played",
+              label: t("playerSheet.played"),
               tone: "text-foreground",
             },
-            { value: String(stats.won), label: "Won", tone: "text-accent" },
+            { value: String(stats.won), label: t("playerSheet.won"), tone: "text-accent" },
             {
               value: String(stats.lost),
-              label: "Lost",
+              label: t("playerSheet.lost"),
               tone: "text-attention-action",
             },
             {
               value: `${winRate}%`,
-              label: "Win rate",
+              label: t("playerSheet.winRate"),
               tone: "text-foreground",
             },
           ].map((stat) => (
@@ -367,18 +385,18 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
           <View className="gap-2 rounded-[20px] border border-line bg-surface px-4 py-3.5">
             <View className="flex-row items-baseline justify-between">
               <Text className="font-black text-[15px] text-foreground">
-                You & {player.firstName}
+                {t("playerSheet.youAnd", { name: player.firstName })}
               </Text>
               {details.lastPlayedTogetherAt ? (
                 <Text className="font-normal text-[12px] text-muted">
-                  Last played {formatMatchDay(details.lastPlayedTogetherAt)}
+                  {t("playerSheet.lastPlayed", { date: formatMatchDay(details.lastPlayedTogetherAt) })}
                 </Text>
               ) : null}
             </View>
             <View className="flex-row gap-2">
               {[
-                { label: "As partners", record: stats.asPartners },
-                { label: "As opponents", record: stats.asOpponents },
+                { label: t("playerSheet.asPartners"), record: stats.asPartners },
+                { label: t("playerSheet.asOpponents"), record: stats.asOpponents },
               ].map(({ label, record }) => (
                 <View
                   key={label}
@@ -388,7 +406,7 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
                     {label}
                   </Text>
                   <Text className="font-black text-[15px] text-foreground">
-                    {record.won}W · {record.lost}L
+                    {t("playerSheet.record", { won: record.won, lost: record.lost })}
                   </Text>
                 </View>
               ))}
@@ -399,7 +417,7 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
         {details && details.clubNames.length > 0 ? (
           <View className="gap-2">
             <Text className="font-black text-[15px] text-foreground">
-              Usually plays at
+              {t("playerSheet.usuallyPlaysAt")}
             </Text>
             <View className="flex-row flex-wrap gap-1.5">
               {details.clubNames.map((name) => (
@@ -416,7 +434,7 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
 
         <View className="gap-2">
           <Text className="font-black text-[15px] text-foreground">
-            What players say
+            {t("playerSheet.whatPlayersSay")}
           </Text>
           <View className="flex-row flex-wrap gap-1.5">
             {stats.tags.map((tag) => (
@@ -429,13 +447,13 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
           variant="outline"
           onPress={() =>
             // Nothing is sent yet; reports will reach the team once the API exists
-            toast.show({ label: "Reporting is coming soon" })
+            toast.show({ label: t("playerSheet.reportSoon") })
           }
           className="h-12 rounded-2xl border-attention-outline bg-surface"
         >
           <Icon as={Flag} size={15} color="attention-action" />
           <Button.Label className="text-[15px] text-attention-action">
-            Report this player
+            {t("playerSheet.report")}
           </Button.Label>
         </Button>
       </BottomSheetScrollView>
@@ -445,6 +463,7 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
 
 /** "Invite to a match" and Connect, pinned under the full profile. */
 function FullProfileActions({ player }: { player: PlayerSuggestion }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
 
   return (
@@ -461,13 +480,13 @@ function FullProfileActions({ player }: { player: PlayerSuggestion }) {
         onPress={() =>
           // Inviting needs the matches API
           toast.show({
-            label: "Invites are coming soon",
-            description: "For now, share your match from Community.",
+            label: t("playerSheet.inviteSoon"),
+            description: t("playerSheet.inviteSoonText"),
           })
         }
         className="h-[52px] flex-1 rounded-2xl"
       >
-        <Button.Label className="text-[16px]">Invite to a match</Button.Label>
+        <Button.Label className="text-[16px]">{t("playerSheet.invite")}</Button.Label>
       </Button>
     </View>
   );

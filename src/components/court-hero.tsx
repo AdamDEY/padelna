@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { cn } from "heroui-native";
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -32,6 +33,7 @@ type CourtHeroProps = {
  * Until real photos exist it shows the tinted court-line placeholder.
  */
 export function CourtHero({ tint, photoCount, showBall, rightAction }: CourtHeroProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   function goBack() {
@@ -56,7 +58,7 @@ export function CourtHero({ tint, photoCount, showBall, rightAction }: CourtHero
       ) : null}
 
       <View className="absolute inset-x-5 flex-row justify-between" style={{ top: insets.top + 8 }}>
-        <IconButton icon={ChevronLeft} label="Back" onPress={goBack} className="border-0 bg-white/90" />
+        <IconButton icon={ChevronLeft} label={t("common.back")} onPress={goBack} className="border-0 bg-white/90" />
         {rightAction}
       </View>
     </View>

@@ -1,4 +1,6 @@
+import { t } from "i18next";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
@@ -10,9 +12,7 @@ export function suggestionDetails(player: PlayerSuggestion) {
   return [
     player.level !== undefined ? player.level.toFixed(1) : null,
     player.clubName ?? player.city,
-    mutual > 0
-      ? `${mutual} ${mutual === 1 ? "friend" : "friends"} in common`
-      : null,
+    mutual > 0 ? t("connections.mutualFriends", { count: mutual }) : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -32,13 +32,15 @@ export function PlayerSuggestionRow({
   action,
   onPress,
 }: PlayerSuggestionRowProps) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2.5">
       <Pressable
         onPress={onPress}
         disabled={!onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${shortNameOf(player)}, view profile`}
+        accessibilityLabel={t("connections.viewProfile", { name: shortNameOf(player) })}
         className="min-w-0 flex-1 flex-row items-center gap-3"
       >
         <PlayerAvatar player={player} size={40} />

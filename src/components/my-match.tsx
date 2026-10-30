@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { Button, PressableFeedback, useToast } from "heroui-native";
 import { CalendarDays, Check, Clock, MapPin, MessageSquare, Trophy, Users } from "lucide-react-native";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -41,6 +42,7 @@ type MyMatchProps = {
  * their place: the host adds it and one player from the other team confirms it.
  */
 export function MyMatch({ match, role }: MyMatchProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const cancelMatch = useCancelMatch();
   const leaveMatch = useLeaveMatch();
@@ -72,10 +74,10 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const canAdd = isOver && isHost && !score && match.isFull !== false && !isTooLateToAdd;
   const place = match.isCourtBooked
     ? [match.clubName, match.courtName].filter(Boolean).join(" · ")
-    : "Court not booked yet";
+    : t("myMatch.courtNotBookedYet");
   const details = [
     place,
-    match.kind === "competitive" ? "Competitive" : "Friendly",
+    t(match.kind === "competitive" ? "match.kind.competitive" : "match.kind.friendly"),
     match.levelMin !== undefined && match.levelMax !== undefined
       ? `${match.levelMin.toFixed(1)} – ${match.levelMax.toFixed(1)}`
       : null,
@@ -85,25 +87,25 @@ export function MyMatch({ match, role }: MyMatchProps) {
 
   // These need chat, maps and calendar support, or the player-management API
   function comingSoon(label: string) {
-    toast.show({ label, description: "This is coming soon." });
+    toast.show({ label, description: t("myMatch.comingSoon") });
   }
 
   function confirmLeave() {
-    Alert.alert("Leave this match?", "Your spot will open up for other players.", [
-      { text: "Stay in", style: "cancel" },
+    Alert.alert(t("myMatch.leaveTitle"), t("myMatch.leaveText"), [
+      { text: t("myMatch.stayIn"), style: "cancel" },
       {
-        text: "Leave match",
+        text: t("myMatch.leaveMatch"),
         style: "destructive",
         onPress: () =>
           leaveMatch.mutate(match.id, {
             onSuccess: () => {
-              toast.show({ label: "You left the match" });
+              toast.show({ label: t("myMatch.left") });
               router.back();
             },
             onError: (error) =>
               toast.show({
                 variant: "danger",
-                label: "Couldn’t leave the match",
+                label: t("myMatch.leaveFailed"),
                 description: error.message,
               }),
           }),
@@ -113,28 +115,28 @@ export function MyMatch({ match, role }: MyMatchProps) {
 
   function confirm() {
     confirmScore.mutate(match.id, {
-      onSuccess: () => toast.show({ variant: "success", label: "Score confirmed" }),
+      onSuccess: () => toast.show({ variant: "success", label: t("myMatch.scoreConfirmed") }),
       onError: (error) =>
-        toast.show({ variant: "danger", label: "Couldn’t confirm the score", description: error.message }),
+        toast.show({ variant: "danger", label: t("myMatch.confirmFailed"), description: error.message }),
     });
   }
 
   function confirmCancel() {
-    Alert.alert("Cancel this match?", "It will be removed for everyone in the line-up.", [
-      { text: "Keep match", style: "cancel" },
+    Alert.alert(t("myMatch.cancelTitle"), t("myMatch.cancelText"), [
+      { text: t("myMatch.keepMatch"), style: "cancel" },
       {
-        text: "Cancel match",
+        text: t("myMatch.cancelMatch"),
         style: "destructive",
         onPress: () =>
           cancelMatch.mutate(match.id, {
             onSuccess: () => {
-              toast.show({ label: "Match cancelled" });
+              toast.show({ label: t("myMatch.cancelled") });
               router.back();
             },
             onError: (error) =>
               toast.show({
                 variant: "danger",
-                label: "Couldn’t cancel the match",
+                label: t("myMatch.cancelFailed"),
                 description: error.message,
               }),
           }),
@@ -151,7 +153,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
             accessibilityRole="header"
             className="font-black text-[22px] tracking-[-0.3px] text-foreground"
           >
-            Your match
+            {t("myMatch.title")}
           </Text>
         }
       >
@@ -162,7 +164,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
               : "self-center overflow-hidden rounded-xl bg-success-soft px-3 py-1.5 font-bold text-[12px] text-success"
           }
         >
-          {isHost ? "Hosting" : "Joined"}
+          {isHost ? t("myMatch.hosting") : t("myMatch.joined")}
         </Text>
       </Page.Header>
 
@@ -170,19 +172,19 @@ export function MyMatch({ match, role }: MyMatchProps) {
         <View className="gap-3 rounded-[24px] bg-accent p-[18px]">
           <View className="flex-row items-center justify-between">
             <Text className="font-bold text-[12px] uppercase tracking-[0.8px] text-primary-tint-text">
-              {isOver ? "Played" : "Starts in"}
+              {isOver ? t("myMatch.played") : t("myMatch.startsIn")}
             </Text>
             {isHost && !isOver ? (
               <View className="flex-row items-center gap-1 rounded-[10px] bg-lime px-2.5 py-1">
                 <Icon as={match.isCourtBooked ? Check : Clock} size={12} color="lime-foreground" />
                 <Text className="font-bold text-[12px] text-lime-foreground">
-                  {match.isCourtBooked ? "Court booked" : "Not booked yet"}
+                  {match.isCourtBooked ? t("matchDetail.courtBooked") : t("matchDetail.notBookedYet")}
                 </Text>
               </View>
             ) : null}
           </View>
           <Text className="font-black text-[32px] leading-[32px] tracking-[-0.8px] text-accent-foreground">
-            {isOver ? "Match finished" : formatStartsIn(match.startsAt, now)}
+            {isOver ? t("myMatch.finished") : formatStartsIn(match.startsAt, now)}
           </Text>
           <View className="gap-0.5">
             <Text className="font-bold text-[16px] text-accent-foreground">
@@ -196,26 +198,34 @@ export function MyMatch({ match, role }: MyMatchProps) {
           <ScoreSection
             match={match}
             myId={myId}
-            hostName={match.host?.firstName ?? "The host"}
+            hostName={match.host?.firstName ?? t("matchDetail.theHost")}
             canAdd={canAdd}
             isTooLateToAdd={isTooLateToAdd}
           />
         ) : null}
 
         {!isOver && !isHost && !match.isCourtBooked ? (
-          <InfoNote icon={Clock} tone="warning" title="Court not booked yet.">
-            {`${match.host?.firstName ?? "The host"} will confirm once it’s reserved.`}
+          <InfoNote icon={Clock} tone="warning" title={t("myMatch.waitingCourtTitle")}>
+            {t("myMatch.waitingCourtText", { host: match.host?.firstName ?? t("matchDetail.theHost") })}
           </InfoNote>
         ) : null}
 
         {!isOver ? (
         <View className="flex-row gap-2.5">
-          <ActionTile icon={MapPin} label="Directions" onPress={() => comingSoon("Directions")} />
-          <ActionTile icon={CalendarDays} label="Calendar" onPress={() => comingSoon("Calendar")} />
+          <ActionTile
+            icon={MapPin}
+            label={t("myMatch.directions")}
+            onPress={() => comingSoon(t("myMatch.directions"))}
+          />
+          <ActionTile
+            icon={CalendarDays}
+            label={t("myMatch.calendar")}
+            onPress={() => comingSoon(t("myMatch.calendar"))}
+          />
           <ActionTile
             icon={MessageSquare}
-            label="Group chat"
-            onPress={() => comingSoon("Group chat")}
+            label={t("myMatch.groupChat")}
+            onPress={() => comingSoon(t("myMatch.groupChat"))}
           />
         </View>
         ) : null}
@@ -223,15 +233,15 @@ export function MyMatch({ match, role }: MyMatchProps) {
         <View className="gap-3 rounded-[20px] border border-line bg-surface p-3.5">
           <View className="flex-row items-baseline justify-between">
             <Text accessibilityRole="header" className="font-black text-[15px] text-foreground">
-              Line-up · {match.players.length}/{match.capacity}
+              {t("myMatch.lineUp", { count: match.players.length, capacity: match.capacity })}
             </Text>
             {isHost && !isOver ? (
               <PressableFeedback
-                onPress={() => comingSoon("Swapping teams")}
+                onPress={() => comingSoon(t("myMatch.swappingTeams"))}
                 accessibilityRole="button"
                 hitSlop={8}
               >
-                <Text className="font-bold text-[13px] text-accent">Swap teams</Text>
+                <Text className="font-bold text-[13px] text-accent">{t("myMatch.swapTeams")}</Text>
               </PressableFeedback>
             ) : null}
           </View>
@@ -239,7 +249,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
             players={match.seats ?? match.players}
             capacity={match.capacity}
             newPlayerIds={new Set()}
-            openSeatLabel="Open"
+            openSeatLabel={t("team.open")}
             onPlayerPress={(player) => {
               setViewedPlayer(player);
               setIsViewingPlayer(true);
@@ -249,20 +259,24 @@ export function MyMatch({ match, role }: MyMatchProps) {
         </View>
 
         {isHost && !isOver ? (
-        <SettingsSection title="Host tools">
+        <SettingsSection title={t("myMatch.hostTools")}>
           <SettingsRow
-            label="Edit time, level or type"
-            onPress={() => comingSoon("Editing your match")}
+            label={t("myMatch.editTimeLevelType")}
+            onPress={() => comingSoon(t("myMatch.editingMatch"))}
           />
           <SettingsRow
-            label={match.courtName ? `Booking · ${match.courtName}` : "Booking"}
-            value={match.isCourtBooked ? "Booked" : "Add court"}
-            onPress={() => comingSoon("Booking")}
+            label={
+              match.courtName
+                ? t("myMatch.bookingCourt", { court: match.courtName })
+                : t("myMatch.booking")
+            }
+            value={match.isCourtBooked ? t("myMatch.booked") : t("myMatch.addCourt")}
+            onPress={() => comingSoon(t("myMatch.booking"))}
           />
           <SettingsRow
-            label="Manage players"
-            value="Remove · reopen spot"
-            onPress={() => comingSoon("Managing players")}
+            label={t("myMatch.managePlayers")}
+            value={t("myMatch.managePlayersValue")}
+            onPress={() => comingSoon(t("myMatch.managingPlayers"))}
           />
         </SettingsSection>
         ) : null}
@@ -278,29 +292,29 @@ export function MyMatch({ match, role }: MyMatchProps) {
             className="border-attention-outline bg-surface"
           >
             <Button.Label className="text-attention-action">
-              {isHost ? "Cancel match" : "Leave match"}
+              {isHost ? t("myMatch.cancelMatch") : t("myMatch.leaveMatch")}
             </Button.Label>
           </Button>
         </Page.Footer>
       ) : canAdd ? (
         <Page.Footer>
           <Button size="lg" onPress={() => setScoreSheet("add")}>
-            Add the score
+            {t("myMatch.addScore")}
           </Button>
         </Page.Footer>
       ) : canConfirm ? (
         <Page.Footer className="gap-1">
           <Button size="lg" onPress={confirm} isDisabled={confirmScore.isPending}>
-            Confirm score
+            {t("myMatch.confirmScore")}
           </Button>
           <Button variant="ghost" onPress={() => setScoreSheet("correct")}>
-            <Button.Label className="text-muted">Not right? Enter the real score</Button.Label>
+            <Button.Label className="text-muted">{t("myMatch.notRight")}</Button.Label>
           </Button>
         </Page.Footer>
       ) : canEdit ? (
         <Page.Footer>
           <Button size="lg" variant="secondary" onPress={() => setScoreSheet("edit")}>
-            Edit score
+            {t("myMatch.editScore")}
           </Button>
         </Page.Footer>
       ) : null}
@@ -333,31 +347,32 @@ type ScoreSectionProps = {
 
 /** The score once it's sent, or a note on what happens next when there's none. */
 function ScoreSection({ match, myId, hostName, canAdd, isTooLateToAdd }: ScoreSectionProps) {
+  const { t } = useTranslation();
   if (match.score) return <MatchScoreCard match={{ ...match, score: match.score }} myId={myId} />;
   if (match.isFull === false) {
     return (
-      <InfoNote icon={Users} tone="warning" title="No score for this match.">
-        It didn’t have 4 players.
+      <InfoNote icon={Users} tone="warning" title={t("myMatch.noScoreTitle")}>
+        {t("myMatch.noScoreText")}
       </InfoNote>
     );
   }
   if (canAdd) {
     return (
-      <InfoNote icon={Trophy} title="How did it go?">
-        Add the score set by set. One player from the other team confirms it.
+      <InfoNote icon={Trophy} title={t("myMatch.howDidItGo")}>
+        {t("myMatch.howDidItGoText")}
       </InfoNote>
     );
   }
   if (isTooLateToAdd) {
     return (
-      <InfoNote icon={Clock} tone="warning" title="No score was added.">
-        The time to add one has passed.
+      <InfoNote icon={Clock} tone="warning" title={t("myMatch.noScoreAddedTitle")}>
+        {t("myMatch.noScoreAddedText")}
       </InfoNote>
     );
   }
   return (
-    <InfoNote icon={Clock} title={`Waiting for ${hostName}’s score.`}>
-      {`${hostName} adds it, then one player from the other team confirms it.`}
+    <InfoNote icon={Clock} title={t("myMatch.waitingScoreTitle", { host: hostName })}>
+      {t("myMatch.waitingScoreText", { host: hostName })}
     </InfoNote>
   );
 }

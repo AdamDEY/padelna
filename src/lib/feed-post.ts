@@ -1,3 +1,5 @@
+import { t } from "i18next";
+
 import type { PlayerSuggestion } from "@/types/player";
 import type { FeedMatch, ResultPost, Team } from "@/types/post";
 
@@ -8,7 +10,7 @@ export function isGuest(player: PlayerSuggestion) {
 
 function joinNames(names: string[]) {
   if (names.length <= 1) return names.join("");
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  return `${names.slice(0, -1).join(", ")}${t("feed.and")}${names[names.length - 1]}`;
 }
 
 /** "Karim J." */
@@ -37,7 +39,7 @@ export type FeedPost = {
 export function toFeedPost(match: FeedMatch, myId: string, photoUri?: string): FeedPost {
   // You show as "You" in the score rows, like in the design
   const [s1, s2, s3, s4] = match.seats.map((player) =>
-    player.id === myId ? { ...player, firstName: "You", lastName: "" } : player,
+    player.id === myId ? { ...player, firstName: t("common.you"), lastName: "" } : player,
   );
   const teams: [PlayerSuggestion[], PlayerSuggestion[]] = [[s1, s2], [s3, s4]];
   const isMe = (player: PlayerSuggestion) => player.id === myId;
@@ -58,10 +60,17 @@ export function toFeedPost(match: FeedMatch, myId: string, photoUri?: string): F
 
   const partner = teams[focalTeam].find((player) => player !== focal)!;
   const others = seats.filter((player) => player !== focal);
-  const focalName = isMe(focal) ? "You" : shortName(focal);
+  const partnerName = isGuest(partner) ? t("feed.aGuest") : shortName(partner);
+  const otherNames = joinNames(
+    others.map((player) => (isGuest(player) ? t("feed.aGuest") : player.firstName)),
+  );
   const title = focalWon
-    ? `${focalName} and ${isGuest(partner) ? "a guest" : shortName(partner)} won`
-    : `${focalName} played with ${joinNames(others.map((player) => (isGuest(player) ? "a guest" : player.firstName)))}`;
+    ? isMe(focal)
+      ? t("feed.wonTitleYou", { partner: partnerName })
+      : t("feed.wonTitle", { name: shortName(focal), partner: partnerName })
+    : isMe(focal)
+      ? t("feed.playedWithYou", { others: otherNames })
+      : t("feed.playedWith", { name: shortName(focal), others: otherNames });
 
   const onApp = seats.filter((player) => !isGuest(player) && !isMe(player));
   // In your own matches you know who's who, so only other people's matches get Friend tags
@@ -86,7 +95,7 @@ export function toFeedPost(match: FeedMatch, myId: string, photoUri?: string): F
       photoUri,
     },
     title,
-    note: allFriends ? "all 4 are your friends" : undefined,
+    note: allFriends ? t("feed.allFriends") : undefined,
     canConnect: onApp.some((player) => !isFriend(player)),
     friendIds,
     players: onApp,

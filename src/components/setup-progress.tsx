@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 type SetupProgressProps = {
@@ -10,11 +11,13 @@ type SetupProgressProps = {
 
 /** Segmented progress bar with "n of 3" on the right (design.md "Progress (setup)"). */
 export function SetupProgress({ step, total = 3, stepProgress = 1 }: SetupProgressProps) {
+  const { t } = useTranslation();
+
   return (
     <View
       accessible
       accessibilityRole="progressbar"
-      accessibilityLabel={`Step ${step} of ${total}`}
+      accessibilityLabel={t("setup.progressA11y", { step, total })}
       className="flex-row items-center gap-3.5"
     >
       <View className="flex-1 flex-row gap-1.5">
@@ -28,7 +31,7 @@ export function SetupProgress({ step, total = 3, stepProgress = 1 }: SetupProgre
         })}
       </View>
       <Text className="font-semibold text-[14px] text-muted">
-        {step} of {total}
+        {t("setup.progress", { step, total })}
       </Text>
     </View>
   );

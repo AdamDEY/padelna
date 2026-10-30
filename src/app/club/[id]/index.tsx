@@ -2,6 +2,7 @@ import { Button, cn } from "heroui-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Heart, Star } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Linking, Platform, Pressable, Text, View } from "react-native";
 
 import { CourtHero } from "@/components/court-hero";
@@ -16,6 +17,7 @@ import { Page } from "@/components/page";
 import { RateClubSheet } from "@/components/rate-club-sheet";
 import { SectionHeader } from "@/components/section-header";
 import { getClubDetails, openMatches } from "@/data/mock";
+import { translateLabel } from "@/i18n";
 import { shouldSkipBookingNotice } from "@/lib/booking-notice";
 
 // How far the white sheet slides up over the photo
@@ -32,6 +34,7 @@ function openDirections(name: string, address: string) {
 }
 
 export default function ClubDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const club = getClubDetails(id);
   const [isSaved, setIsSaved] = useState(false);
@@ -50,7 +53,9 @@ export default function ClubDetail() {
       <Page>
         <Page.Header back />
         <Page.Body>
-          <Page.Title description="This club may have closed or moved.">Club not found</Page.Title>
+          <Page.Title description={t("clubDetail.notFoundText")}>
+            {t("clubDetail.notFoundTitle")}
+          </Page.Title>
         </Page.Body>
       </Page>
     );
@@ -64,9 +69,9 @@ export default function ClubDetail() {
     .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
 
   const stats = [
-    { value: String(club.courtCount), label: "Courts" },
-    { value: `${club.indoorCourts} + ${club.outdoorCourts}`, label: "Indoor · outdoor" },
-    { value: club.openUntil, label: "Open until" },
+    { value: String(club.courtCount), label: t("clubDetail.courts") },
+    { value: `${club.indoorCourts} + ${club.outdoorCourts}`, label: t("clubDetail.indoorOutdoor") },
+    { value: club.openUntil, label: t("clubDetail.openUntil") },
   ];
 
   return (
@@ -78,7 +83,7 @@ export default function ClubDetail() {
           rightAction={
             <IconButton
               icon={Heart}
-              label={isSaved ? "Remove from saved clubs" : "Save club"}
+              label={isSaved ? t("clubDetail.unsave") : t("clubDetail.save")}
               filled={isSaved}
               onPress={() => setIsSaved((saved) => !saved)}
               className="border-0 bg-white/90"
@@ -101,7 +106,10 @@ export default function ClubDetail() {
               {hasReviews ? (
                 <View
                   accessible
-                  accessibilityLabel={`Rated ${club.rating.toFixed(1)} from ${club.reviewCount} reviews`}
+                  accessibilityLabel={t("clubDetail.ratedA11y", {
+                    rating: club.rating.toFixed(1),
+                    count: club.reviewCount,
+                  })}
                   className="flex-row items-center gap-1"
                 >
                   <Icon as={Star} size={16} color="star" filled />
@@ -139,19 +147,19 @@ export default function ClubDetail() {
                 key={amenity}
                 className="overflow-hidden rounded-[14px] bg-out-of-range px-3 py-1.5 font-semibold text-[13px] text-ink-2"
               >
-                {amenity}
+                {translateLabel("amenities", amenity)}
               </Text>
             ))}
           </View>
 
           <View className="gap-2.5">
-            <SectionHeader size="sm" title={`Open matches here · ${matchesHere.length}`} />
+            <SectionHeader size="sm" title={t("clubDetail.openHere", { count: matchesHere.length })} />
             {matchesHere.map((match) => (
               <ClubMatchRow key={match.id} match={match} />
             ))}
             {matchesHere.length === 0 ? (
               <Text className="font-normal text-[14px] text-muted">
-                No open matches here right now. Create one and invite players.
+                {t("clubDetail.noneHere")}
               </Text>
             ) : null}
           </View>
@@ -159,8 +167,8 @@ export default function ClubDetail() {
           <View className="gap-3.5">
             <SectionHeader
               size="sm"
-              title="Player reviews"
-              actionLabel={hasReviews ? `See all ${club.reviewCount}` : undefined}
+              title={t("clubDetail.playerReviews")}
+              actionLabel={hasReviews ? t("clubDetail.seeAll", { count: club.reviewCount }) : undefined}
               onPressAction={() =>
                 router.push({ pathname: "/club/[id]/reviews", params: { id: club.id } })
               }
@@ -169,7 +177,7 @@ export default function ClubDetail() {
               <ClubReviewsSummary club={club} />
             ) : (
               <Text className="rounded-[20px] bg-background p-4 font-normal text-[14px] leading-5 text-muted">
-                No reviews yet. Played here? Be the first to rate this club.
+                {t("clubDetail.noReviews")}
               </Text>
             )}
 
@@ -182,7 +190,7 @@ export default function ClubDetail() {
                     tag.negative ? "bg-attention-soft text-attention" : "bg-success-soft text-success",
                   )}
                 >
-                  {tag.label} · {tag.count}
+                  {translateLabel("clubTags", tag.label)} · {tag.count}
                 </Text>
               ))}
             </View>
@@ -196,7 +204,7 @@ export default function ClubDetail() {
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
             >
               <Icon as={Star} size={18} color="accent" />
-              <Text className="font-bold text-[15px] text-accent">Rate this club</Text>
+              <Text className="font-bold text-[15px] text-accent">{t("clubDetail.rate")}</Text>
             </Pressable>
           </View>
         </View>
@@ -209,10 +217,10 @@ export default function ClubDetail() {
           onPress={() => openDirections(club.name, club.address)}
           className="flex-1"
         >
-          Directions
+          {t("clubDetail.directions")}
         </Button>
         <Button size="lg" className="flex-[1.4]" onPress={startCreating}>
-          Create match here
+          {t("clubDetail.createHere")}
         </Button>
       </Page.Footer>
 

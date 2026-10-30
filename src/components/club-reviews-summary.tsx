@@ -1,6 +1,8 @@
 import { cn } from "heroui-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
+import { translateLabel } from "@/i18n";
 import type { ClubDetails } from "@/types/club";
 
 // Aspects rated below this show in orange so weak spots stand out
@@ -12,18 +14,23 @@ type ClubReviewsSummaryProps = {
 
 /** Overall rating next to a bar per aspect (court surface, lighting, …). */
 export function ClubReviewsSummary({ club }: ClubReviewsSummaryProps) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-row items-center gap-4 rounded-[20px] bg-background p-4">
       <View
         accessible
-        accessibilityLabel={`Rated ${club.rating.toFixed(1)} out of 5 by ${club.reviewCount} players`}
+        accessibilityLabel={t("clubReviews.summaryA11y", {
+          rating: club.rating.toFixed(1),
+          count: club.reviewCount,
+        })}
         className="w-[76px] items-center gap-0.5"
       >
         <Text className="font-black text-[38px] leading-[40px] tracking-[-1px] text-foreground">
           {club.rating.toFixed(1)}
         </Text>
         <Text className="text-center font-normal text-[12px] text-muted">
-          {club.reviewCount} verified players
+          {t("clubReviews.verified", { count: club.reviewCount })}
         </Text>
       </View>
 
@@ -35,11 +42,14 @@ export function ClubReviewsSummary({ club }: ClubReviewsSummaryProps) {
             <View
               key={aspect.label}
               accessible
-              accessibilityLabel={`${aspect.label}: ${aspect.value.toFixed(1)} out of 5`}
+              accessibilityLabel={t("clubReviews.aspectA11y", {
+                label: translateLabel("aspects", aspect.label),
+                value: aspect.value.toFixed(1),
+              })}
               className="flex-row items-center gap-2"
             >
               <Text numberOfLines={1} className="w-[92px] font-semibold text-[12px] text-foreground">
-                {aspect.label}
+                {translateLabel("aspects", aspect.label)}
               </Text>
               <View className="h-1.5 flex-1 rounded-full bg-line">
                 <View

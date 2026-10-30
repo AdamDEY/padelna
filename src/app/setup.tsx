@@ -1,6 +1,7 @@
 import { router, Stack } from "expo-router";
 import { Button, useToast } from "heroui-native";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { BackHandler, View } from "react-native";
 import Animated, { FadeInLeft, FadeInRight } from "react-native-reanimated";
 
@@ -31,6 +32,7 @@ const AUTO_ADVANCE_MS = 300;
  * swap in place on one screen, so the header and progress bar stay put.
  */
 export default function ProfileSetup() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [step, setStep] = useState<Step>(1);
   const [question, setQuestion] = useState(0);
@@ -110,8 +112,8 @@ export default function ProfileSetup() {
     } catch (error) {
       toast.show({
         variant: "danger",
-        label: "Couldn’t save your profile",
-        description: error instanceof Error ? error.message : "Please try again.",
+        label: t("settings.saveFailed"),
+        description: error instanceof Error ? error.message : t("settings.tryAgain"),
       });
     } finally {
       setIsSaving(false);
@@ -183,7 +185,7 @@ export default function ProfileSetup() {
       <Page.Footer className={isQuiz ? "flex-row gap-2.5" : undefined}>
         {isQuiz ? (
           <Button size="lg" variant="ghost" onPress={finish} isDisabled={isSaving} className="px-[18px]">
-            <Button.Label className="text-muted">Skip</Button.Label>
+            <Button.Label className="text-muted">{t("setup.skip")}</Button.Label>
           </Button>
         ) : null}
         <Button
@@ -192,7 +194,7 @@ export default function ProfileSetup() {
           isDisabled={(isQuiz && !hasAnswer) || isSaving}
           className={isQuiz ? "flex-1" : undefined}
         >
-          {isLastQuestion ? "See my level" : isQuiz ? "Next" : "Continue"}
+          {isLastQuestion ? t("setup.seeLevel") : isQuiz ? t("setup.next") : t("setup.continue")}
         </Button>
       </Page.Footer>
     </Page>

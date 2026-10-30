@@ -1,6 +1,7 @@
 import { Link, router } from "expo-router";
 import { Button, Checkbox, FieldError, Input, Label, TextField, useToast } from "heroui-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { SocialAuthButtons } from "@/components/social-auth-buttons";
@@ -9,6 +10,7 @@ import { signUp } from "@/repositories/auth-repository";
 import { isEmail, MIN_PASSWORD_LENGTH } from "@/lib/validation";
 
 export default function SignUp() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,8 +32,8 @@ export default function SignUp() {
     } catch (error) {
       toast.show({
         variant: "danger",
-        label: "Couldn’t create your account",
-        description: error instanceof Error ? error.message : "Please try again.",
+        label: t("auth.createFailed"),
+        description: error instanceof Error ? error.message : t("settings.tryAgain"),
       });
       return;
     } finally {
@@ -41,26 +43,26 @@ export default function SignUp() {
       router.replace("/setup");
     } else {
       // Email confirmation is on: there is no session until the player confirms
-      toast.show({ label: "Check your email", description: "Confirm your address, then sign in." });
+      toast.show({ label: t("auth.checkEmail"), description: t("auth.checkEmailText") });
       router.replace("/sign-in");
     }
   }
 
   function showLegal(name: string) {
-    toast.show({ label: `${name} coming soon` });
+    toast.show({ label: t("auth.legalSoon", { name }) });
   }
 
   return (
     <Page variant="auth">
       <Page.Header back={() => (router.canGoBack() ? router.back() : router.replace("/sign-in"))} />
       <Page.Body className="gap-5">
-        <Page.Title description="Join Tunisia’s padel community in a minute.">
-          Create your account
+        <Page.Title description={t("auth.createText")}>
+          {t("auth.createTitle")}
         </Page.Title>
 
         <View className="gap-4">
           <TextField isInvalid={emailError}>
-            <Label>Email</Label>
+            <Label>{t("auth.email")}</Label>
             <Input
               value={email}
               onChangeText={setEmail}
@@ -72,21 +74,21 @@ export default function SignUp() {
               keyboardType="email-address"
               returnKeyType="next"
             />
-            <FieldError>Enter a valid email address.</FieldError>
+            <FieldError>{t("auth.emailError")}</FieldError>
           </TextField>
 
           <TextField isInvalid={passwordError}>
-            <Label>Password</Label>
+            <Label>{t("auth.password")}</Label>
             <Input
               value={password}
               onChangeText={setPassword}
-              placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
+              placeholder={t("auth.passwordPlaceholder", { count: MIN_PASSWORD_LENGTH })}
               secureTextEntry
               autoComplete="new-password"
               textContentType="newPassword"
               returnKeyType="done"
             />
-            <FieldError>{`Use at least ${MIN_PASSWORD_LENGTH} characters.`}</FieldError>
+            <FieldError>{t("auth.passwordMin", { count: MIN_PASSWORD_LENGTH })}</FieldError>
           </TextField>
 
           <View className="gap-1">
@@ -95,32 +97,32 @@ export default function SignUp() {
                 isSelected={acceptedTerms}
                 onSelectedChange={setAcceptedTerms}
                 isInvalid={termsError}
-                accessibilityLabel="I agree to the Terms and Privacy Policy"
+                accessibilityLabel={t("auth.agreeA11y")}
               />
               {/* Tapping the text also ticks the box; the two links open the documents */}
               <Pressable onPress={() => setAcceptedTerms((value) => !value)} className="flex-1">
                 <Text className="font-normal text-[14px] leading-5 text-muted">
-                  I agree to the{" "}
-                  <Text className="font-bold text-link" onPress={() => showLegal("Terms")}>
-                    Terms
+                  {t("auth.agreeTo")}{" "}
+                  <Text className="font-bold text-link" onPress={() => showLegal(t("auth.terms"))}>
+                    {t("auth.terms")}
                   </Text>{" "}
-                  and{" "}
-                  <Text className="font-bold text-link" onPress={() => showLegal("Privacy Policy")}>
-                    Privacy Policy
+                  {t("auth.agreeAnd")}{" "}
+                  <Text className="font-bold text-link" onPress={() => showLegal(t("auth.privacy"))}>
+                    {t("auth.privacy")}
                   </Text>
                 </Text>
               </Pressable>
             </View>
             {termsError ? (
               <Text className="ps-[34px] font-normal text-[13px] text-danger">
-                Please accept to continue.
+                {t("auth.acceptError")}
               </Text>
             ) : null}
           </View>
         </View>
 
         <Button size="lg" onPress={createAccount} isDisabled={isCreating}>
-          Create account
+          {t("auth.createAccount")}
         </Button>
 
         <SocialAuthButtons />
@@ -128,9 +130,9 @@ export default function SignUp() {
 
       <Page.Footer className="items-center">
         <Text className="font-normal text-[15px] text-muted">
-          Already a member?{" "}
+          {t("auth.alreadyMember")}{" "}
           <Link href="/sign-in" replace className="font-bold text-link">
-            Sign in
+            {t("auth.signIn")}
           </Link>
         </Text>
       </Page.Footer>

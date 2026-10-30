@@ -1,7 +1,9 @@
 import { cn, PressableFeedback } from "heroui-native";
+import { t } from "i18next";
 import { Image } from "expo-image";
 import { ShieldCheck } from "lucide-react-native";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -12,7 +14,7 @@ import type { ResultPost, Team } from "@/types/post";
 
 /** "Youssef B. and Amira K." */
 function teamFullNames(team: Team) {
-  return team.map((p) => `${p.firstName} ${p.lastName.charAt(0)}.`).join(" and ");
+  return team.map((p) => `${p.firstName} ${p.lastName.charAt(0)}.`).join(t("feed.and"));
 }
 
 /** "Youssef · Amira" */
@@ -60,6 +62,7 @@ export function ResultPostCard({
   friendIds,
   onPlayerPress,
 }: ResultPostCardProps) {
+  const { t } = useTranslation();
   const winner = winnerIndex(post.sets);
   const poster = post.teams[0];
   const posterWon = winner === 0;
@@ -67,7 +70,9 @@ export function ResultPostCard({
   // Without a photo the scoreboard doesn't show WIN, so the title says it
   const title =
     titleOverride ??
-    (post.photoUri === undefined && posterWon ? `${teamFullNames(poster)} won` : teamFullNames(poster));
+    (post.photoUri === undefined && posterWon
+      ? t("feed.won", { names: teamFullNames(poster) })
+      : teamFullNames(poster));
 
   return (
     <View className="gap-3 rounded-3xl border border-line bg-surface p-3.5">
@@ -79,7 +84,9 @@ export function ResultPostCard({
               isDisabled={!onPlayerPress || player.id.startsWith("guest-")}
               onPress={() => onPlayerPress?.(player)}
               accessibilityRole={onPlayerPress ? "button" : undefined}
-              accessibilityLabel={onPlayerPress ? `${player.firstName}, view profile` : undefined}
+              accessibilityLabel={
+                onPlayerPress ? t("connections.viewProfile", { name: player.firstName }) : undefined
+              }
               className={cn("rounded-full", index > 0 && "-ms-3")}
             >
               <PlayerAvatar
@@ -101,7 +108,7 @@ export function ResultPostCard({
               formatTimeAgo(post.postedAt),
               note,
               post.mutualFriendCount
-                ? `${post.mutualFriendCount} mutual ${post.mutualFriendCount === 1 ? "friend" : "friends"}`
+                ? t("connectSheet.mutual", { count: post.mutualFriendCount })
                 : null,
             ]
               .filter(Boolean)
@@ -120,7 +127,7 @@ export function ResultPostCard({
               source={post.photoUri ? { uri: post.photoUri } : undefined}
               contentFit="cover"
               transition={200}
-              accessibilityLabel={`Team photo of ${teamFirstNames(poster)}`}
+              accessibilityLabel={t("feed.teamPhoto", { names: teamFirstNames(poster) })}
               style={{ flex: 1 }}
             />
           </View>
@@ -134,7 +141,7 @@ export function ResultPostCard({
       {post.confirmed ? (
         <View className="flex-row items-center gap-1">
           <Icon as={ShieldCheck} size={14} color="success" />
-          <Text className="font-bold text-[12px] text-success">Score confirmed by both teams</Text>
+          <Text className="font-bold text-[12px] text-success">{t("score.confirmed")}</Text>
         </View>
       ) : null}
     </View>
@@ -145,10 +152,11 @@ type ScoreProps = { post: ResultPost; winner: number; friendIds?: Set<string> };
 
 /** Small "Friend" tag after a team's names (design: Community · Friends v2) */
 function FriendTag({ team, friendIds }: { team: Team; friendIds?: Set<string> }) {
+  const { t } = useTranslation();
   if (!friendIds || !team.some((player) => friendIds.has(player.id))) return null;
   return (
     <Text className="overflow-hidden rounded-lg bg-primary-soft px-1.5 py-0.5 font-bold text-[11px] text-primary-dark">
-      Friend
+      {t("feed.friend")}
     </Text>
   );
 }
@@ -161,8 +169,9 @@ const scoreboardTone = {
 
 /** Result block for posts without a photo: blue for friendly, ink for competitive. */
 function Scoreboard({ post, winner }: ScoreProps) {
+  const { t } = useTranslation();
   const tone = scoreboardTone[post.kind];
-  const label = `${post.kind === "friendly" ? "Friendly" : "Competitive"} · ${post.courtName}`;
+  const label = `${t(post.kind === "friendly" ? "match.kind.friendly" : "match.kind.competitive")} · ${post.courtName}`;
 
   return (
     <View className={cn("gap-2.5 rounded-[18px] p-3.5", tone.bg)}>
@@ -182,7 +191,7 @@ function Scoreboard({ post, winner }: ScoreProps) {
           <View
             key={teamIndex}
             accessible
-            accessibilityLabel={`${teamFirstNames(team)}${isWinner ? ", winners" : ""}: ${post.sets
+            accessibilityLabel={`${teamFirstNames(team)}${isWinner ? `, ${t("feed.winners")}` : ""}: ${post.sets
               .map((set) => set[teamIndex])
               .join(", ")}`}
             className="flex-row items-center gap-1.5"
@@ -237,10 +246,10 @@ function Scoreboard({ post, winner }: ScoreProps) {
 
       <View className="flex-row flex-wrap gap-1.5">
         <Text className="overflow-hidden rounded-[10px] bg-white/15 px-2.5 py-1 font-bold text-[12px] text-accent-foreground">
-          Level {post.levelMin.toFixed(1)} – {post.levelMax.toFixed(1)}
+          {t("matchDetail.levelTag", { min: post.levelMin.toFixed(1), max: post.levelMax.toFixed(1) })}
         </Text>
         <Text className="overflow-hidden rounded-[10px] bg-white/15 px-2.5 py-1 font-bold text-[12px] text-accent-foreground">
-          Won in {post.sets.length} {post.sets.length === 1 ? "set" : "sets"}
+          {t("feed.wonInSets", { count: post.sets.length })}
         </Text>
       </View>
     </View>
@@ -249,6 +258,7 @@ function Scoreboard({ post, winner }: ScoreProps) {
 
 /** Light score table under a team photo; winners get a WIN tag, lost sets are muted. */
 function ScoreTable({ post, winner, friendIds }: ScoreProps) {
+  const { t } = useTranslation();
   return (
     <View className="gap-1.5 rounded-2xl bg-background p-3">
       {post.teams.map((team, teamIndex) => {
@@ -257,7 +267,7 @@ function ScoreTable({ post, winner, friendIds }: ScoreProps) {
           <View
             key={teamIndex}
             accessible
-            accessibilityLabel={`${teamFirstNames(team)}${isWinner ? ", winners" : ""}: ${post.sets
+            accessibilityLabel={`${teamFirstNames(team)}${isWinner ? `, ${t("feed.winners")}` : ""}: ${post.sets
               .map((set) => set[teamIndex])
               .join(", ")}`}
             className="flex-row items-center gap-1.5"
@@ -277,7 +287,7 @@ function ScoreTable({ post, winner, friendIds }: ScoreProps) {
               ) : null}
               {isWinner ? (
                 <Text className="overflow-hidden rounded-lg bg-lime-soft px-1.5 py-0.5 font-bold text-[11px] text-lime-foreground">
-                  WIN
+                  {t("score.win")}
                 </Text>
               ) : null}
               <FriendTag team={team} friendIds={friendIds} />

@@ -13,9 +13,11 @@ import {
   useToast,
 } from "heroui-native";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { translateCourt, translateLabel } from "@/i18n";
 import { StarRating } from "@/components/star-rating";
 import { clubReviewTagOptions, pastMatches } from "@/data/mock";
 import { formatMatchDay } from "@/lib/format-date";
@@ -35,6 +37,7 @@ type RateClubSheetProps = {
 
 /** "How was the club?" bottom sheet: court picker, star ratings, tags, comment, Submit. */
 export function RateClubSheet({ club, isOpen, onOpenChange }: RateClubSheetProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { toast } = useToast();
 
@@ -66,8 +69,8 @@ export function RateClubSheet({ club, isOpen, onOpenChange }: RateClubSheetProps
     // Nothing is saved yet; the API will take the court, ratings, tags and comment
     toast.show({
       variant: "success",
-      label: "Thanks for your review",
-      description: `It helps other players choose ${club.name}.`,
+      label: t("rateClub.thanks"),
+      description: t("rateClub.thanksText", { club: club.name }),
     });
     handleOpenChange(false);
   }
@@ -110,7 +113,7 @@ export function RateClubSheet({ club, isOpen, onOpenChange }: RateClubSheetProps
                 style={{ paddingBottom: Math.max(insets.bottom, 34) }}
               >
                 <Button size="lg" isDisabled={!hasRating} onPress={submit}>
-                  Submit
+                  {t("rateClub.submit")}
                 </Button>
               </View>
             </BottomSheetFooter>
@@ -119,7 +122,7 @@ export function RateClubSheet({ club, isOpen, onOpenChange }: RateClubSheetProps
           <View className="flex-row items-start justify-between gap-3 px-5 pb-3 pt-1">
             <View className="flex-1">
               <BottomSheet.Title className="font-black text-[22px] tracking-[-0.3px] text-foreground">
-                How was the club?
+                {t("rateClub.title")}
               </BottomSheet.Title>
               <BottomSheet.Description
                 numberOfLines={1}
@@ -139,10 +142,10 @@ export function RateClubSheet({ club, isOpen, onOpenChange }: RateClubSheetProps
             <View className="gap-2">
               <View className="flex-row items-baseline justify-between">
                 <Text className="font-bold text-[12px] uppercase tracking-[0.6px] text-muted">
-                  The court you played on
+                  {t("rateClub.court")}
                 </Text>
                 {lastMatchHere?.courtName ? (
-                  <Text className="font-normal text-[12px] text-muted">From your match</Text>
+                  <Text className="font-normal text-[12px] text-muted">{t("rateClub.fromMatch")}</Text>
                 ) : null}
               </View>
               <View accessibilityRole="radiogroup" className="flex-row gap-1.5">
@@ -154,7 +157,7 @@ export function RateClubSheet({ club, isOpen, onOpenChange }: RateClubSheetProps
                       onPress={() => setCourt(name)}
                       accessibilityRole="radio"
                       accessibilityState={{ checked: selected }}
-                      accessibilityLabel={name}
+                      accessibilityLabel={translateCourt(name)}
                       hitSlop={{ top: 4, bottom: 4 }}
                       className={cn(
                         "h-9 flex-1 items-center justify-center rounded-xl",
@@ -178,13 +181,13 @@ export function RateClubSheet({ club, isOpen, onOpenChange }: RateClubSheetProps
 
             <View className="gap-2">
               <Text className="font-bold text-[12px] uppercase tracking-[0.6px] text-muted">
-                The club
+                {t("rateClub.theClub")}
               </Text>
               <RatingCard aspects={clubAspects} ratings={ratings} onChange={setRating} />
             </View>
 
             <View className="gap-2">
-              <Text className="font-bold text-[14px] text-foreground">Anything stand out?</Text>
+              <Text className="font-bold text-[14px] text-foreground">{t("rateClub.stand")}</Text>
               <View className="flex-row flex-wrap gap-1.5">
                 {clubReviewTagOptions.map((tag) => {
                   const selected = tags.has(tag.label);
@@ -209,7 +212,7 @@ export function RateClubSheet({ club, isOpen, onOpenChange }: RateClubSheetProps
                           selected && (tag.negative ? "text-attention" : "text-success"),
                         )}
                       >
-                        {tag.label}
+                        {translateLabel("clubTags", tag.label)}
                       </Text>
                     </Pressable>
                   );
@@ -240,6 +243,7 @@ function CommentField({
   onChange: (text: string) => void;
   onFocused: () => void;
 }) {
+  const { t } = useTranslation();
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
 
   return (
@@ -251,8 +255,8 @@ function CommentField({
         onFocused();
       }}
       onBlur={onBlur}
-      placeholder="Add a comment (optional)"
-      accessibilityLabel="Comment"
+      placeholder={t("rateClub.commentPlaceholder")}
+      accessibilityLabel={t("rateClub.comment")}
       numberOfLines={3}
       className="min-h-20"
     />
@@ -278,9 +282,9 @@ function RatingCard({
             index < aspects.length - 1 && "border-b border-fill",
           )}
         >
-          <Text className="font-bold text-[14px] text-foreground">{aspect}</Text>
+          <Text className="font-bold text-[14px] text-foreground">{translateLabel("aspects", aspect)}</Text>
           <StarRating
-            label={aspect}
+            label={translateLabel("aspects", aspect)}
             value={ratings[aspect] ?? 0}
             onChange={(value) => onChange(aspect, value)}
           />

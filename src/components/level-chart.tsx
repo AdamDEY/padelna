@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import Svg, { Circle, Line, Polygon, Polyline } from "react-native-svg";
 import { useCSSVariable } from "uniwind";
+
+import { translateLabel } from "@/i18n";
 
 const CHART_HEIGHT = 84;
 // Room around the line so the end dot isn't clipped
@@ -15,6 +18,7 @@ type LevelChartProps = {
 
 /** Area chart of your level over recent months, with month labels below. */
 export function LevelChart({ points }: LevelChartProps) {
+  const { t } = useTranslation();
   const [width, setWidth] = useState(0);
   const [accent, soft, grid, surface] = useCSSVariable([
     "--color-accent",
@@ -44,7 +48,12 @@ export function LevelChart({ points }: LevelChartProps) {
   return (
     <View
       accessible
-      accessibilityLabel={`Level went from ${first?.level.toFixed(1)} in ${first?.month} to ${latest?.level.toFixed(1)} in ${latest?.month}`}
+      accessibilityLabel={t("profile.levelA11y", {
+        from: first?.level.toFixed(1),
+        fromMonth: first && translateLabel("months", first.month),
+        to: latest?.level.toFixed(1),
+        toMonth: latest && translateLabel("months", latest.month),
+      })}
       className="gap-2"
     >
       <View onLayout={(event) => setWidth(event.nativeEvent.layout.width)} style={{ height: CHART_HEIGHT }}>
@@ -82,7 +91,7 @@ export function LevelChart({ points }: LevelChartProps) {
       <View className="flex-row justify-between">
         {points.map((point) => (
           <Text key={point.month} className="font-normal text-[12px] text-muted">
-            {point.month}
+            {translateLabel("months", point.month)}
           </Text>
         ))}
       </View>

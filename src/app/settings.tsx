@@ -13,6 +13,7 @@ import {
 } from "heroui-native";
 import { Lock, LogOut, Plus, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, Text, View } from "react-native";
 
 import { DeleteAccountSheet } from "@/components/delete-account-sheet";
@@ -29,6 +30,7 @@ import {
   SettingsSwitchRow,
 } from "@/components/settings-section";
 import type { Hand, PlayStyle, Side } from "@/components/setup-game-step";
+import { LANGUAGE_NAMES, LANGUAGES, setLanguage, type Language } from "@/i18n";
 import { allClubs, cities, me, myAccount, myClubNames, myProfile, upcomingMatches } from "@/data/mock";
 import { myProfileKey, useMyAccount } from "@/hooks/useMyProfile";
 import { queryClient } from "@/lib/query-client";
@@ -39,46 +41,31 @@ import type { MyAccount } from "@/types/account";
 const BIO_MAX_LENGTH = 150;
 const cityOptions = cities.map((city) => ({ value: city, label: city }));
 
-const handOptions: { value: Hand; label: string }[] = [
-  { value: "right", label: "Right" },
-  { value: "left", label: "Left" },
-];
-const sideOptions: { value: Side; label: string }[] = [
-  { value: "left", label: "Left" },
-  { value: "right", label: "Right" },
-  { value: "both", label: "Both" },
-];
-const playStyleOptions: { value: PlayStyle; label: string }[] = [
-  { value: "aggressive", label: "Aggressive" },
-  { value: "balanced", label: "Balanced" },
-  { value: "defensive", label: "Defensive" },
-  { value: "tactical", label: "Tactical" },
-];
-
 // A match you host would be cancelled if you delete your account
 const hostedMatch = upcomingMatches.find((match) => match.host.id === me.id);
 
 /** Edit profile and settings, opened from the Profile hero's top-right button. */
 export default function Settings() {
+  const { t } = useTranslation();
   const { data: account, error, refetch, isRefetching } = useMyAccount();
 
   if (!account) {
     return (
       <Page underStatusBar>
-        <Page.Header bar back leading={<Text className="font-black text-[20px] text-foreground">Edit profile</Text>} />
+        <Page.Header bar back leading={<Text className="font-black text-[20px] text-foreground">{t("settings.title")}</Text>} />
         <Page.Body scroll={false} className="items-center justify-center gap-3">
           {error ? (
             <>
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-                Couldn’t load your profile
+                {t("profile.loadFailed")}
               </Text>
               <Text className="text-center font-normal text-[14px] text-muted">{error.message}</Text>
               <Button variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
-                Try again
+                {t("matches.tryAgain")}
               </Button>
             </>
           ) : (
-            <Spinner accessibilityLabel="Loading your profile" />
+            <Spinner accessibilityLabel={t("profile.loading")} />
           )}
         </Page.Body>
       </Page>
@@ -90,6 +77,22 @@ export default function Settings() {
 
 /** The form itself; it starts from the saved profile, so it only mounts once that has loaded. */
 function SettingsForm({ account }: { account: MyAccount }) {
+  const { t } = useTranslation();
+  const handOptions: { value: Hand; label: string }[] = [
+    { value: "right", label: t("settings.handRight") },
+    { value: "left", label: t("settings.handLeft") },
+  ];
+  const sideOptions: { value: Side; label: string }[] = [
+    { value: "left", label: t("settings.handLeft") },
+    { value: "right", label: t("settings.handRight") },
+    { value: "both", label: t("settings.sideBoth") },
+  ];
+  const playStyleOptions: { value: PlayStyle; label: string }[] = [
+    { value: "aggressive", label: t("playStyle.aggressive") },
+    { value: "balanced", label: t("playStyle.balanced") },
+    { value: "defensive", label: t("playStyle.defensive") },
+    { value: "tactical", label: t("playStyle.tactical") },
+  ];
   const { toast } = useToast();
   const navigation = useNavigation();
   const [photoUri, setPhotoUri] = useState<string>();
@@ -120,9 +123,9 @@ function SettingsForm({ account }: { account: MyAccount }) {
     playStyle !== account.playStyle;
 
   usePreventRemove(hasChanges && leaving === undefined, ({ data }) => {
-    Alert.alert("Discard your changes?", "What you edited won’t be saved.", [
-      { text: "Keep editing", style: "cancel" },
-      { text: "Discard", style: "destructive", onPress: () => navigation.dispatch(data.action) },
+    Alert.alert(t("settings.discardTitle"), t("settings.discardText"), [
+      { text: t("settings.keepEditing"), style: "cancel" },
+      { text: t("settings.discard"), style: "destructive", onPress: () => navigation.dispatch(data.action) },
     ]);
   });
 
@@ -136,13 +139,13 @@ function SettingsForm({ account }: { account: MyAccount }) {
     try {
       await updateProfile(account.id, { firstName, lastName, city, bio, hand, side, playStyle, photoUri });
       await queryClient.invalidateQueries({ queryKey: myProfileKey });
-      toast.show({ variant: "success", label: "Profile saved" });
+      toast.show({ variant: "success", label: t("settings.saved") });
       setLeaving("back");
     } catch (error) {
       toast.show({
         variant: "danger",
-        label: "Couldn’t save your profile",
-        description: error instanceof Error ? error.message : "Please try again.",
+        label: t("settings.saveFailed"),
+        description: error instanceof Error ? error.message : t("settings.tryAgain"),
       });
     } finally {
       setIsSaving(false);
@@ -151,7 +154,7 @@ function SettingsForm({ account }: { account: MyAccount }) {
 
   // The account rows open their own screens once those exist
   function comingSoon(label: string) {
-    toast.show({ label, description: "This is coming soon." });
+    toast.show({ label, description: t("myMatch.comingSoon") });
   }
 
   function leaveToSignIn() {
@@ -176,8 +179,8 @@ function SettingsForm({ account }: { account: MyAccount }) {
     } catch (error) {
       toast.show({
         variant: "danger",
-        label: "Couldn’t log you out",
-        description: error instanceof Error ? error.message : "Please try again.",
+        label: t("settings.logOutFailed"),
+        description: error instanceof Error ? error.message : t("settings.tryAgain"),
       });
       return;
     }
@@ -190,13 +193,13 @@ function SettingsForm({ account }: { account: MyAccount }) {
     } catch (error) {
       toast.show({
         variant: "danger",
-        label: "Couldn’t delete your account",
-        description: error instanceof Error ? error.message : "Please try again.",
+        label: t("settings.deleteFailed"),
+        description: error instanceof Error ? error.message : t("settings.tryAgain"),
       });
       return;
     }
     setIsDeleteOpen(false);
-    toast.show({ label: "Your account was deleted", description: "We're sorry to see you go." });
+    toast.show({ label: t("settings.deleted"), description: t("settings.sorry") });
     leaveToSignIn();
   }
 
@@ -210,12 +213,12 @@ function SettingsForm({ account }: { account: MyAccount }) {
             accessibilityRole="header"
             className="font-black text-[20px] tracking-[-0.3px] text-foreground"
           >
-            Edit profile
+            {t("settings.title")}
           </Text>
         }
       >
         <Button size="sm" onPress={save} isDisabled={isSaving} className="h-10 rounded-xl px-4">
-          Save
+          {t("settings.save")}
         </Button>
       </Page.Header>
 
@@ -236,35 +239,35 @@ function SettingsForm({ account }: { account: MyAccount }) {
           }
         />
 
-        <SettingsSection title="About you" layout="form">
+        <SettingsSection title={t("settings.aboutYou")} layout="form">
           <View className="flex-row gap-2.5">
             <TextField isInvalid={firstNameError} className="flex-1">
-              <Label>First name</Label>
+              <Label>{t("settings.firstName")}</Label>
               <Input
                 value={firstName}
                 onChangeText={setFirstName}
                 autoComplete="given-name"
                 textContentType="givenName"
               />
-              <FieldError>Add your first name.</FieldError>
+              <FieldError>{t("settings.firstNameError")}</FieldError>
             </TextField>
             <TextField isInvalid={lastNameError} className="flex-1">
-              <Label>Last name</Label>
+              <Label>{t("settings.lastName")}</Label>
               <Input
                 value={lastName}
                 onChangeText={setLastName}
                 autoComplete="family-name"
                 textContentType="familyName"
               />
-              <FieldError>Add your last name.</FieldError>
+              <FieldError>{t("settings.lastNameError")}</FieldError>
             </TextField>
           </View>
 
           <View className="gap-1.5">
-            <Text className="font-semibold text-[14px] text-foreground">City</Text>
+            <Text className="font-semibold text-[14px] text-foreground">{t("settings.city")}</Text>
             <Dropdown
-              label="City"
-              placeholder="Choose your city"
+              label={t("settings.city")}
+              placeholder={t("settings.chooseCity")}
               options={cityOptions}
               value={cityOptions.find((option) => option.value === city)}
               onChange={(option) => option && setCity(option.value)}
@@ -273,7 +276,7 @@ function SettingsForm({ account }: { account: MyAccount }) {
 
           <TextField>
             <View className="flex-row items-baseline justify-between">
-              <Label>Bio</Label>
+              <Label>{t("settings.bio")}</Label>
               <Text className="font-normal text-[12px] text-muted">
                 {bio.length}/{BIO_MAX_LENGTH}
               </Text>
@@ -287,17 +290,17 @@ function SettingsForm({ account }: { account: MyAccount }) {
           </TextField>
         </SettingsSection>
 
-        <SettingsSection title="Your game" layout="form">
+        <SettingsSection title={t("settings.yourGame")} layout="form">
           <View className="gap-2">
-            <SettingsFieldLabel>Playing hand</SettingsFieldLabel>
+            <SettingsFieldLabel>{t("settings.hand")}</SettingsFieldLabel>
             <SegmentedControl options={handOptions} value={hand} onChange={setHand} />
           </View>
           <View className="gap-2">
-            <SettingsFieldLabel>Preferred side</SettingsFieldLabel>
+            <SettingsFieldLabel>{t("settings.preferredSide")}</SettingsFieldLabel>
             <SegmentedControl options={sideOptions} value={side} onChange={setSide} />
           </View>
           <View className="gap-2">
-            <SettingsFieldLabel>Play style</SettingsFieldLabel>
+            <SettingsFieldLabel>{t("settings.playStyle")}</SettingsFieldLabel>
             <SegmentedControl
               options={playStyleOptions}
               value={playStyle}
@@ -306,7 +309,7 @@ function SettingsForm({ account }: { account: MyAccount }) {
             />
           </View>
           <View className="gap-2">
-            <SettingsFieldLabel>Clubs</SettingsFieldLabel>
+            <SettingsFieldLabel>{t("settings.clubs")}</SettingsFieldLabel>
             <View className="flex-row flex-wrap gap-1.5">
               {clubs.map((club) => (
                 <ClubChip
@@ -329,66 +332,65 @@ function SettingsForm({ account }: { account: MyAccount }) {
           </View>
           <View className="flex-1 gap-0.5">
             <Text className="font-bold text-[15px] text-foreground">
-              Level {(account.level ?? myProfile.level).toFixed(1)}
+              {t("settings.level", { level: (account.level ?? myProfile.level).toFixed(1) })}
             </Text>
             <Text className="font-normal text-[13px] leading-[18px] text-muted">
-              Can’t be edited. It moves with your match scores and player reviews.
+              {t("settings.levelLocked")}
             </Text>
           </View>
         </View>
 
-        <SettingsSection title="Account">
+        <SettingsSection title={t("settings.account")}>
           <SettingsRow
-            caption="Phone"
+            caption={t("settings.phone")}
             label={`+216 ${formatPhone(account.phone)}`}
-            onPress={() => comingSoon("Changing your phone")}
+            onPress={() => comingSoon(t("settings.changingPhone"))}
           />
           <SettingsRow
-            caption="Email"
-            label={account.email ?? "No email"}
-            onPress={() => comingSoon("Changing your email")}
+            caption={t("settings.email")}
+            label={account.email ?? t("settings.noEmail")}
+            onPress={() => comingSoon(t("settings.changingEmail"))}
           />
-          <SettingsRow label="Change password" onPress={() => comingSoon("Changing your password")} />
+          <SettingsRow
+            label={t("settings.changePassword")}
+            onPress={() => comingSoon(t("settings.changingPassword"))}
+          />
         </SettingsSection>
 
-        <SettingsSection title="Notifications & privacy">
+        <SettingsSection title={t("settings.notifications")}>
           <SettingsSwitchRow
-            label="New matches at my level"
+            label={t("settings.newMatchesAtLevel")}
             isSelected={notifications.newMatches}
             onSelectedChange={(on) => setNotifications((current) => ({ ...current, newMatches: on }))}
           />
           <SettingsSwitchRow
-            label="Invites & connection requests"
+            label={t("settings.invites")}
             isSelected={notifications.invites}
             onSelectedChange={(on) => setNotifications((current) => ({ ...current, invites: on }))}
           />
           <SettingsSwitchRow
-            label="Match chat messages"
+            label={t("settings.chat")}
             isSelected={notifications.chat}
             onSelectedChange={(on) => setNotifications((current) => ({ ...current, chat: on }))}
           />
           <SettingsRow
-            label="Who can see my matches"
-            value={myAccount.matchVisibility}
-            onPress={() => comingSoon("Match privacy")}
+            label={t("settings.whoCanSee")}
+            value={t("settings.visibilityFriends")}
+            onPress={() => comingSoon(t("settings.matchPrivacy"))}
           />
-          <SettingsRow
-            label="Language"
-            value={myAccount.language}
-            onPress={() => comingSoon("French and Arabic")}
-          />
+          <LanguageRow />
         </SettingsSection>
 
         <View className="mt-1 gap-2.5">
           <Button size="lg" variant="outline" onPress={logOut}>
             <Icon as={LogOut} size={20} color="foreground" />
-            <Button.Label className="text-foreground">Log out</Button.Label>
+            <Button.Label className="text-foreground">{t("settings.logOut")}</Button.Label>
           </Button>
           <Button size="lg" variant="ghost" onPress={() => setIsDeleteOpen(true)}>
-            <Button.Label className="text-danger">Delete account</Button.Label>
+            <Button.Label className="text-danger">{t("settings.deleteAccount")}</Button.Label>
           </Button>
           <Text className="-mt-1 text-center font-normal text-[12px] leading-[17px] text-muted">
-            Deleting removes your profile, matches and reviews for good.
+            {t("settings.deleteNote")}
           </Text>
         </View>
       </Page.Body>
@@ -397,10 +399,15 @@ function SettingsForm({ account }: { account: MyAccount }) {
         isOpen={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
         losses={[
-          `Your level ${(account.level ?? myProfile.level).toFixed(1)} and its history`,
-          `${myProfile.matchesPlayed} matches, stats and feed posts`,
-          `${myProfile.reviewCount} reviews and ${myProfile.friendCount} friends`,
-          "Your match chats",
+          t("settings.lossLevel", { level: (account.level ?? myProfile.level).toFixed(1) }),
+          t("settings.lossMatches", {
+            matches: t("profile.matchesCount", { count: myProfile.matchesPlayed }),
+          }),
+          t("settings.lossReviews", {
+            reviews: t("profile.reviewsCount", { count: myProfile.reviewCount }),
+            friends: t("profile.friendsCount", { count: myProfile.friendCount }),
+          }),
+          t("settings.lossChats"),
         ]}
         hostedMatch={
           hostedMatch
@@ -418,15 +425,52 @@ function formatPhone(digits: string) {
   return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5)}`;
 }
 
+/** Language row: opens a list and switches the whole app at once (it isn't part of Save). */
+function LanguageRow() {
+  const { t, i18n } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const current = i18n.language as Language;
+
+  return (
+    <Select
+      value={{ value: current, label: LANGUAGE_NAMES[current] }}
+      onValueChange={(option) => {
+        if (option) void setLanguage(option.value as Language);
+        setIsOpen(false);
+      }}
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      presentation="dialog"
+    >
+      <SettingsRow
+        label={t("settings.language")}
+        value={LANGUAGE_NAMES[current]}
+        onPress={() => setIsOpen(true)}
+      />
+      <Select.Portal>
+        <Select.Overlay />
+        <Select.Content presentation="dialog">
+          <Select.ListLabel className="mb-2">{t("settings.language")}</Select.ListLabel>
+          {LANGUAGES.map((language) => (
+            <Select.Item key={language} value={language} label={LANGUAGE_NAMES[language]} />
+          ))}
+        </Select.Content>
+      </Select.Portal>
+    </Select>
+  );
+}
+
 /** A club you play at, as a solid pill with a remove button. */
 function ClubChip({ name, onRemove }: { name: string; onRemove: () => void }) {
+  const { t } = useTranslation();
+
   return (
     <View className="h-[34px] flex-row items-center gap-1 rounded-full bg-accent pe-1.5 ps-3">
       <Text className="font-semibold text-[13px] text-accent-foreground">{name}</Text>
       <PressableFeedback
         onPress={onRemove}
         accessibilityRole="button"
-        accessibilityLabel={`Remove ${name}`}
+        accessibilityLabel={t("settings.removeClub", { name })}
         hitSlop={8}
         className="size-6 items-center justify-center rounded-full bg-white/20"
       >
@@ -438,6 +482,7 @@ function ClubChip({ name, onRemove }: { name: string; onRemove: () => void }) {
 
 /** Dashed "+ Add club" pill that opens a list of the clubs you haven't added. */
 function AddClubButton({ options, onAdd }: { options: string[]; onAdd: (name: string) => void }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   if (options.length === 0) return null;
 
@@ -455,16 +500,16 @@ function AddClubButton({ options, onAdd }: { options: string[]; onAdd: (name: st
       <PressableFeedback
         onPress={() => setIsOpen(true)}
         accessibilityRole="button"
-        accessibilityLabel="Add a club"
+        accessibilityLabel={t("settings.addClubA11y")}
         className="h-[34px] flex-row items-center gap-1 rounded-full border border-dashed border-slot-border px-3"
       >
         <Icon as={Plus} size={14} color="accent" />
-        <Text className="font-bold text-[13px] text-accent">Add club</Text>
+        <Text className="font-bold text-[13px] text-accent">{t("settings.addClub")}</Text>
       </PressableFeedback>
       <Select.Portal>
         <Select.Overlay />
         <Select.Content presentation="dialog">
-          <Select.ListLabel className="mb-2">Add a club</Select.ListLabel>
+          <Select.ListLabel className="mb-2">{t("settings.addClubA11y")}</Select.ListLabel>
           {options.map((name) => (
             <Select.Item key={name} value={name} label={name} />
           ))}

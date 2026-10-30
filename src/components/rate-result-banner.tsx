@@ -1,12 +1,11 @@
 import { PressableFeedback } from "heroui-native";
 import { ChevronRight, ShieldCheck, Trophy } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
-import { daysUntil } from "@/lib/format-date";
+import { daysUntil, formatWeekday } from "@/lib/format-date";
 import type { PendingReview } from "@/types/match";
-
-const weekdayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "short" });
 
 type RateResultBannerProps = {
   review: PendingReview;
@@ -14,17 +13,23 @@ type RateResultBannerProps = {
 };
 
 const copy = {
-  add: { title: "Add the score", icon: Trophy },
-  confirm: { title: "Confirm the score", icon: ShieldCheck },
+  add: { title: "reviewBanner.add", icon: Trophy },
+  confirm: { title: "reviewBanner.confirm", icon: ShieldCheck },
 } as const;
 
 /** Peach reminder that a finished match's score is waiting for you to add or confirm. */
 export function RateResultBanner({ review, onPress }: RateResultBannerProps) {
+  const { t } = useTranslation();
   const daysLeft = Math.max(daysUntil(review.closesAt), 0);
   const deadline =
-    daysLeft === 0 ? "last day" : `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`;
-  const details = `${weekdayFormat.format(review.playedAt)} match at ${review.clubName} · ${deadline}`;
-  const { title, icon } = copy[review.action];
+    daysLeft === 0 ? t("reviewBanner.lastDay") : t("reviewBanner.daysLeft", { count: daysLeft });
+  const details = t("reviewBanner.details", {
+    weekday: formatWeekday(review.playedAt),
+    club: review.clubName,
+    deadline,
+  });
+  const { icon } = copy[review.action];
+  const title = t(copy[review.action].title);
 
   return (
     <PressableFeedback

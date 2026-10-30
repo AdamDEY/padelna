@@ -1,4 +1,5 @@
 import { Star } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -18,12 +19,14 @@ const STARS = [1, 2, 3, 4, 5];
  * aspect can be left unrated. Each star has a 44 px touch target.
  */
 export function StarRating({ value, onChange, label }: StarRatingProps) {
+  const { t } = useTranslation();
+
   return (
     <View
       accessible
       accessibilityRole="adjustable"
       accessibilityLabel={label}
-      accessibilityValue={{ text: value ? `${value} of 5` : "Not rated" }}
+      accessibilityValue={{ text: value ? t("rateClub.starsOf", { value }) : t("rateClub.notRated") }}
       accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
       onAccessibilityAction={(event) => {
         if (event.nativeEvent.actionName === "increment") onChange(Math.min(value + 1, 5));

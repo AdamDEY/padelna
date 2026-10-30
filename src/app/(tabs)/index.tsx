@@ -1,5 +1,6 @@
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { ClubRow } from "@/components/club-row";
@@ -37,6 +38,7 @@ function refreshHome() {
 }
 
 export default function Home() {
+  const { t } = useTranslation();
   const [isCreating, setIsCreating] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
   const { data: requests = [] } = useConnectionRequests();
@@ -79,9 +81,9 @@ export default function Home() {
 
         <View className="gap-3">
           <SectionHeader
-            title="Open matches for you"
-            subtitle={`Around your level ${level.toFixed(1)}`}
-            actionLabel="See all"
+            title={t("home.openMatchesTitle")}
+            subtitle={t("home.aroundYourLevel", { level: level.toFixed(1) })}
+            actionLabel={t("common.seeAll")}
           />
           <Page.Carousel itemWidth={OPEN_MATCH_CARD_WIDTH}>
             {matchesForYou.map((match) => (
@@ -96,15 +98,15 @@ export default function Home() {
           </Page.Carousel>
           {openMatches !== undefined && matchesForYou.length === 0 ? (
             <Text className="font-normal text-[14px] text-muted">
-              No open matches this week. Create one and invite players.
+              {t("home.noOpenMatches")}
             </Text>
           ) : null}
         </View>
 
         <View className="gap-2.5">
           <SectionHeader
-            title="Clubs near you"
-            actionLabel="See all"
+            title={t("home.clubsNearby")}
+            actionLabel={t("common.seeAll")}
             onPressAction={() => router.push("/clubs")}
           />
           {clubsNearby.map((club) => (

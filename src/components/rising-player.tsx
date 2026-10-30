@@ -1,4 +1,5 @@
 import { PressableFeedback } from "heroui-native";
+import { useTranslation } from "react-i18next";
 import { Text } from "react-native";
 
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -16,13 +17,14 @@ type RisingPlayerProps = {
 
 /** A player climbing fast: avatar with a lime ring, name, level gain and city. */
 export function RisingPlayer({ player, levelChange, city, onPress }: RisingPlayerProps) {
+  const { t } = useTranslation();
   const name = `${player.firstName} ${player.lastName.charAt(0)}.`;
 
   return (
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${name}, up ${levelChange.toFixed(1)} this month, ${city}`}
+      accessibilityLabel={t("community.risingA11y", { name, change: levelChange.toFixed(1), city })}
       className="items-center gap-[3px]"
       style={{ width: RISING_PLAYER_WIDTH }}
     >

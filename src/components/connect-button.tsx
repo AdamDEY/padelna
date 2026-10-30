@@ -1,5 +1,6 @@
 import { Button, cn, useToast } from "heroui-native";
 import { Check, Clock } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -25,6 +26,7 @@ type ConnectButtonProps = {
  * secondary button, as everywhere in the app (the large one in the player sheet is blue, as designed); Accept answers a request they sent you.
  */
 export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const requestConnection = useRequestConnection();
   const respondToConnection = useRespondToConnection();
@@ -33,7 +35,7 @@ export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
   const isBusy = requestConnection.isPending || respondToConnection.isPending;
 
   function showError(error: Error) {
-    toast.show({ variant: "danger", label: "Couldn’t connect", description: error.message });
+    toast.show({ variant: "danger", label: t("connect.failed"), description: error.message });
   }
 
   if (player.connection === "connected" || player.connection === "sent") {
@@ -42,7 +44,9 @@ export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
       <View
         accessible
         accessibilityLabel={
-          isConnected ? `Connected with ${player.firstName}` : `Request sent to ${player.firstName}`
+          isConnected
+            ? t("connect.connectedWith", { name: player.firstName })
+            : t("connect.requestSentTo", { name: player.firstName })
         }
         className={cn(
           "flex-row items-center justify-center gap-1 border",
@@ -56,7 +60,7 @@ export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
           <Icon as={isConnected ? Check : Clock} size={style.icon} color={isConnected ? "success" : "muted"} />
         ) : null}
         <Text className={cn("font-bold", style.text, isConnected ? "text-success" : "text-muted")}>
-          {isConnected ? "Connected" : "Pending"}
+          {isConnected ? t("connect.connected") : t("connect.pending")}
         </Text>
       </View>
     );
@@ -70,25 +74,27 @@ export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
       isDisabled={isBusy}
       hitSlop={style.hitSlop}
       accessibilityLabel={
-        isReceived ? `Accept ${player.firstName}’s request` : `Connect with ${player.firstName}`
+        isReceived
+          ? t("connections.acceptA11y", { name: player.firstName })
+          : t("connect.connectWith", { name: player.firstName })
       }
       onPress={() =>
         isReceived
           ? respondToConnection.mutate(
               { playerId: player.id, accept: true },
               {
-                onSuccess: () => toast.show({ variant: "success", label: `You’re connected with ${player.firstName}` }),
+                onSuccess: () => toast.show({ variant: "success", label: t("connections.connected", { name: player.firstName }) }),
                 onError: showError,
               },
             )
           : requestConnection.mutate(player.id, {
-              onSuccess: () => toast.show({ label: `Request sent to ${player.firstName}` }),
+              onSuccess: () => toast.show({ label: t("connect.requestSentTo", { name: player.firstName }) }),
               onError: showError,
             })
       }
       className={cn("min-w-0", style.box, size === "lg" && "w-full")}
     >
-      <Button.Label className={style.text}>{isReceived ? "Accept" : "Connect"}</Button.Label>
+      <Button.Label className={style.text}>{isReceived ? t("connections.accept") : t("connect.connect")}</Button.Label>
     </Button>
   );
 }

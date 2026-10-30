@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { ConnectButton } from "@/components/connect-button";
@@ -12,12 +13,14 @@ type PlayedWithTileProps = {
 
 /** Face, first name and a small Connect button, four to a row (design: Find players · You played with). */
 export function PlayedWithTile({ player, onPress }: PlayedWithTileProps) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-1 items-center gap-1">
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${player.firstName}, view profile`}
+        accessibilityLabel={t("connections.viewProfile", { name: player.firstName })}
         className="items-center gap-1 self-stretch"
       >
         <PlayerAvatar player={player} size={48} />
