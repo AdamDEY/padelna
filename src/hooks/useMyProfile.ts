@@ -7,8 +7,6 @@ import type { PlayerProfile } from "@/types/profile";
 
 export const myProfileKey = ["my-profile"] as const;
 
-const sideLabels = { left: "Left side", right: "Right side", both: "Both sides" } as const;
-
 /** Level is the placeholder 6 until the quiz result exists. Stats, charts, partners and reputation stay mock until their tables exist. */
 function toPlayerProfile(account: MyAccount): PlayerProfile {
   return {
@@ -22,8 +20,8 @@ function toPlayerProfile(account: MyAccount): PlayerProfile {
       avatarUrl: account.avatarUrl,
     },
     city: account.city,
-    side: sideLabels[account.side],
-    playStyle: account.playStyle.charAt(0).toUpperCase() + account.playStyle.slice(1),
+    side: account.side,
+    playStyle: account.playStyle,
     level: account.level ?? mockProfile.level,
   };
 }

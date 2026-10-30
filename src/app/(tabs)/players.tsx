@@ -1,5 +1,6 @@
 import { Button, SearchField, Spinner } from "heroui-native";
 import { Fragment, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { ConnectButton } from "@/components/connect-button";
@@ -41,6 +42,7 @@ function inRows<T>(items: T[], size: number) {
  * played with, and players at your level at the clubs where you play.
  */
 export default function Players() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
   // Kept after the sheet closes so its content doesn't vanish mid-animation
@@ -58,13 +60,13 @@ export default function Players() {
     <Page>
       <Page.Body onRefresh={refreshPlayers} className="gap-[18px]">
         <View className="gap-3">
-          <Page.Title>Players</Page.Title>
+          <Page.Title>{t("players.title")}</Page.Title>
           <SearchField value={query} onChange={setQuery}>
             <SearchField.Group>
               <SearchField.SearchIcon />
               <SearchField.Input
-                placeholder="Search by name or club"
-                accessibilityLabel="Search players"
+                placeholder={t("players.searchPlaceholder")}
+                accessibilityLabel={t("players.searchA11y")}
                 autoCorrect={false}
                 returnKeyType="search"
                 className="h-[50px] rounded-2xl border-line text-[16px]"
@@ -93,6 +95,7 @@ export default function Players() {
 type PreviewProps = { onPreview: (player: PlayerSuggestion) => void };
 
 function Suggestions({ onPreview }: PreviewProps) {
+  const { t } = useTranslation();
   const playedWith = usePlayedWith();
   const atMyClubs = usePlayersAtMyClubs();
   const { data: myClubs = [] } = useMyClubs();
@@ -101,10 +104,10 @@ function Suggestions({ onPreview }: PreviewProps) {
   return (
     <>
       <View className="gap-2.5">
-        <SectionHeader size="sm" title="You played with" />
+        <SectionHeader size="sm" title={t("players.playedWith")} />
         <ListState
           query={playedWith}
-          emptyText="After your first match, the players you met show up here so you can connect."
+          emptyText={t("players.playedWithEmpty")}
         >
           {(players) =>
             inRows(players, TILES_PER_ROW).map((row, index) => (
@@ -123,13 +126,13 @@ function Suggestions({ onPreview }: PreviewProps) {
       </View>
 
       <View className="gap-2">
-        <SectionHeader size="sm" title="Your level at your clubs" subtitle={clubNames || undefined} />
+        <SectionHeader size="sm" title={t("players.levelAtClubs")} subtitle={clubNames || undefined} />
         <ListState
           query={atMyClubs}
           emptyText={
             myClubs.length === 0
-              ? "Play a match at a club and it becomes one of your clubs. Players at your level there show up here."
-              : "No one new at your level at your clubs yet."
+              ? t("players.noClubsEmpty")
+              : t("players.noOneNew")
           }
         >
           {(players) =>
@@ -149,11 +152,12 @@ function Suggestions({ onPreview }: PreviewProps) {
 }
 
 function SearchResults({ query, onPreview }: PreviewProps & { query: string }) {
+  const { t } = useTranslation();
   const results = useSearchPlayers(query);
 
   return (
     <View className="gap-2">
-      <ListState query={results} emptyText={`No players match “${query.trim()}”.`}>
+      <ListState query={results} emptyText={t("players.noMatch", { query: query.trim() })}>
         {(players) =>
           players.map((player) => (
             <PlayerSuggestionRow
@@ -182,11 +186,12 @@ type ListStateProps = {
 
 /** Loading, error and empty states shared by the Players lists. */
 function ListState({ query, emptyText, children }: ListStateProps) {
+  const { t } = useTranslation();
   if (query.error) {
     return (
       <View className="items-start gap-2">
         <Text className="font-normal text-[14px] text-muted">
-          Couldn’t load players. {query.error.message}
+          {t("players.loadFailed", { message: query.error.message })}
         </Text>
         <Button
           size="sm"
@@ -194,12 +199,12 @@ function ListState({ query, emptyText, children }: ListStateProps) {
           onPress={() => query.refetch()}
           isDisabled={query.isRefetching}
         >
-          Try again
+          {t("matches.tryAgain")}
         </Button>
       </View>
     );
   }
-  if (!query.data) return <Spinner accessibilityLabel="Loading players" className="self-start" />;
+  if (!query.data) return <Spinner accessibilityLabel={t("players.loading")} className="self-start" />;
   if (query.data.length === 0) {
     return <Text className="font-normal text-[14px] leading-5 text-muted">{emptyText}</Text>;
   }

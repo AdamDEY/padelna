@@ -1,5 +1,6 @@
 import { PressableFeedback } from "heroui-native";
 import { Plus } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -15,12 +16,13 @@ const GAP_ABOVE_TAB_BAR = 16;
 export function CreateMatchButton({ onPress }: { onPress: () => void }) {
   // Inside a native tab the bottom inset already includes the tab bar's height
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="Create a match"
+      accessibilityLabel={t("home.createMatchA11y")}
       className="absolute end-5 h-14 flex-row items-center gap-2 rounded-full bg-lime pe-[22px] ps-[18px]"
       style={{
         bottom: insets.bottom + GAP_ABOVE_TAB_BAR,
@@ -32,7 +34,7 @@ export function CreateMatchButton({ onPress }: { onPress: () => void }) {
       }}
     >
       <Icon as={Plus} size={22} />
-      <Text className="font-black text-[16px] text-foreground">Create match</Text>
+      <Text className="font-black text-[16px] text-foreground">{t("home.createMatch")}</Text>
     </PressableFeedback>
   );
 }

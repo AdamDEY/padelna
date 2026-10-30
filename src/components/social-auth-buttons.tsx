@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { Button, useToast } from "heroui-native";
 import { useEffect, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { AppleMark, GoogleMark } from "@/components/brand-marks";
@@ -13,6 +14,7 @@ import { hasProfile } from "@/repositories/profile-repository";
  * sign in and sign up: a player without a profile yet goes on to setup, everyone else to Home.
  */
 export function SocialAuthButtons() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [hasApple, setHasApple] = useState(false);
@@ -32,7 +34,7 @@ export function SocialAuthButtons() {
       toast.show({
         variant: "danger",
         label: failure,
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: error instanceof Error ? error.message : t("settings.tryAgain"),
       });
     } finally {
       setIsSigningIn(false);
@@ -43,7 +45,7 @@ export function SocialAuthButtons() {
     <View className="gap-[18px]">
       <View className="flex-row items-center gap-3">
         <View className="h-px flex-1 bg-line-input" />
-        <Text className="font-bold text-[13px] text-muted">or</Text>
+        <Text className="font-bold text-[13px] text-muted">{t("auth.or")}</Text>
         <View className="h-px flex-1 bg-line-input" />
       </View>
 
@@ -51,17 +53,17 @@ export function SocialAuthButtons() {
       <View className="flex-row gap-3">
         <SocialButton
           label="Google"
-          accessibilityLabel="Continue with Google"
+          accessibilityLabel={t("auth.continueGoogle")}
           mark={<GoogleMark />}
-          onPress={() => continueWith(signInWithGoogle, "Couldn’t sign you in with Google")}
+          onPress={() => continueWith(signInWithGoogle, t("auth.googleFailed"))}
           isDisabled={isSigningIn}
         />
         {hasApple ? (
           <SocialButton
             label="Apple"
-            accessibilityLabel="Continue with Apple"
+            accessibilityLabel={t("auth.continueApple")}
             mark={<AppleMark />}
-            onPress={() => continueWith(signInWithApple, "Couldn’t sign you in with Apple")}
+            onPress={() => continueWith(signInWithApple, t("auth.appleFailed"))}
             isDisabled={isSigningIn}
           />
         ) : null}

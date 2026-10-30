@@ -3,6 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { PressableFeedback } from "heroui-native";
 import { Camera, Plus } from "lucide-react-native";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -18,6 +19,7 @@ type PhotoPickerProps = {
 
 /** Round profile photo picker: a dashed "add" circle (or the current avatar) until a photo is chosen. */
 export function PhotoPicker({ uri, onChange, current }: PhotoPickerProps) {
+  const { t } = useTranslation();
   const hasPhoto = uri !== undefined || current !== undefined;
 
   async function pick() {
@@ -37,7 +39,7 @@ export function PhotoPicker({ uri, onChange, current }: PhotoPickerProps) {
         <PressableFeedback
           onPress={pick}
           accessibilityRole="button"
-          accessibilityLabel={hasPhoto ? "Change your profile photo" : "Add a profile photo"}
+          accessibilityLabel={hasPhoto ? t("profilePhoto.change") : t("profilePhoto.add")}
           // Round, so the press highlight doesn't show as a square around the photo
           className="flex-1 rounded-full"
         >
@@ -64,7 +66,7 @@ export function PhotoPicker({ uri, onChange, current }: PhotoPickerProps) {
         </View>
       </View>
       <Text className="font-semibold text-[14px] text-accent">
-        {hasPhoto ? "Change photo" : "Add a photo"}
+        {hasPhoto ? t("profilePhoto.changeLabel") : t("profilePhoto.addLabel")}
       </Text>
     </View>
   );

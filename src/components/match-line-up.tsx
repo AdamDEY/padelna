@@ -1,6 +1,7 @@
 import { cn, PressableFeedback } from "heroui-native";
 import { Plus, ShieldCheck } from "lucide-react-native";
 import { Fragment } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -30,10 +31,11 @@ export function MatchLineUp({
   capacity,
   newPlayerIds,
   onTakeSpot,
-  openSeatLabel = "You?",
+  openSeatLabel,
   onPlayerPress,
   myId,
 }: MatchLineUpProps) {
+  const { t } = useTranslation();
   const seats = Array.from({ length: capacity }, (_, i) => players[i]);
   const half = Math.ceil(capacity / 2);
   const teams = [seats.slice(0, half), seats.slice(half)];
@@ -43,7 +45,7 @@ export function MatchLineUp({
       {teams.map((team, teamIndex) => (
         <Fragment key={teamIndex}>
           {teamIndex > 0 ? (
-            <Text className="font-black text-[13px] text-muted" accessibilityLabel="versus">
+            <Text className="font-black text-[13px] text-muted" accessibilityLabel={t("team.versus")}>
               VS
             </Text>
           ) : null}
@@ -62,8 +64,8 @@ export function MatchLineUp({
                 <OpenSeat
                   key={`open-${seatIndex}`}
                   // Even seats are on the left of the court, odd on the right
-                  side={seatIndex % 2 === 0 ? "Left side" : "Right side"}
-                  label={openSeatLabel}
+                  side={t(seatIndex % 2 === 0 ? "side.leftSide" : "side.rightSide")}
+                  label={openSeatLabel ?? t("lineup.you")}
                   onPress={onTakeSpot ? () => onTakeSpot(teamIndex * half + seatIndex + 1) : undefined}
                 />
               ),
@@ -81,6 +83,7 @@ export function isOpenable(player: Player, myId?: string) {
 }
 
 function Seat({ player, isNew, onPress }: { player: Player; isNew: boolean; onPress?: () => void }) {
+  const { t } = useTranslation();
   const level = player.level?.toFixed(1);
 
   return (
@@ -88,8 +91,8 @@ function Seat({ player, isNew, onPress }: { player: Player; isNew: boolean; onPr
       isDisabled={!onPress}
       onPress={onPress}
       accessibilityRole={onPress ? "button" : undefined}
-      accessibilityHint={onPress ? "Shows their profile" : undefined}
-      accessibilityLabel={`${player.firstName}${level ? `, level ${level}` : ""}${isNew ? ", new player" : ""}`}
+      accessibilityHint={onPress ? t("team.showsProfile") : undefined}
+      accessibilityLabel={`${player.firstName}${level ? `, ${t("team.levelA11y", { level })}` : ""}${isNew ? `, ${t("lineup.newPlayerA11y")}` : ""}`}
       className="items-center gap-1"
     >
       <PlayerAvatar player={player} size={AVATAR_SIZE} />
@@ -98,7 +101,7 @@ function Seat({ player, isNew, onPress }: { player: Player; isNew: boolean; onPr
       </Text>
       {level ? (
         isNew ? (
-          <Text className="font-semibold text-[12px] text-muted">{level} · new</Text>
+          <Text className="font-semibold text-[12px] text-muted">{t("lineup.newPlayer", { level })}</Text>
         ) : (
           <View className="flex-row items-center gap-0.5">
             <Icon as={ShieldCheck} size={12} color="success" />
@@ -111,12 +114,13 @@ function Seat({ player, isNew, onPress }: { player: Player; isNew: boolean; onPr
 }
 
 function OpenSeat({ side, label, onPress }: { side: string; label: string; onPress?: () => void }) {
+  const { t } = useTranslation();
   return (
     <View className="items-center gap-1">
       <PressableFeedback
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${onPress ? "Take this spot" : "Open spot"}, ${side.toLowerCase()}`}
+        accessibilityLabel={t(onPress ? "lineup.takeSpot" : "lineup.openSpot", { side: side.toLowerCase() })}
         className={cn(
           "items-center justify-center rounded-full border-2 border-dashed border-accent bg-surface",
         )}

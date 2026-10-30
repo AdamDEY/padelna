@@ -1,6 +1,7 @@
 import { Button, cn, Spinner, Tabs } from "heroui-native";
 import { Plus } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { ChoiceChips } from "@/components/choice-chips";
@@ -35,15 +36,16 @@ import type { FeedMatch, ResultPost } from "@/types/post";
 
 type Feed = "friends" | "clubs" | "tunisia";
 
-const feeds: { value: Feed; label: string }[] = [
-  { value: "friends", label: "Friends" },
-  { value: "clubs", label: "My clubs" },
-  { value: "tunisia", label: "All Tunisia" },
-];
+const feeds = [
+  { value: "friends", label: "community.tabFriends" },
+  { value: "clubs", label: "community.tabClubs" },
+  { value: "tunisia", label: "community.tabTunisia" },
+] as const;
 
 const ALL = "all";
 
 export default function Community() {
+  const { t } = useTranslation();
   const [feed, setFeed] = useState<Feed>("friends");
   // The match whose players are shown in the Connect sheet
   const [connectPost, setConnectPost] = useState<ResultPost | null>(null);
@@ -72,11 +74,11 @@ export default function Community() {
       >
         <Page.Title action={<IconButton
               icon={Plus}
-              label="Share a match"
+              label={t("community.share")}
               variant="primary"
               onPress={() => setIsShareOpen(true)}
             />}>
-          Community
+          {t("community.title")}
         </Page.Title>
 
         <FeedTabs value={feed} onChange={setFeed} />
@@ -105,6 +107,7 @@ export default function Community() {
 
 /** Underline tabs; the line under them runs edge to edge. Must render inside Page. */
 function FeedTabs({ value, onChange }: { value: Feed; onChange: (feed: Feed) => void }) {
+  const { t } = useTranslation();
   const margins = usePageMargins();
 
   return (
@@ -122,7 +125,7 @@ function FeedTabs({ value, onChange }: { value: Feed; onChange: (feed: Feed) => 
                   isSelected ? "font-bold text-foreground" : "font-semibold text-muted",
                 )}
               >
-                {item.label}
+                {t(item.label)}
               </Tabs.Label>
             )}
           </Tabs.Trigger>
@@ -134,6 +137,7 @@ function FeedTabs({ value, onChange }: { value: Feed; onChange: (feed: Feed) => 
 }
 
 function FriendsFeed() {
+  const { t } = useTranslation();
   const { data: account } = useMyAccount();
   const { data, error, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useFriendsFeed();
@@ -148,20 +152,20 @@ function FriendsFeed() {
   if (error) {
     return (
       <View className="items-start gap-2">
-        <Text className="font-normal text-[14px] text-muted">Couldn’t load the feed. {error.message}</Text>
+        <Text className="font-normal text-[14px] text-muted">{t("community.loadFailed", { message: error.message })}</Text>
         <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
-          Try again
+          {t("matches.tryAgain")}
         </Button>
       </View>
     );
   }
-  if (!matches || !account) return <Spinner accessibilityLabel="Loading the feed" className="self-start" />;
+  if (!matches || !account) return <Spinner accessibilityLabel={t("community.loading")} className="self-start" />;
   if (matches.length === 0) {
     return (
       <View className="items-center gap-1 rounded-3xl border border-line bg-surface p-6">
-        <Text className="font-bold text-[15px] text-foreground">No results yet</Text>
+        <Text className="font-bold text-[15px] text-foreground">{t("community.emptyFriendsTitle")}</Text>
         <Text className="text-center font-normal text-[14px] text-muted">
-          Once you or your friends finish a match and both teams confirm the score, it shows up here.
+          {t("community.emptyFriendsText")}
         </Text>
       </View>
     );
@@ -190,7 +194,7 @@ function FriendsFeed() {
           isDisabled={isFetchingNextPage}
           className="self-center"
         >
-          {isFetchingNextPage ? "Loading…" : "Show older results"}
+          {isFetchingNextPage ? t("community.loadingMore") : t("community.showOlder")}
         </Button>
       ) : null}
 
@@ -217,6 +221,7 @@ type FeedCardProps = {
 
 /** One Friends-feed result, told from your side, with its photo when the host added one. */
 function FeedCard({ match, myId, onConnect, onPlayerPress }: FeedCardProps) {
+  const { t } = useTranslation();
   const { data: photoUrl, isError } = useMatchPhotoUrl(match.photoPath);
   // "" keeps the photo's frame while its link loads; a photo that can't load falls back to the scoreboard
   const card = toFeedPost(match, myId, match.photoPath && !isError ? (photoUrl ?? "") : undefined);
@@ -238,7 +243,7 @@ function FeedCard({ match, myId, onConnect, onPlayerPress }: FeedCardProps) {
             hitSlop={6}
             className="h-8 rounded-[10px] px-3"
           >
-            Connect
+            {t("connect.connect")}
           </Button>
         ) : undefined
       }
@@ -252,6 +257,7 @@ type FeedProps = {
 };
 
 function ClubsFeed({ onConnect }: FeedProps) {
+  const { t } = useTranslation();
   const [club, setClub] = useState(ALL);
   const posts = clubPosts.filter((post) => club === ALL || post.clubName === club);
 
@@ -259,7 +265,7 @@ function ClubsFeed({ onConnect }: FeedProps) {
     <>
       <ChoiceChips
         options={[
-          { value: ALL, label: "All my clubs" },
+          { value: ALL, label: t("community.allMyClubs") },
           ...myClubNames.map((name) => ({ value: name, label: name })),
         ]}
         value={club}
@@ -275,6 +281,7 @@ function ClubsFeed({ onConnect }: FeedProps) {
 }
 
 function TunisiaFeed({ onConnect }: FeedProps) {
+  const { t } = useTranslation();
   const [city, setCity] = useState(ALL);
   const posts = tunisiaPosts.filter((post) => city === ALL || post.city === city);
 
@@ -282,7 +289,7 @@ function TunisiaFeed({ onConnect }: FeedProps) {
     <>
       <ChoiceChips
         options={[
-          { value: ALL, label: "All cities" },
+          { value: ALL, label: t("community.allCities") },
           ...tunisiaCities.map((name) => ({ value: name, label: name })),
         ]}
         value={city}
@@ -290,7 +297,7 @@ function TunisiaFeed({ onConnect }: FeedProps) {
       />
 
       <View className="gap-2.5">
-        <SectionHeader size="sm" title="Rising this month" actionLabel="See all" />
+        <SectionHeader size="sm" title={t("community.rising")} actionLabel={t("common.seeAll")} />
         <Page.Carousel itemWidth={RISING_PLAYER_WIDTH} gap={10}>
           {risingPlayers.map((rising) => (
             <RisingPlayer key={rising.player.id} {...rising} />
@@ -305,12 +312,13 @@ function TunisiaFeed({ onConnect }: FeedProps) {
 
 /** Posts from players you don't know yet; Connect opens the sheet to pick who. */
 function PostList({ posts, onConnect }: { posts: ResultPost[] } & FeedProps) {
+  const { t } = useTranslation();
   if (posts.length === 0) {
     return (
       <View className="items-center gap-1 rounded-3xl border border-line bg-surface p-6">
-        <Text className="font-bold text-[15px] text-foreground">No results here yet</Text>
+        <Text className="font-bold text-[15px] text-foreground">{t("community.emptyTitle")}</Text>
         <Text className="text-center font-normal text-[14px] text-muted">
-          Matches played here will show up once players share them.
+          {t("community.emptyText")}
         </Text>
       </View>
     );
@@ -331,7 +339,7 @@ function PostList({ posts, onConnect }: { posts: ResultPost[] } & FeedProps) {
               hitSlop={6}
               className="h-8 rounded-[10px] px-3"
             >
-              Connect
+              {t("connect.connect")}
             </Button>
           }
         />

@@ -1,16 +1,22 @@
 import { cn, PressableFeedback } from "heroui-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { formatMatchDay } from "@/lib/format-date";
 import type { PastMatch } from "@/types/match";
 
 // A letter on every row, so colour is never the only signal; "–" when there is no result yet
-const badges = { won: "W", lost: "L", unconfirmed: "–", none: "–" } as const;
+const badges = {
+  won: "result.badgeWon",
+  lost: "result.badgeLost",
+  unconfirmed: null,
+  none: null,
+} as const;
 const labels = {
-  won: "Won",
-  lost: "Lost",
-  unconfirmed: "Score not confirmed",
-  none: "No score",
+  won: "result.won",
+  lost: "result.lost",
+  unconfirmed: "result.unconfirmed",
+  none: "result.none",
 } as const;
 
 type PastMatchRowProps = {
@@ -23,13 +29,14 @@ type PastMatchRowProps = {
  * set scores and when and where it was played.
  */
 export function PastMatchRow({ match, onPress }: PastMatchRowProps) {
+  const { t } = useTranslation();
   const score =
     match.sets.map(([mine, theirs]) => `${mine}–${theirs}`).join(" · ") ||
-    "No score";
+    t("result.none");
   const details = [
     formatMatchDay(match.playedAt),
     match.clubName,
-    match.result === "unconfirmed" ? "Waiting for confirmation" : null,
+    match.result === "unconfirmed" ? t("result.waiting") : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -39,7 +46,7 @@ export function PastMatchRow({ match, onPress }: PastMatchRowProps) {
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${labels[match.result]} ${score}, ${details}`}
+      accessibilityLabel={`${t(labels[match.result])} ${score}, ${details}`}
     >
       <View className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface px-3.5 py-3">
         <View
@@ -54,7 +61,7 @@ export function PastMatchRow({ match, onPress }: PastMatchRowProps) {
               won ? "text-lime-foreground" : "text-muted",
             )}
           >
-            {badges[match.result]}
+            {badges[match.result] ? t(badges[match.result]!) : "–"}
           </Text>
         </View>
         <View className="flex-1">

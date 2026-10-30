@@ -1,6 +1,7 @@
 import { Link, router } from "expo-router";
 import { Button, FieldError, Input, Label, TextField, useToast } from "heroui-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,6 +17,7 @@ const DESIGN_STATUS_BAR = 44;
 const HERO_HEIGHT = 300;
 
 export default function SignIn() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const shift = Math.max(0, insets.top - DESIGN_STATUS_BAR);
   // Court drawing starts below the logo row
@@ -34,7 +36,7 @@ export default function SignIn() {
     if (!isEmailOrPhone(identifier) || password.length === 0) return;
     if (!isEmail(identifier)) {
       // Phone sign-in needs an SMS provider
-      toast.show({ label: "Phone sign-in is coming soon", description: "For now, use your email." });
+      toast.show({ label: t("auth.phoneSoon"), description: t("auth.phoneSoonText") });
       return;
     }
     setIsSigningIn(true);
@@ -45,8 +47,8 @@ export default function SignIn() {
       setIsSigningIn(false);
       toast.show({
         variant: "danger",
-        label: "Couldn’t sign you in",
-        description: error instanceof Error ? error.message : "Please try again.",
+        label: t("auth.signInFailed"),
+        description: error instanceof Error ? error.message : t("settings.tryAgain"),
       });
       return;
     }
@@ -55,7 +57,11 @@ export default function SignIn() {
       router.replace((await hasProfile(userId)) ? "/" : "/setup");
     } catch {
       setIsSigningIn(false);
-      toast.show({ variant: "danger", label: "Something went wrong", description: "Please try again." });
+      toast.show({
+        variant: "danger",
+        label: t("auth.wentWrong"),
+        description: t("settings.tryAgain"),
+      });
     }
   }
 
@@ -91,13 +97,13 @@ export default function SignIn() {
               accessibilityRole="header"
               className="font-black text-[30px] tracking-[-0.5px] text-foreground"
             >
-              Welcome back
+              {t("auth.welcomeBack")}
             </Text>
-            <Text className="font-normal text-[16px] text-muted">Sign in to find your next match.</Text>
+            <Text className="font-normal text-[16px] text-muted">{t("auth.signInText")}</Text>
           </View>
 
           <TextField isInvalid={identifierError}>
-            <Label>Email or phone</Label>
+            <Label>{t("auth.emailOrPhone")}</Label>
             <Input
               value={identifier}
               onChangeText={setIdentifier}
@@ -109,24 +115,24 @@ export default function SignIn() {
               keyboardType="email-address"
               returnKeyType="next"
             />
-            <FieldError>Enter your email or a Tunisian phone number.</FieldError>
+            <FieldError>{t("auth.identifierError")}</FieldError>
           </TextField>
 
           <TextField isInvalid={passwordError}>
             <View className="flex-row items-baseline justify-between">
-              <Label>Password</Label>
+              <Label>{t("auth.password")}</Label>
               <Text
                 accessibilityRole="link"
                 onPress={() =>
                   toast.show({
-                    label: "Password reset is coming soon",
-                    description: "For now, ask us at hello@padelna.tn.",
+                    label: t("auth.forgotSoon"),
+                    description: t("auth.forgotSoonText"),
                   })
                 }
                 suppressHighlighting
                 className="font-semibold text-[14px] text-link"
               >
-                Forgot?
+                {t("auth.forgot")}
               </Text>
             </View>
             <Input
@@ -138,11 +144,11 @@ export default function SignIn() {
               returnKeyType="go"
               onSubmitEditing={signIn}
             />
-            <FieldError>Enter your password.</FieldError>
+            <FieldError>{t("auth.passwordError")}</FieldError>
           </TextField>
 
           <Button size="lg" onPress={signIn} isDisabled={isSigningIn} className="mt-1">
-            Sign in
+            {t("auth.signIn")}
           </Button>
 
           <SocialAuthButtons />
@@ -151,9 +157,9 @@ export default function SignIn() {
 
       <Page.Footer className="items-center">
         <Text className="font-normal text-[15px] text-muted">
-          New to Padelna?{" "}
+          {t("auth.newTo")}{" "}
           <Link href="/sign-up" replace className="font-bold text-link">
-            Create an account
+            {t("auth.createLink")}
           </Link>
         </Text>
       </Page.Footer>

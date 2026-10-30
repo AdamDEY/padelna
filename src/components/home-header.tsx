@@ -1,4 +1,5 @@
 import { Bell, MapPin } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -24,6 +25,7 @@ export function HomeHeader({
   hasUnreadNotifications,
   onPressNotifications,
 }: HomeHeaderProps) {
+  const { t } = useTranslation();
   const levelLabel = level?.toFixed(1);
 
   return (
@@ -31,7 +33,7 @@ export function HomeHeader({
       {/* Your own avatar: 2 px primary ring and a lime level badge (design.md).
           Your profile lives in its own tab, so the avatar isn't a button. */}
       {player && levelLabel ? (
-        <View accessible accessibilityLabel={`You, level ${levelLabel}`}>
+        <View accessible accessibilityLabel={t("home.youLevel", { level: levelLabel })}>
           <PlayerAvatar player={player} size={44} ringClassName="border-accent" />
           <View className="absolute -bottom-1 -end-1.5 rounded-lg border-2 border-background bg-lime px-[5px] py-px">
             <Text className="font-black text-[10px] text-lime-foreground">{levelLabel}</Text>
@@ -47,7 +49,7 @@ export function HomeHeader({
           numberOfLines={1}
           className="font-black text-[20px] tracking-[-0.3px] text-foreground"
         >
-          {player ? `Hi, ${player.firstName}` : "Hi there"}
+          {player ? t("home.greeting", { name: player.firstName }) : t("home.greetingFallback")}
         </Text>
         {city ? (
           <View className="flex-row items-center gap-1">
@@ -59,7 +61,7 @@ export function HomeHeader({
 
       <IconButton
         icon={Bell}
-        label="Notifications"
+        label={t("common.notifications")}
         showDot={hasUnreadNotifications}
         onPress={onPressNotifications}
       />

@@ -1,7 +1,9 @@
 import { router } from "expo-router";
+import { t } from "i18next";
 import { Button, Spinner, Tabs } from "heroui-native";
 import { CalendarDays, SlidersHorizontal } from "lucide-react-native";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { DateStrip } from "@/components/date-strip";
@@ -31,19 +33,19 @@ import { queryClient } from "@/lib/query-client";
 type Segment = "open" | "mine";
 
 const filters = [
-  { id: "my-level", label: "My level" },
-  { id: "any-time", label: "Any time" },
-  { id: "my-clubs", label: "My clubs" },
-  { id: "friendly", label: "Friendly" },
+  { id: "my-level", label: "matches.filterMyLevel" },
+  { id: "any-time", label: "matches.filterAnyTime" },
+  { id: "my-clubs", label: "matches.filterMyClubs" },
+  { id: "friendly", label: "match.kind.friendly" },
 ] as const;
 
 type FilterId = (typeof filters)[number]["id"];
 
 function dayLabel(date: Date) {
   const days = daysUntil(date);
-  if (days === 0) return "today";
-  if (days === 1) return "tomorrow";
-  return `on ${formatMatchDay(date)}`;
+  if (days === 0) return t("matches.dayToday");
+  if (days === 1) return t("matches.dayTomorrow");
+  return t("matches.dayOn", { date: formatMatchDay(date) });
 }
 
 // Pull to refresh reloads both lists, whichever tab you're on
@@ -54,6 +56,7 @@ function refreshMatches() {
 }
 
 export default function Matches() {
+  const { t } = useTranslation();
   const [segment, setSegment] = useState<Segment>("open");
 
   return (
@@ -63,23 +66,23 @@ export default function Matches() {
         <Page.Title
           action={
             segment === "open" ? (
-              <IconButton icon={SlidersHorizontal} label="Filters" />
+              <IconButton icon={SlidersHorizontal} label={t("matches.filters")} />
             ) : (
-              <IconButton icon={CalendarDays} label="Calendar view" />
+              <IconButton icon={CalendarDays} label={t("matches.calendar")} />
             )
           }
         >
-          Matches
+          {t("matches.title")}
         </Page.Title>
 
         <Tabs value={segment} onValueChange={(value) => setSegment(value as Segment)}>
           <Tabs.List className="bg-track">
             <Tabs.Indicator />
             <Tabs.Trigger value="open" className="flex-1">
-              <Tabs.Label>Open matches</Tabs.Label>
+              <Tabs.Label>{t("matches.tabOpen")}</Tabs.Label>
             </Tabs.Trigger>
             <Tabs.Trigger value="mine" className="flex-1">
-              <Tabs.Label>My matches</Tabs.Label>
+              <Tabs.Label>{t("matches.tabMine")}</Tabs.Label>
             </Tabs.Trigger>
           </Tabs.List>
         </Tabs>
@@ -93,6 +96,7 @@ export default function Matches() {
 }
 
 function OpenMatches() {
+  const { t } = useTranslation();
   const [today] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState(today);
   const [activeFilters, setActiveFilters] = useState<Set<FilterId>>(() => new Set(["my-level"]));
@@ -137,7 +141,7 @@ function OpenMatches() {
         {filters.map((filter) => (
           <FilterChip
             key={filter.id}
-            label={filter.label}
+            label={t(filter.label)}
             selected={activeFilters.has(filter.id)}
             onPress={() => toggleFilter(filter.id)}
           />
@@ -146,8 +150,7 @@ function OpenMatches() {
 
       <View className="gap-3">
         <Text className="font-semibold text-[13px] text-muted">
-          {matches.length} {matches.length === 1 ? "match" : "matches"} {dayLabel(selectedDay)} · sorted
-          by fit
+          {t("matches.count", { count: matches.length, day: dayLabel(selectedDay) })}
         </Text>
 
         {matches.map((match) => (
@@ -163,21 +166,21 @@ function OpenMatches() {
         {error ? (
           <View className="items-start gap-2">
             <Text className="font-normal text-[14px] text-muted">
-              Couldn’t load matches. {error.message}
+              {t("matches.loadFailed", { message: error.message })}
             </Text>
             <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
-              Try again
+              {t("matches.tryAgain")}
             </Button>
           </View>
         ) : openMatches === undefined ? (
-          <Spinner accessibilityLabel="Loading matches" className="self-start" />
+          <Spinner accessibilityLabel={t("matches.loading")} className="self-start" />
         ) : null}
 
         {openMatches !== undefined && matches.length === 0 ? (
           <View className="items-center gap-1 rounded-[20px] border border-line bg-surface p-6">
-            <Text className="font-bold text-[15px] text-foreground">No open matches yet</Text>
+            <Text className="font-bold text-[15px] text-foreground">{t("matches.emptyTitle")}</Text>
             <Text className="text-center font-normal text-[14px] text-muted">
-              Try another day, or switch off a filter.
+              {t("matches.emptyText")}
             </Text>
           </View>
         ) : null}
@@ -187,6 +190,7 @@ function OpenMatches() {
 }
 
 function MyMatches() {
+  const { t } = useTranslation();
   const { data: account } = useMyAccount();
   const { data: upcomingMatches, error, refetch, isRefetching } = useMyUpcomingMatches();
   const { data: pendingScores = [] } = usePendingScores();
@@ -205,7 +209,7 @@ function MyMatches() {
       ))}
 
       <View className="gap-2.5">
-        <SectionHeader size="sm" title={`Upcoming · ${upcomingMatches?.length ?? 0}`} />
+        <SectionHeader size="sm" title={t("matches.upcoming", { count: upcomingMatches?.length ?? 0 })} />
         {account
           ? upcomingMatches?.map((match) => (
               <UpcomingMatchCard
@@ -219,23 +223,23 @@ function MyMatches() {
         {error ? (
           <View className="items-start gap-2">
             <Text className="font-normal text-[14px] text-muted">
-              Couldn’t load your matches. {error.message}
+              {t("matches.loadMineFailed", { message: error.message })}
             </Text>
             <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
-              Try again
+              {t("matches.tryAgain")}
             </Button>
           </View>
         ) : upcomingMatches === undefined ? (
-          <Spinner accessibilityLabel="Loading your matches" className="self-start" />
+          <Spinner accessibilityLabel={t("matches.loadingMine")} className="self-start" />
         ) : upcomingMatches.length === 0 ? (
           <Text className="font-normal text-[14px] text-muted">
-            No matches planned. Join an open match or create one.
+            {t("matches.noUpcoming")}
           </Text>
         ) : null}
       </View>
 
       <View className="gap-2">
-        <SectionHeader size="sm" title="Past" actionLabel="History" />
+        <SectionHeader size="sm" title={t("matches.past")} actionLabel={t("matches.history")} />
         {pastMatches?.map((match) => (
           <PastMatchRow
             key={match.id}
@@ -244,10 +248,10 @@ function MyMatches() {
           />
         ))}
         {pastMatches === undefined ? (
-          <Spinner accessibilityLabel="Loading your past matches" className="self-start" />
+          <Spinner accessibilityLabel={t("matches.loadingPast")} className="self-start" />
         ) : pastMatches.length === 0 ? (
           <Text className="font-normal text-[14px] text-muted">
-            Matches you play show up here once they’re over.
+            {t("matches.noPast")}
           </Text>
         ) : null}
       </View>

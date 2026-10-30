@@ -1,6 +1,7 @@
 import { BottomSheet, cn, PressableFeedback, useToast } from "heroui-native";
 import { CalendarDays, ChevronRight, Plus } from "lucide-react-native";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -9,8 +10,8 @@ import { formatMatchDay } from "@/lib/format-date";
 import type { ShareableMatch } from "@/types/match";
 
 const missingCopy = {
-  score: { status: "No score yet", action: "Add score" },
-  photo: { status: "Score saved · no photo", action: "Add photo" },
+  score: { status: "shareMatch.noScore", action: "shareMatch.addScore" },
+  photo: { status: "shareMatch.noPhoto", action: "shareMatch.addPhoto" },
 } as const;
 
 type ShareMatchSheetProps = {
@@ -22,12 +23,13 @@ type ShareMatchSheetProps = {
 
 /** "Share a match" menu from the Community + button: post a recent match or log one played elsewhere. */
 export function ShareMatchSheet({ isOpen, onOpenChange, matches }: ShareMatchSheetProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
 
   // The score, photo and log-a-match screens aren't built yet
   function comingSoon(label: string) {
     onOpenChange(false);
-    toast.show({ label, description: "This is coming soon." });
+    toast.show({ label, description: t("myMatch.comingSoon") });
   }
 
   return (
@@ -40,7 +42,7 @@ export function ShareMatchSheet({ isOpen, onOpenChange, matches }: ShareMatchShe
         >
           <View className="flex-row items-center justify-between gap-3">
             <BottomSheet.Title className="font-black text-[24px] tracking-[-0.4px] text-foreground">
-              Share a match
+              {t("shareMatch.title")}
             </BottomSheet.Title>
             <BottomSheet.Close className="size-10 rounded-full bg-fill" />
           </View>
@@ -49,15 +51,17 @@ export function ShareMatchSheet({ isOpen, onOpenChange, matches }: ShareMatchShe
             <OptionHeader
               icon={<Icon as={CalendarDays} size={22} color="accent" />}
               iconClassName="bg-primary-soft"
-              title="Post a recent match"
-              description="Matches you played through the app"
+              title={t("shareMatch.postRecent")}
+              description={t("shareMatch.postRecentText")}
             />
             {matches.map((match) => (
               <RecentMatchRow
                 key={match.id}
                 match={match}
                 onPress={() =>
-                  comingSoon(match.missing === "score" ? "Adding a score" : "Adding a photo")
+                  comingSoon(
+                    match.missing === "score" ? t("shareMatch.addingScore") : t("shareMatch.addingPhoto"),
+                  )
                 }
               />
             ))}
@@ -66,16 +70,16 @@ export function ShareMatchSheet({ isOpen, onOpenChange, matches }: ShareMatchShe
           <View className="h-px bg-line" />
 
           <PressableFeedback
-            onPress={() => comingSoon("Logging a match")}
+            onPress={() => comingSoon(t("shareMatch.logging"))}
             accessibilityRole="button"
-            accessibilityHint="Tag the other 3 players; an opponent confirms it"
+            accessibilityHint={t("shareMatch.logElsewhereText")}
           >
             <View className="flex-row items-center gap-3">
               <OptionHeader
                 icon={<Icon as={Plus} size={22} color="lime-foreground" />}
                 iconClassName="bg-court-lime"
-                title="Log a match played elsewhere"
-                description="Tag the other 3 players; an opponent confirms it"
+                title={t("shareMatch.logElsewhere")}
+                description={t("shareMatch.logElsewhereText")}
               />
               <Icon as={ChevronRight} size={20} color="muted" />
             </View>
@@ -111,7 +115,11 @@ function OptionHeader({
 }
 
 function RecentMatchRow({ match, onPress }: { match: ShareableMatch; onPress: () => void }) {
-  const copy = missingCopy[match.missing];
+  const { t } = useTranslation();
+  const copy = {
+    status: t(missingCopy[match.missing].status),
+    action: t(missingCopy[match.missing].action),
+  };
   const tintIndices = stackTintIndices(match.players);
   const title = `${formatMatchDay(match.playedAt)} · ${match.clubName}`;
 

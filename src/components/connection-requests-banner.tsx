@@ -1,4 +1,5 @@
 import { Button } from "heroui-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
@@ -16,6 +17,7 @@ type ConnectionRequestsBannerProps = {
 
 /** Light blue "2 connection requests · Review" strip at the top of Players. */
 export function ConnectionRequestsBanner({ requesters, onReview }: ConnectionRequestsBannerProps) {
+  const { t } = useTranslation();
   const faces = requesters.slice(0, MAX_FACES);
   const tints = stackTintIndices(faces).reduce<number[]>((result, tint) => {
     const previous = result[result.length - 1];
@@ -39,10 +41,10 @@ export function ConnectionRequestsBanner({ requesters, onReview }: ConnectionReq
         ))}
       </View>
       <Text className="flex-1 font-bold text-[14px] text-primary-dark">
-        {count} connection {count === 1 ? "request" : "requests"}
+        {t("connections.banner", { count })}
       </Text>
       <Button size="sm" onPress={onReview} hitSlop={5} className="h-[34px] rounded-xl px-3.5">
-        <Button.Label className="text-[13px]">Review</Button.Label>
+        <Button.Label className="text-[13px]">{t("connections.review")}</Button.Label>
       </Button>
     </View>
   );

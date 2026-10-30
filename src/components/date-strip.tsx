@@ -2,17 +2,10 @@ import { cn, PressableFeedback } from "heroui-native";
 import { Text } from "react-native";
 
 import { Page } from "@/components/page";
-import { daysUntil } from "@/lib/format-date";
+import { daysUntil, formatFullDate, formatWeekday } from "@/lib/format-date";
 
 const DAY_WIDTH = 56;
 const DAY_GAP = 8;
-
-const weekdayFormat = new Intl.DateTimeFormat("en-GB", { weekday: "short" });
-const fullDateFormat = new Intl.DateTimeFormat("en-GB", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-});
 
 type DateStripProps = {
   /** First day shown, usually today */
@@ -40,7 +33,7 @@ export function DateStrip({ start, days = 7, selected, onSelect }: DateStripProp
             onPress={() => onSelect(date)}
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected }}
-            accessibilityLabel={fullDateFormat.format(date)}
+            accessibilityLabel={formatFullDate(date)}
             className={cn(
               "h-[72px] items-center justify-center rounded-[18px]",
               isSelected ? "bg-foreground" : "border border-line bg-surface",
@@ -53,7 +46,7 @@ export function DateStrip({ start, days = 7, selected, onSelect }: DateStripProp
                 isSelected ? "text-ink-tint-text" : "text-muted",
               )}
             >
-              {weekdayFormat.format(date)}
+              {formatWeekday(date)}
             </Text>
             <Text
               className={cn(

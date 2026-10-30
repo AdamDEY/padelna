@@ -7,7 +7,9 @@ import {
   useToast,
 } from "heroui-native";
 import { Trophy } from "lucide-react-native";
+import { t } from "i18next";
 import { useRef, useState, type ComponentRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -29,11 +31,7 @@ type InputRef = ComponentRef<typeof Input>;
 // One box per team per set, in the order you fill them: set 1 (team 1, team 2), set 2, …
 type Boxes = string[];
 
-const titles = {
-  add: "Match finished!",
-  correct: "Enter the real score",
-  edit: "Edit the score",
-} as const;
+type Mode = "add" | "correct" | "edit";
 
 function toBoxes(sets: SetScore[] = []): Boxes {
   return Array.from({ length: SET_COUNT * 2 }, (_, index) => {
@@ -56,14 +54,14 @@ function toSets(boxes: Boxes): SetScore[] {
 function teamName(team: Player[], myId: string) {
   const mine = team.find((player) => player.id === myId);
   const others = team.filter((player) => player !== mine).map((player) => player.firstName);
-  return (mine ? ["You", ...others] : others).join(" · ");
+  return (mine ? [t("common.you"), ...others] : others).join(" · ");
 }
 
 type SaveScoreSheetProps = {
   match: MatchDetails;
   myId: string;
   /** "add": the host's first score; "correct": the other team fixes it; "edit": the sender changes it */
-  mode: keyof typeof titles;
+  mode: Mode;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -73,6 +71,7 @@ type SaveScoreSheetProps = {
  * save score). One player from the other team then confirms it.
  */
 export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: SaveScoreSheetProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const submitScore = useSubmitScore();
   const uploadPhoto = useUploadMatchPhoto();
@@ -122,7 +121,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
     } catch (error) {
       toast.show({
         variant: "danger",
-        label: "Couldn’t save the score",
+        label: t("scoreSheet.saveFailed"),
         description: (error as Error).message,
       });
       return;
@@ -135,7 +134,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
       } catch (error) {
         toast.show({
           variant: "danger",
-          label: "Score sent, but the photo didn’t upload",
+          label: t("scoreSheet.photoFailed"),
           description: (error as Error).message,
         });
         onOpenChange(false);
@@ -145,8 +144,8 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
 
     toast.show({
       variant: "success",
-      label: mode === "edit" ? "Score updated" : "Score sent",
-      description: "One player from the other team confirms it.",
+      label: mode === "edit" ? t("scoreSheet.updated") : t("scoreSheet.sent"),
+      description: t("scoreSheet.sentText"),
     });
     onOpenChange(false);
   }
@@ -169,7 +168,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
             </View>
             <View className="flex-1">
               <BottomSheet.Title className="font-black text-[24px] tracking-[-0.4px] text-foreground">
-                {titles[mode]}
+                {t(`scoreSheet.title.${mode}`)}
               </BottomSheet.Title>
               <BottomSheet.Description numberOfLines={1} className="font-normal text-[14px] text-muted">
                 {[formatMatchDay(match.startsAt), place].filter(Boolean).join(" · ")}
@@ -180,14 +179,14 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
 
           <View className="gap-2 rounded-[20px] bg-background p-3.5">
             <View className="flex-row items-center gap-2">
-              <Text className="flex-1 font-bold text-[12px] text-muted">Score</Text>
+              <Text className="flex-1 font-bold text-[12px] text-muted">{t("scoreSheet.score")}</Text>
               {Array.from({ length: SET_COUNT }, (_, set) => (
                 <Text
                   key={set}
                   style={{ width: BOX_SIZE }}
                   className="text-center font-bold text-[12px] text-muted"
                 >
-                  Set {set + 1}
+                  {t("scoreSheet.set", { number: set + 1 })}
                 </Text>
               ))}
             </View>
@@ -225,7 +224,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
                         value={boxes[index]}
                         onChange={(text) => setBox(index, text)}
                         isInvalid={scoreError}
-                        accessibilityLabel={`${name}, set ${set + 1}`}
+                        accessibilityLabel={t("scoreSheet.setA11y", { name, number: set + 1 })}
                       />
                     );
                   })}
@@ -237,8 +236,8 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
           {scoreError ? (
             <Text accessibilityRole="alert" className="-mt-2 font-semibold text-[13px] text-danger">
               {sets.length === 0
-                ? "Add the games each team won in every set."
-                : "That score isn’t possible. A set ends 6–4 or better, 7–5 or 7–6, and a third set is only played at one set all."}
+                ? t("scoreSheet.needGames")
+                : t("scoreSheet.impossible")}
             </Text>
           ) : null}
 
@@ -253,10 +252,14 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
 
           <View className="gap-2">
             <Text className="text-center font-normal text-[13px] text-muted">
-              One player from the other team confirms the score.
+              {t("scoreSheet.confirmNote")}
             </Text>
             <Button size="lg" onPress={save} isDisabled={isSaving}>
-              {mode === "edit" ? "Save changes" : mode === "correct" ? "Send the real score" : "Save score"}
+              {mode === "edit"
+                ? t("scoreSheet.saveChanges")
+                : mode === "correct"
+                  ? t("scoreSheet.sendReal")
+                  : t("scoreSheet.save")}
             </Button>
           </View>
         </BottomSheet.Content>

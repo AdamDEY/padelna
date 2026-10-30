@@ -1,6 +1,7 @@
 import { router, Stack } from "expo-router";
 import { Button } from "heroui-native";
 import { useEffect, useState, type ComponentType } from "react";
+import { useTranslation } from "react-i18next";
 import { BackHandler, View } from "react-native";
 import Animated, { FadeInLeft, FadeInRight } from "react-native-reanimated";
 
@@ -14,33 +15,34 @@ import { Page } from "@/components/page";
 import { SetupProgress } from "@/components/setup-progress";
 
 type OnboardingPage = {
-  title: string;
-  description: string;
+  title: "onboarding.findTitle" | "onboarding.trustTitle" | "onboarding.fairTitle" | "onboarding.communityTitle";
+  description:
+    | "onboarding.findText"
+    | "onboarding.trustText"
+    | "onboarding.fairText"
+    | "onboarding.communityText";
   Illustration: ComponentType;
 };
 
 const pages: OnboardingPage[] = [
   {
-    title: "Find players at your level",
-    description: "Join open matches that fit you, or create your own and fill the court in minutes.",
+    title: "onboarding.findTitle",
+    description: "onboarding.findText",
     Illustration: FindPlayersIllustration,
   },
   {
-    title: "A level people can trust",
-    description:
-      "After each match, players rate the level they saw. Honest reviews keep every game balanced.",
+    title: "onboarding.trustTitle",
+    description: "onboarding.trustText",
     Illustration: TrustedLevelIllustration,
   },
   {
-    title: "Play fair, or you’re out",
-    description:
-      "Fake scores, revenge ratings or sabotaging other players will get your account banned. Every report is reviewed.",
+    title: "onboarding.fairTitle",
+    description: "onboarding.fairText",
     Illustration: FairPlayIllustration,
   },
   {
-    title: "Grow Tunisia’s padel community",
-    description:
-      "Share your results, connect with players you meet on court and see who’s playing where.",
+    title: "onboarding.communityTitle",
+    description: "onboarding.communityText",
     Illustration: CommunityIllustration,
   },
 ];
@@ -56,6 +58,7 @@ const TEXT_BLOCK_HEIGHT = 132;
  * header and progress bar staying put, like setup.
  */
 export default function Onboarding() {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const page = pages[index];
@@ -87,7 +90,12 @@ export default function Onboarding() {
   });
 
   const canSkip = index < FAIR_PLAY_PAGE;
-  const nextLabel = index === FAIR_PLAY_PAGE ? "I agree" : index === LAST_PAGE ? "Let’s play" : "Next";
+  const nextLabel =
+    index === FAIR_PLAY_PAGE
+      ? t("onboarding.agree")
+      : index === LAST_PAGE
+        ? t("onboarding.letsPlay")
+        : t("onboarding.next");
 
   return (
     <Page variant="auth">
@@ -106,7 +114,7 @@ export default function Onboarding() {
         >
           <page.Illustration />
           <View style={{ height: TEXT_BLOCK_HEIGHT }}>
-            <Page.Title description={page.description}>{page.title}</Page.Title>
+            <Page.Title description={t(page.description)}>{t(page.title)}</Page.Title>
           </View>
         </Animated.View>
       </Page.Body>
@@ -116,7 +124,7 @@ export default function Onboarding() {
         {canSkip ? (
           <View className="flex-1">
             <Button size="lg" variant="outline" onPress={() => goTo(FAIR_PLAY_PAGE)}>
-              <Button.Label className="text-ink-2">Skip</Button.Label>
+              <Button.Label className="text-ink-2">{t("onboarding.skip")}</Button.Label>
             </Button>
           </View>
         ) : null}

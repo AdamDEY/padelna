@@ -1,4 +1,5 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { t } from "i18next";
 
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
@@ -180,7 +181,7 @@ export async function fetchOpenMatches(from: Date, to: Date): Promise<OpenMatch[
     .map((match) => ({
       id: match.id,
       startsAt: match.startsAt,
-      clubName: match.isCourtBooked ? match.clubName : "Court not booked yet",
+      clubName: match.isCourtBooked ? match.clubName : t("match.courtNotBookedYet"),
       durationMinutes: match.durationMinutes,
       levelMin: match.levelMin ?? 1,
       levelMax: match.levelMax ?? 7,
@@ -330,7 +331,7 @@ export async function fetchMyPendingScores(): Promise<PendingReview[]> {
   return rows.flatMap((row): PendingReview[] => {
     const match = toMatchDetails(row, cards);
     const endsAt = new Date(match.startsAt.getTime() + match.durationMinutes * 60_000);
-    const base = { matchId: match.id, playedAt: match.startsAt, clubName: match.clubName || "Your match" };
+    const base = { matchId: match.id, playedAt: match.startsAt, clubName: match.clubName || t("match.yourMatch") };
     const score = match.score;
 
     if (!match.isFull) return [];
@@ -385,7 +386,7 @@ export async function fetchMyPastMatches(): Promise<PastMatch[]> {
       {
         id: match.id,
         playedAt: match.startsAt,
-        clubName: match.clubName || "Court not booked",
+        clubName: match.clubName || t("match.courtNotBooked"),
         courtName: match.courtName,
         result,
         // Shown from your side: your games first
@@ -422,7 +423,7 @@ export async function fetchMyUpcomingMatches(): Promise<UpcomingMatch[]> {
     return {
       id: match.id,
       startsAt: match.startsAt,
-      clubName: match.isCourtBooked ? match.clubName : "Court not booked",
+      clubName: match.isCourtBooked ? match.clubName : t("match.courtNotBooked"),
       courtName: match.courtName ?? "",
       players: match.players,
       capacity: match.capacity,
@@ -462,7 +463,7 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     const taken = row.match_players.find((item) => item.seat === seat);
     if (taken) return cards.get(taken.player_id);
     if (seat > 1 && seat <= guestSeats) {
-      return { id: `guest-${row.id}-${seat}`, firstName: "Guest", lastName: "" };
+      return { id: `guest-${row.id}-${seat}`, firstName: t("match.guest"), lastName: "" };
     }
     return undefined;
   });
@@ -473,7 +474,7 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     durationMinutes: row.duration_minutes,
     clubName: row.court?.club.name ?? "",
     clubId: row.court?.club.id,
-    courtName: row.court ? `Court ${row.court.number}` : undefined,
+    courtName: row.court ? t("match.courtNumber", { number: row.court.number }) : undefined,
     isCourtBooked: row.court !== null,
     levelMin: row.level_min,
     levelMax: row.level_max,

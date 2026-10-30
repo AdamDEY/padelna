@@ -1,7 +1,9 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { t } from "i18next";
 import { Button, cn, Spinner, useToast } from "heroui-native";
 import { Check, Clock, MapPin, MessageSquare, Share2 } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Share, Text, View } from "react-native";
 
 import { CourtHero } from "@/components/court-hero";
@@ -31,12 +33,13 @@ function formatTime(date: Date) {
 
 function dayLabel(date: Date) {
   const days = daysUntil(date);
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
+  if (days === 0) return t("time.today");
+  if (days === 1) return t("time.tomorrow");
   return formatMatchDay(date);
 }
 
 export default function MatchDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const isStored = UUID.test(id);
   const stored = useMatch(id, isStored);
@@ -57,7 +60,7 @@ export default function MatchDetail() {
       <Page>
         <Page.Header back />
         <Page.Body scroll={false} className="items-center justify-center">
-          <Spinner accessibilityLabel="Loading the match" />
+          <Spinner accessibilityLabel={t("matchDetail.loading")} />
         </Page.Body>
       </Page>
     );
@@ -75,8 +78,8 @@ export default function MatchDetail() {
       <Page>
         <Page.Header back />
         <Page.Body>
-          <Page.Title description="It may have been cancelled or already played.">
-            Match not found
+          <Page.Title description={t("matchDetail.notFoundText")}>
+            {t("matchDetail.notFoundTitle")}
           </Page.Title>
         </Page.Body>
       </Page>
@@ -129,13 +132,16 @@ export default function MatchDetail() {
           onSuccess: () =>
             toast.show({
               variant: "success",
-              label: "You're in",
-              description: `${title} at ${match!.clubName || "a court to be booked"}. See you on court!`,
+              label: t("matchDetail.youAreIn"),
+              description: t("matchDetail.joinedText", {
+                title,
+                club: match!.clubName || t("matchDetail.courtToBook"),
+              }),
             }),
           onError: (error) =>
             toast.show({
               variant: "danger",
-              label: "Couldn’t join the match",
+              label: t("matchDetail.joinFailed"),
               description: error.message,
             }),
         },
@@ -146,43 +152,54 @@ export default function MatchDetail() {
     setHasJoined(true);
     toast.show({
       variant: "success",
-      label: "You're in",
-      description: `${title} at ${match!.clubName}. See you on court!`,
+      label: t("matchDetail.youAreIn"),
+      description: t("matchDetail.joinedText", { title, club: match!.clubName }),
     });
   }
 
   function askToJoin() {
     if (isStored) {
-      toast.show({ label: "Requests are coming soon", description: "For now, join matches at your level." });
+      toast.show({ label: t("matchDetail.requestsSoon"), description: t("matchDetail.requestsSoonText") });
       return;
     }
     // Nothing is sent yet; the API will notify the host
     setHasAsked(true);
     toast.show({
       variant: "success",
-      label: "Request sent",
-      description: `${match!.host?.firstName ?? "The host"} will let you know.`,
+      label: t("matchDetail.requestSent"),
+      description: t("matchDetail.hostWillLetYouKnow", {
+        host: match!.host?.firstName ?? t("matchDetail.theHost"),
+      }),
     });
   }
 
   function share() {
     Share.share({
-      message: `Padel match ${title} at ${match!.clubName}${
-        match!.levelMin !== undefined
-          ? `, level ${match!.levelMin.toFixed(1)} – ${match!.levelMax!.toFixed(1)}`
-          : ""
-      }. Join me on Padelna!`,
+      message: t("matchDetail.shareMessage", {
+        title,
+        club: match!.clubName,
+        level:
+          match!.levelMin !== undefined
+            ? t("matchDetail.shareLevel", {
+                min: match!.levelMin.toFixed(1),
+                max: match!.levelMax!.toFixed(1),
+              })
+            : "",
+      }),
     });
   }
 
   const tags = [
     match.levelMin !== undefined && match.levelMax !== undefined
       ? {
-          label: `Level ${match.levelMin.toFixed(1)} – ${match.levelMax.toFixed(1)}`,
+          label: t("matchDetail.levelTag", {
+            min: match.levelMin.toFixed(1),
+            max: match.levelMax.toFixed(1),
+          }),
           lime: true,
         }
       : null,
-    { label: match.kind === "competitive" ? "Competitive" : "Friendly" },
+    { label: t(match.kind === "competitive" ? "match.kind.competitive" : "match.kind.friendly") },
     match.audience ? { label: match.audience } : null,
   ].filter((tag): tag is { label: string; lime?: boolean } => tag !== null);
 
@@ -195,7 +212,7 @@ export default function MatchDetail() {
           rightAction={
             <IconButton
               icon={Share2}
-              label="Share match"
+              label={t("matchDetail.share")}
               onPress={share}
               className="border-0 bg-white/90"
             />
@@ -258,7 +275,7 @@ export default function MatchDetail() {
                     match.isCourtBooked ? "text-success" : "text-warning",
                   )}
                 >
-                  {match.isCourtBooked ? "Court booked" : "Not booked yet"}
+                  {match.isCourtBooked ? t("matchDetail.courtBooked") : t("matchDetail.notBookedYet")}
                 </Text>
               </View>
             </View>
@@ -267,15 +284,15 @@ export default function MatchDetail() {
           <View className="gap-2.5">
             <View className="flex-row items-baseline justify-between">
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-                Players · {players.length}/{match.capacity}
+                {t("matchDetail.players", { count: players.length, capacity: match.capacity })}
               </Text>
               {canPick ? (
                 <Text className="font-bold text-[13px] text-accent">
-                  {selectedSeat === undefined ? "Choose your spot" : "Tap another spot to switch"}
+                  {selectedSeat === undefined ? t("matchDetail.chooseSpot") : t("matchDetail.tapAnother")}
                 </Text>
               ) : averageLevel !== undefined ? (
                 <Text className="font-normal text-[13px] text-muted">
-                  Avg level {averageLevel.toFixed(1)}
+                  {t("matchDetail.avgLevel", { level: averageLevel.toFixed(1) })}
                 </Text>
               ) : null}
             </View>
@@ -306,8 +323,8 @@ export default function MatchDetail() {
                 <Icon as={fits ? Check : Clock} size={18} color={fits ? "success" : "warning"} />
                 <Text className={cn("font-bold text-[14px]", fits ? "text-success" : "text-warning")}>
                   {fits
-                    ? `Your level ${level.toFixed(1)} fits this match`
-                    : `Your level ${level.toFixed(1)} is outside this range. You can still ask the host.`}
+                    ? t("matchDetail.fits", { level: level.toFixed(1) })
+                    : t("matchDetail.outside", { level: level.toFixed(1) })}
                 </Text>
               </View>
             ) : null}
@@ -317,7 +334,7 @@ export default function MatchDetail() {
             <View className="flex-row items-center gap-3">
               <PlayerAvatar player={match.host} size={40} />
               <Text className="flex-1 font-normal text-[14px] leading-5 text-ink-2">
-                <Text className="font-bold text-foreground">{match.host.firstName} (host):</Text>{" "}
+                <Text className="font-bold text-foreground">{t("matchDetail.hostNote", { name: match.host.firstName })}</Text>{" "}
                 {match.note}
               </Text>
             </View>
@@ -330,7 +347,7 @@ export default function MatchDetail() {
           size="lg"
           variant="secondary"
           isIconOnly
-          accessibilityLabel={isMine ? "Message the players" : "Message the host"}
+          accessibilityLabel={isMine ? t("matchDetail.messagePlayers") : t("matchDetail.messageHost")}
           className="w-14"
         >
           <Icon as={MessageSquare} size={22} color="accent" />
@@ -338,7 +355,7 @@ export default function MatchDetail() {
         {isMine ? (
           <Button size="lg" variant="secondary" isDisabled className="flex-1">
             <Icon as={Check} size={20} color="primary-dark" />
-            <Button.Label>You&apos;re in</Button.Label>
+            <Button.Label>{t("matchDetail.youAreIn")}</Button.Label>
           </Button>
         ) : (
           <Button
@@ -354,14 +371,16 @@ export default function MatchDetail() {
             className="flex-1"
           >
             {isFull
-              ? "Match is full"
+              ? t("matchDetail.full")
               : !fits
                 ? hasAsked
-                  ? "Request sent"
-                  : "Ask to join"
+                  ? t("matchDetail.requestSent")
+                  : t("matchDetail.askToJoin")
                 : picked
-                  ? `Join Team ${picked.team} · ${picked.side === "left" ? "Left" : "Right"} side`
-                  : "Pick a spot to join"}
+                  ? t(picked.side === "left" ? "matchDetail.joinLeft" : "matchDetail.joinRight", {
+                      team: picked.team,
+                    })
+                  : t("matchDetail.pickSpot")}
           </Button>
         )}
       </Page.Footer>

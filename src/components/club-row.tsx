@@ -1,5 +1,6 @@
 import { PressableFeedback } from "heroui-native";
 import { ChevronRight } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { CourtPlaceholder } from "@/components/court-placeholder";
@@ -13,10 +14,11 @@ type ClubRowProps = {
 
 /** A club in a list: court thumbnail, name, distance, courts and open matches. */
 export function ClubRow({ club, onPress }: ClubRowProps) {
+  const { t } = useTranslation();
   const details = [
     `${club.distanceKm.toFixed(1)} km`,
-    club.courtCount === 1 ? "1 court" : `${club.courtCount} courts`,
-    club.openMatchCount === 1 ? "1 open match" : `${club.openMatchCount} open matches`,
+    t("club.courts", { count: club.courtCount }),
+    t("club.openMatches", { count: club.openMatchCount }),
   ].join(" · ");
 
   return (

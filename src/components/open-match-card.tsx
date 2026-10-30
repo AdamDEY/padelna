@@ -1,5 +1,6 @@
 import { Button, PressableFeedback } from "heroui-native";
 import { Plus } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -20,10 +21,11 @@ const SLOT_SIZE = 36;
 
 /** An open match looking for players. The card opens the match; Join asks to join it. */
 export function OpenMatchCard({ match, onPress, onJoin, width }: OpenMatchCardProps) {
+  const { t } = useTranslation();
   const when = formatShortMatchDateTime(match.startsAt);
-  const where = `${match.clubName} · ${match.durationMinutes} min`;
+  const where = `${match.clubName} · ${t("time.minutes", { count: match.durationMinutes })}`;
   const spotsLeft = Math.max(match.capacity - match.players.length, 0);
-  const spotsLabel = `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"}`;
+  const spotsLabel = t("match.spots", { count: spotsLeft });
   const priceLabel = match.price !== undefined ? `${match.price} TND` : undefined;
   const tintIndices = stackTintIndices(match.players);
 
@@ -31,7 +33,15 @@ export function OpenMatchCard({ match, onPress, onJoin, width }: OpenMatchCardPr
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${when}, ${where}, level ${match.levelMin.toFixed(1)} to ${match.levelMax.toFixed(1)}, ${spotsLabel} left${priceLabel ? `, ${priceLabel}` : ""}`}
+      accessibilityLabel={[
+        when,
+        where,
+        t("level.range", { min: match.levelMin.toFixed(1), max: match.levelMax.toFixed(1) }),
+        t("match.spotsLeft", { count: spotsLeft }),
+        priceLabel,
+      ]
+        .filter(Boolean)
+        .join(", ")}
       style={width ? { width } : undefined}
     >
       <View className="gap-3 rounded-[20px] border border-line bg-surface p-4">
@@ -68,7 +78,7 @@ export function OpenMatchCard({ match, onPress, onJoin, width }: OpenMatchCardPr
             {priceLabel ? ` · ${priceLabel}` : ""}
           </Text>
           <Button size="sm" onPress={onJoin} hitSlop={4} className="h-9 rounded-xl px-4">
-            Join
+            {t("home.openMatch.join")}
           </Button>
         </View>
       </View>

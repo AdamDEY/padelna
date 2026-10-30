@@ -1,4 +1,5 @@
 import { Button, Chip, PressableFeedback } from "heroui-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
@@ -16,14 +17,15 @@ type UpcomingMatchCardProps = {
 
 /** A match you host or joined: date, status, place, host and players. */
 export function UpcomingMatchCard({ match, me, onPress, onInvite }: UpcomingMatchCardProps) {
+  const { t } = useTranslation();
   const dateTime = formatMatchDateTime(match.startsAt);
   const spotsLeft = Math.max(match.capacity - match.players.length, 0);
   const isFull = spotsLeft === 0;
-  const status = isFull ? "Confirmed" : `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"} left`;
+  const status = isFull ? t("upcoming.confirmed") : t("match.spotsLeft", { count: spotsLeft });
   const hostLine =
     match.host.id === me.id
-      ? "You’re hosting"
-      : `Hosted by ${match.host.firstName} ${match.host.lastName.charAt(0)}.`;
+      ? t("upcoming.hosting")
+      : t("upcoming.hostedBy", { name: `${match.host.firstName} ${match.host.lastName.charAt(0)}.` });
   const details = [match.clubName, match.courtName, hostLine].filter(Boolean).join(" · ");
   const tintIndices = stackTintIndices(match.players);
 
@@ -65,7 +67,7 @@ export function UpcomingMatchCard({ match, me, onPress, onInvite }: UpcomingMatc
               hitSlop={4}
               className="h-9 rounded-xl px-3.5"
             >
-              Invite a friend
+              {t("upcoming.invite")}
             </Button>
           )}
         </View>

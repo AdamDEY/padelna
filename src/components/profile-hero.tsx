@@ -1,5 +1,6 @@
 import { Button, cn } from "heroui-native";
 import { SlidersHorizontal } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -13,6 +14,12 @@ const RING_SIZE = 104;
 const RING_STROKE = 9;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2 - 3.5;
 
+const sideKeys = {
+  left: "side.leftSide",
+  right: "side.rightSide",
+  both: "playerSheet.bothSides",
+} as const;
+
 type ProfileHeroProps = {
   profile: PlayerProfile;
   onPressSettings?: () => void;
@@ -21,17 +28,22 @@ type ProfileHeroProps = {
 
 /** Blue profile header: who you are, your level ring with progress, and headline stats. */
 export function ProfileHero({ profile, onPressSettings, onPressFriends }: ProfileHeroProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const lime = useCSSVariable("--color-lime") as string;
   const nextLevel = profile.level + 0.5;
   const percent = Math.round(profile.progressToNext * 100);
+  // "W3" = three wins in a row, "L2" = two losses
+  const streak = t(profile.streak.startsWith("W") ? "profile.streakWin" : "profile.streakLoss", {
+    count: Number(profile.streak.slice(1)),
+  });
   const circumference = 2 * Math.PI * RING_RADIUS;
 
   const stats = [
-    { value: String(profile.matchesPlayed), label: "Played" },
-    { value: `${profile.winRate}%`, label: "Win rate" },
-    { value: profile.streak, label: "Streak" },
-    { value: String(profile.friendCount), label: "Friends", onPress: onPressFriends },
+    { value: String(profile.matchesPlayed), label: t("profile.played") },
+    { value: `${profile.winRate}%`, label: t("profile.winRate") },
+    { value: streak, label: t("profile.streak") },
+    { value: String(profile.friendCount), label: t("profile.friends"), onPress: onPressFriends },
   ];
 
   return (
@@ -62,16 +74,24 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends }: Profil
             {profile.player.firstName} {profile.player.lastName}
           </Text>
           <Text numberOfLines={1} className="font-normal text-[13px] text-primary-tint-text">
-            {profile.city} · {profile.side} · {profile.playStyle}
+            {t("profile.heroLine", {
+              city: profile.city,
+              side: t(sideKeys[profile.side]),
+              style: t(`playStyle.${profile.playStyle}`),
+            })}
           </Text>
         </View>
-        <HeroIconButton label="Edit profile and settings" onPress={onPressSettings} />
+        <HeroIconButton label={t("profile.editA11y")} onPress={onPressSettings} />
       </View>
 
       <View className="flex-row items-center gap-[18px]">
         <View
           accessible
-          accessibilityLabel={`Level ${profile.level.toFixed(1)}, ${percent}% of the way to ${nextLevel.toFixed(1)}`}
+          accessibilityLabel={t("profile.ringA11y", {
+            level: profile.level.toFixed(1),
+            percent,
+            next: nextLevel.toFixed(1),
+          })}
           style={{ width: RING_SIZE, height: RING_SIZE }}
         >
           <Svg width={RING_SIZE} height={RING_SIZE}>
@@ -99,19 +119,25 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends }: Profil
             <Text className="font-black text-[32px] leading-[34px] text-accent-foreground">
               {profile.level.toFixed(1)}
             </Text>
-            <Text className="font-bold text-[11px] text-primary-tint-text">LEVEL</Text>
+            <Text className="font-bold text-[11px] text-primary-tint-text">{t("profile.levelWord")}</Text>
           </View>
         </View>
 
         <View className="flex-1 gap-1.5">
           <Text className="font-black text-[16px] text-accent-foreground">
-            {percent}% of the way to {nextLevel.toFixed(1)}
+            {t("profile.progress", { percent, next: nextLevel.toFixed(1) })}
           </Text>
           <Text className="font-normal text-[13px] leading-[18px] text-primary-tint-text">
-            {profile.nextLevelHint}
+            {t("profile.hint", {
+              wins: profile.nextLevelHint.wins,
+              level: profile.nextLevelHint.opponentLevel.toFixed(1),
+            })}
           </Text>
           <Text className="self-start overflow-hidden rounded-[10px] bg-white/15 px-2.5 py-1 font-bold text-[12px] text-accent-foreground">
-            Based on {profile.matchesPlayed} matches · {profile.reviewCount} reviews
+            {t("profile.basedOn", {
+              matches: t("profile.matchesCount", { count: profile.matchesPlayed }),
+              reviews: t("profile.reviewsCount", { count: profile.reviewCount }),
+            })}
           </Text>
         </View>
       </View>

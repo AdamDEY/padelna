@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { ImageIcon, X } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 // Gesture Handler's Pressable: React Native's doesn't get taps inside the sheet
 import { Pressable as GesturePressable } from "react-native-gesture-handler";
@@ -29,6 +30,8 @@ export function TeamPhotoPicker({
   onChange,
   canRemove = true,
 }: TeamPhotoPickerProps) {
+  const { t } = useTranslation();
+
   async function pick() {
     // The library picker doesn't need a permission prompt
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -42,9 +45,9 @@ export function TeamPhotoPicker({
     <View className="gap-2">
       <View className="flex-row items-baseline gap-1">
         <Text className="font-bold text-[14px] text-foreground">
-          Team photo
+          {t("photoPicker.title")}
         </Text>
-        <Text className="font-medium text-[14px] text-muted">(optional)</Text>
+        <Text className="font-medium text-[14px] text-muted">{t("photoPicker.optional")}</Text>
       </View>
 
       {uri ? (
@@ -52,7 +55,7 @@ export function TeamPhotoPicker({
           <GesturePressable
             onPress={pick}
             accessibilityRole="button"
-            accessibilityLabel="Change the team photo"
+            accessibilityLabel={t("photoPicker.change")}
           >
             <Image
               source={{ uri }}
@@ -66,7 +69,7 @@ export function TeamPhotoPicker({
               <GesturePressable
                 onPress={() => onChange(undefined)}
                 accessibilityRole="button"
-                accessibilityLabel="Remove the team photo"
+                accessibilityLabel={t("photoPicker.remove")}
                 hitSlop={6}
               >
                 <View className="size-9 items-center justify-center rounded-full bg-surface">
@@ -80,7 +83,7 @@ export function TeamPhotoPicker({
             className="absolute bottom-2.5 start-2.5 rounded-xl bg-surface px-2.5 py-1"
           >
             <Text className="font-bold text-[12px] text-foreground">
-              Tap to change
+              {t("photoPicker.tapToChange")}
             </Text>
           </View>
         </View>
@@ -88,7 +91,7 @@ export function TeamPhotoPicker({
         <GesturePressable
           onPress={pick}
           accessibilityRole="button"
-          accessibilityLabel="Add a team photo from your gallery"
+          accessibilityLabel={t("photoPicker.add")}
         >
           {/* Gesture Handler's Pressable takes no className, so the tile is a View inside it */}
           <View
@@ -96,7 +99,7 @@ export function TeamPhotoPicker({
             className="items-center justify-center gap-1.5 border border-line-input bg-surface"
           >
             <Icon as={ImageIcon} size={26} color="foreground" />
-            <Text className="font-bold text-[14px] text-foreground">Gallery</Text>
+            <Text className="font-bold text-[14px] text-foreground">{t("photoPicker.gallery")}</Text>
           </View>
         </GesturePressable>
       )}

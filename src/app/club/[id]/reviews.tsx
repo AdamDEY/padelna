@@ -2,6 +2,7 @@ import { Button, cn } from "heroui-native";
 import { useLocalSearchParams } from "expo-router";
 import { ChevronDown } from "lucide-react-native";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 import { ChoiceChips } from "@/components/choice-chips";
@@ -14,25 +15,26 @@ import type { ReviewTopic } from "@/types/club";
 
 const ALL = "all";
 
-const topics: { value: ReviewTopic | typeof ALL; label: string }[] = [
-  { value: ALL, label: "All" },
-  { value: "courts", label: "Courts" },
-  { value: "gear", label: "Gear & balls" },
-  { value: "facilities", label: "Facilities" },
-  { value: "staff", label: "Staff" },
-];
+const topics = [
+  { value: ALL, label: "clubReviews.all" },
+  { value: "courts", label: "clubReviews.courts" },
+  { value: "gear", label: "clubReviews.gear" },
+  { value: "facilities", label: "clubReviews.facilities" },
+  { value: "staff", label: "clubReviews.staff" },
+] as const satisfies { value: ReviewTopic | typeof ALL; label: string }[];
 
 type SortOrder = "recent" | "helpful";
 
-const sortLabels: Record<SortOrder, string> = {
-  recent: "Most recent",
-  helpful: "Most helpful",
-};
+const sortLabels = {
+  recent: "clubReviews.sortRecent",
+  helpful: "clubReviews.sortHelpful",
+} as const satisfies Record<SortOrder, string>;
 
 // Court averages below this show in orange
 const WEAK_COURT = 4;
 
 export default function ClubReviews() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const club = getClubDetails(id);
   const [topic, setTopic] = useState<ReviewTopic | typeof ALL>(ALL);
@@ -57,7 +59,7 @@ export default function ClubReviews() {
       <Page>
         <Page.Header back />
         <Page.Body>
-          <Page.Title>Club not found</Page.Title>
+          <Page.Title>{t("clubDetail.notFoundTitle")}</Page.Title>
         </Page.Body>
       </Page>
     );
@@ -88,22 +90,30 @@ export default function ClubReviews() {
               accessibilityRole="header"
               className="font-black text-[22px] tracking-[-0.3px] text-foreground"
             >
-              Reviews
+              {t("clubReviews.title")}
             </Text>
             <Text numberOfLines={1} className="font-normal text-[13px] text-muted">
-              {club.name} · {club.rating.toFixed(1)} from {club.reviewCount} players
+              {t("clubReviews.subtitle", {
+                club: club.name,
+                rating: club.rating.toFixed(1),
+                count: club.reviewCount,
+              })}
             </Text>
           </>
         }
       />
 
       <Page.Body className="gap-3.5">
-        <ChoiceChips options={topics} value={topic} onChange={setTopic} />
+        <ChoiceChips
+          options={topics.map((item) => ({ value: item.value, label: t(item.label) }))}
+          value={topic}
+          onChange={setTopic}
+        />
 
         {club.courtRatings && club.courtRatings.length > 0 ? (
           <View className="gap-1.5">
             <Text className="font-bold text-[13px] text-muted">
-              By court · surface, glass & lighting
+              {t("clubReviews.byCourt")}
             </Text>
             <View className="flex-row gap-1.5">
               {club.courtRatings.map((value, index) => {
@@ -113,7 +123,11 @@ export default function ClubReviews() {
                   <View
                     key={index}
                     accessible
-                    accessibilityLabel={`Court ${index + 1}, ${outdoor ? "outdoor" : "indoor"}: ${value.toFixed(1)}`}
+                    accessibilityLabel={t("clubReviews.courtA11y", {
+                      number: index + 1,
+                      kind: t(outdoor ? "clubReviews.outdoor" : "clubReviews.indoor"),
+                      value: value.toFixed(1),
+                    })}
                     className={cn(
                       "flex-1 items-center rounded-xl py-2",
                       weak ? "bg-attention-soft" : "border border-line bg-surface",
@@ -124,7 +138,7 @@ export default function ClubReviews() {
                       className={cn("font-normal text-[11px]", weak ? "text-attention" : "text-muted")}
                     >
                       C{index + 1}
-                      {outdoor ? " out" : ""}
+                      {outdoor ? t("clubReviews.outSuffix") : ""}
                     </Text>
                     <Text
                       className={cn("font-black text-[14px]", weak ? "text-attention" : "text-foreground")}
@@ -140,17 +154,17 @@ export default function ClubReviews() {
 
         <View className="flex-row items-center justify-between">
           <Text className="font-bold text-[14px] text-foreground">
-            {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+            {t("clubReviews.count", { count: reviews.length })}
           </Text>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Sorted by ${sortLabels[sortOrder].toLowerCase()}. Tap to change`}
+            accessibilityLabel={t("clubReviews.sortA11y", { order: t(sortLabels[sortOrder]).toLowerCase() })}
             onPress={() => setSortOrder((order) => (order === "recent" ? "helpful" : "recent"))}
             hitSlop={10}
             className="flex-row items-center gap-1"
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
-            <Text className="font-bold text-[13px] text-link">{sortLabels[sortOrder]}</Text>
+            <Text className="font-bold text-[13px] text-link">{t(sortLabels[sortOrder])}</Text>
             <Icon as={ChevronDown} size={14} color="link" />
           </Pressable>
         </View>
@@ -167,11 +181,11 @@ export default function ClubReviews() {
           ))}
           {reviews.length === 0 ? (
             <View className="items-center gap-1 rounded-[20px] border border-line bg-surface p-6">
-              <Text className="font-bold text-[15px] text-foreground">No reviews here yet</Text>
+              <Text className="font-bold text-[15px] text-foreground">{t("clubReviews.emptyTitle")}</Text>
               <Text className="text-center font-normal text-[14px] text-muted">
                 {topic === ALL
-                  ? "Played here? Be the first to write one."
-                  : "No one has written about this yet. Try another topic."}
+                  ? t("clubReviews.emptyAll")
+                  : t("clubReviews.emptyTopic")}
               </Text>
             </View>
           ) : null}
@@ -180,7 +194,7 @@ export default function ClubReviews() {
 
       <Page.Footer className="border-t border-line bg-surface">
         <Button size="lg" onPress={() => setIsRating(true)}>
-          Write a review
+          {t("clubReviews.write")}
         </Button>
       </Page.Footer>
 

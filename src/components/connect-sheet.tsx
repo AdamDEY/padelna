@@ -1,6 +1,7 @@
 import { BottomSheet, Button } from "heroui-native";
 import { Check, Clock } from "lucide-react-native";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -36,11 +37,12 @@ export function ConnectSheet({
   onToggleRequest,
   renderAction,
 }: ConnectSheetProps) {
+  const { t } = useTranslation();
   const winner = post ? winnerIndex(post.sets) : 0;
   const sections = post
     ? [
-        { label: "Winners", players: post.teams[winner] },
-        { label: "Opponents", players: post.teams[1 - winner] },
+        { label: t("connectSheet.winners"), players: post.teams[winner] },
+        { label: t("connectSheet.opponents"), players: post.teams[1 - winner] },
       ]
         .map((section) => ({
           ...section,
@@ -64,7 +66,7 @@ export function ConnectSheet({
               <View className="flex-row items-start justify-between gap-3">
                 <View className="flex-1 gap-0.5">
                   <BottomSheet.Title className="font-black text-[20px] text-foreground">
-                    Players in this match
+                    {t("connectSheet.title")}
                   </BottomSheet.Title>
                   <BottomSheet.Description className="font-normal text-[13px] text-muted">
                     {post.clubName} · {formatMatchDay(post.playedAt)}
@@ -100,8 +102,8 @@ export function ConnectSheet({
               <Text className="rounded-[14px] bg-background px-3 py-2.5 font-normal text-[13px] leading-[19px] text-muted">
                 {/* Real requests can't be cancelled yet; the sample feeds' toggle can */}
                 {renderAction
-                  ? "They’ll see your request and can accept it."
-                  : "They’ll see your request and can accept it. You can cancel a pending request anytime."}
+                  ? t("connectSheet.note")
+                  : t("connectSheet.noteCancel")}
               </Text>
             </>
           ) : null}
@@ -124,11 +126,12 @@ function PlayerRow({
   onToggleRequest: () => void;
   action?: ReactNode;
 }) {
+  const { t } = useTranslation();
   const details = [
-    player.level !== undefined ? `Level ${player.level.toFixed(1)}` : null,
+    player.level !== undefined ? t("connectSheet.level", { level: player.level.toFixed(1) }) : null,
     player.city,
     player.mutualFriendCount
-      ? `${player.mutualFriendCount} mutual ${player.mutualFriendCount === 1 ? "friend" : "friends"}`
+      ? t("connectSheet.mutual", { count: player.mutualFriendCount })
       : null,
   ]
     .filter(Boolean)
@@ -153,11 +156,11 @@ function PlayerRow({
       ) : status === "friends" ? (
         <View
           accessible
-          accessibilityLabel="Already friends"
+          accessibilityLabel={t("connectSheet.alreadyFriends")}
           className="h-9 min-w-24 flex-row items-center justify-center gap-[5px] rounded-xl bg-success-soft px-3"
         >
           <Icon as={Check} size={14} color="success" />
-          <Text className="font-bold text-[13px] text-success">Friends</Text>
+          <Text className="font-bold text-[13px] text-success">{t("connectSheet.friends")}</Text>
         </View>
       ) : (
         <Button
@@ -166,8 +169,8 @@ function PlayerRow({
           onPress={onToggleRequest}
           accessibilityLabel={
             status === "requested"
-              ? `Request sent to ${player.firstName}, tap to cancel`
-              : `Connect with ${player.firstName}`
+              ? t("connectSheet.requestedA11y", { name: player.firstName })
+              : t("connect.connectWith", { name: player.firstName })
           }
           hitSlop={4}
           className="h-9 min-w-24 rounded-xl px-3.5"
@@ -175,10 +178,10 @@ function PlayerRow({
           {status === "requested" ? (
             <>
               <Icon as={Clock} size={14} color="muted" />
-              <Button.Label className="text-[13px] text-muted">Requested</Button.Label>
+              <Button.Label className="text-[13px] text-muted">{t("connectSheet.requested")}</Button.Label>
             </>
           ) : (
-            <Button.Label className="text-[13px]">Connect</Button.Label>
+            <Button.Label className="text-[13px]">{t("connect.connect")}</Button.Label>
           )}
         </Button>
       )}

@@ -1,6 +1,7 @@
 import { cn, Select } from "heroui-native";
 import { ChevronDown, type LucideIcon } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 // Gesture Handler's Pressable and ScrollView also receive touches inside bottom sheets
 import {
@@ -40,6 +41,7 @@ export function Dropdown({
   /** Muted text after the value, e.g. the end time */
   suffix?: string;
 }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -59,8 +61,8 @@ export function Dropdown({
           onPress={() => setIsOpen(true)}
           disabled={isDisabled}
           accessibilityRole="button"
-          accessibilityLabel={`${label}: ${value?.label ?? "not chosen"}`}
-          accessibilityHint="Opens a list to choose from"
+          accessibilityLabel={`${label}: ${value?.label ?? t("dropdown.notChosen")}`}
+          accessibilityHint={t("dropdown.hint")}
           style={{ flex: 1 }}
         >
           <View className="flex-1 flex-row items-center gap-2 rounded-[14px] border border-line-input bg-surface px-3">

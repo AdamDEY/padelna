@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -136,6 +137,7 @@ type PageHeaderProps = {
 };
 
 function PageHeader({ back, closeIcon, title, leading, children, bar }: PageHeaderProps) {
+  const { t } = useTranslation();
   const { variant, underStatusBar } = usePage();
   const insets = useSafeAreaInsets();
   const onBack = typeof back === "function" ? back : () => router.back();
@@ -153,7 +155,7 @@ function PageHeader({ back, closeIcon, title, leading, children, bar }: PageHead
         {back ? (
           <IconButton
             icon={closeIcon ? X : ChevronLeft}
-            label={closeIcon ? "Close" : "Back"}
+            label={closeIcon ? t("common.close") : t("common.back")}
             onPress={onBack}
           />
         ) : null}
