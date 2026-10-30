@@ -1,5 +1,6 @@
 import { BottomSheet, Button } from "heroui-native";
 import { Check, Clock } from "lucide-react-native";
+import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
@@ -15,9 +16,11 @@ type ConnectSheetProps = {
   onClose: () => void;
   /** The signed-in player, left out of the list */
   meId: string;
-  friendIds: Set<string>;
-  requestedIds: Set<string>;
-  onToggleRequest: (playerId: string) => void;
+  friendIds?: Set<string>;
+  requestedIds?: Set<string>;
+  onToggleRequest?: (playerId: string) => void;
+  /** The button for each player; replaces the built-in Connect / Requested / Friends toggle */
+  renderAction?: (player: Player) => ReactNode;
 };
 
 /**
@@ -28,9 +31,10 @@ export function ConnectSheet({
   post,
   onClose,
   meId,
-  friendIds,
-  requestedIds,
+  friendIds = new Set(),
+  requestedIds = new Set(),
   onToggleRequest,
+  renderAction,
 }: ConnectSheetProps) {
   const winner = post ? winnerIndex(post.sets) : 0;
   const sections = post
@@ -40,7 +44,9 @@ export function ConnectSheet({
       ]
         .map((section) => ({
           ...section,
-          players: section.players.filter((player) => player.id !== meId),
+          players: section.players.filter(
+            (player) => player.id !== meId && !player.id.startsWith("guest-"),
+          ),
         }))
         .filter((section) => section.players.length > 0)
     : [];
@@ -84,15 +90,18 @@ export function ConnectSheet({
                             ? "requested"
                             : "none"
                       }
-                      onToggleRequest={() => onToggleRequest(player.id)}
+                      onToggleRequest={() => onToggleRequest?.(player.id)}
+                      action={renderAction?.(player)}
                     />
                   ))}
                 </View>
               ))}
 
               <Text className="rounded-[14px] bg-background px-3 py-2.5 font-normal text-[13px] leading-[19px] text-muted">
-                They’ll see your request and can accept it. You can cancel a pending request
-                anytime.
+                {/* Real requests can't be cancelled yet; the sample feeds' toggle can */}
+                {renderAction
+                  ? "They’ll see your request and can accept it."
+                  : "They’ll see your request and can accept it. You can cancel a pending request anytime."}
               </Text>
             </>
           ) : null}
@@ -108,10 +117,12 @@ function PlayerRow({
   player,
   status,
   onToggleRequest,
+  action,
 }: {
   player: Player;
   status: ConnectionStatus;
   onToggleRequest: () => void;
+  action?: ReactNode;
 }) {
   const details = [
     player.level !== undefined ? `Level ${player.level.toFixed(1)}` : null,
@@ -137,7 +148,9 @@ function PlayerRow({
         ) : null}
       </View>
 
-      {status === "friends" ? (
+      {action ? (
+        action
+      ) : status === "friends" ? (
         <View
           accessible
           accessibilityLabel="Already friends"

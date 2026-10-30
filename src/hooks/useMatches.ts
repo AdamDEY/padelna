@@ -30,12 +30,15 @@ export const pastMatchesKey = [...myMatchesKey, "past"] as const;
 export const openMatchesKey = ["open-matches"] as const;
 export const matchKey = (id: string) => ["match", id] as const;
 export const pendingScoresKey = ["pending-scores"] as const;
+export const friendsFeedKey = ["friends-feed"] as const;
 
 // Everything a match change can touch: the lists and the match itself (or every match)
 export function refreshMatches(matchId?: string) {
   queryClient.invalidateQueries({ queryKey: myMatchesKey });
   queryClient.invalidateQueries({ queryKey: openMatchesKey });
   queryClient.invalidateQueries({ queryKey: pendingScoresKey });
+  // A confirmed score or new photo shows up in the Friends feed
+  queryClient.invalidateQueries({ queryKey: friendsFeedKey });
   queryClient.invalidateQueries({ queryKey: matchId ? matchKey(matchId) : ["match"] });
 }
 
@@ -161,6 +164,8 @@ export function useMatchPhotoUrl(path: string | undefined) {
     queryFn: () => fetchMatchPhotoUrl(path!),
     enabled: path !== undefined,
     staleTime: PHOTO_URL_STALE_MS,
+    // A missing file won't appear on a retry; fall back to the scoreboard quickly
+    retry: 1,
   });
 }
 

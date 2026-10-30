@@ -1,4 +1,4 @@
-import { cn } from "heroui-native";
+import { cn, PressableFeedback } from "heroui-native";
 import { Image } from "expo-image";
 import { ShieldCheck } from "lucide-react-native";
 import type { ReactNode } from "react";
@@ -7,6 +7,7 @@ import { Text, View } from "react-native";
 import { Icon } from "@/components/icon";
 import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
 import { formatMatchDay, formatTimeAgo } from "@/lib/format-date";
+import type { Player } from "@/types/player";
 import type { ResultPost, Team } from "@/types/post";
 
 /** "Youssef B. and Amira K." */
@@ -37,34 +38,57 @@ type ResultPostCardProps = {
   post: ResultPost;
   /** Button on the right of the header, e.g. Connect for players you don't know */
   headerAction?: ReactNode;
+  /** Replaces the default "A and B (won)" title, e.g. told from your side */
+  title?: string;
+  /** Added to the meta line, e.g. "all 4 are your friends" */
+  note?: string;
+  /** Your friends in the match; their team gets a Friend tag under a team photo */
+  friendIds?: Set<string>;
+  /** Tapping a face in the header opens that player */
+  onPlayerPress?: (player: Player) => void;
 };
 
 /**
  * A match result in the Community feed. With a team photo it shows the photo
  * and a light score table; without one, a blue scoreboard carries the card.
  */
-export function ResultPostCard({ post, headerAction }: ResultPostCardProps) {
+export function ResultPostCard({
+  post,
+  headerAction,
+  title: titleOverride,
+  note,
+  friendIds,
+  onPlayerPress,
+}: ResultPostCardProps) {
   const winner = winnerIndex(post.sets);
   const poster = post.teams[0];
   const posterWon = winner === 0;
   const tintIndices = stackTintIndices(poster);
   // Without a photo the scoreboard doesn't show WIN, so the title says it
   const title =
-    !post.photoUri && posterWon ? `${teamFullNames(poster)} won` : teamFullNames(poster);
+    titleOverride ??
+    (post.photoUri === undefined && posterWon ? `${teamFullNames(poster)} won` : teamFullNames(poster));
 
   return (
     <View className="gap-3 rounded-3xl border border-line bg-surface p-3.5">
       <View className="flex-row items-center gap-2.5">
         <View className="flex-row">
           {poster.map((player, index) => (
-            <PlayerAvatar
+            <PressableFeedback
               key={player.id}
-              player={player}
-              size={36}
-              tintIndex={tintIndices[index]}
-              ringClassName="border-surface"
-              className={index > 0 ? "-ms-3" : undefined}
-            />
+              isDisabled={!onPlayerPress || player.id.startsWith("guest-")}
+              onPress={() => onPlayerPress?.(player)}
+              accessibilityRole={onPlayerPress ? "button" : undefined}
+              accessibilityLabel={onPlayerPress ? `${player.firstName}, view profile` : undefined}
+              className={cn("rounded-full", index > 0 && "-ms-3")}
+            >
+              <PlayerAvatar
+                player={player}
+                size={36}
+                tintIndex={tintIndices[index]}
+                ringClassName="border-surface"
+              />
+            </PressableFeedback>
           ))}
         </View>
         <View className="min-w-0 flex-1">
@@ -75,6 +99,7 @@ export function ResultPostCard({ post, headerAction }: ResultPostCardProps) {
             {[
               post.clubName,
               formatTimeAgo(post.postedAt),
+              note,
               post.mutualFriendCount
                 ? `${post.mutualFriendCount} mutual ${post.mutualFriendCount === 1 ? "friend" : "friends"}`
                 : null,
@@ -86,21 +111,23 @@ export function ResultPostCard({ post, headerAction }: ResultPostCardProps) {
         {headerAction}
       </View>
 
-      {post.photoUri ? (
+      {/* An empty photoUri means the photo is still loading: keep its frame, not the scoreboard */}
+      {post.photoUri !== undefined ? (
         <>
           {/* expo-image takes no className; the tinted frame shows while the photo loads */}
           <View className="h-[180px] overflow-hidden rounded-[18px] bg-court-blue">
             <Image
-              source={{ uri: post.photoUri }}
+              source={post.photoUri ? { uri: post.photoUri } : undefined}
               contentFit="cover"
               transition={200}
               accessibilityLabel={`Team photo of ${teamFirstNames(poster)}`}
               style={{ flex: 1 }}
             />
           </View>
-          <ScoreTable post={post} winner={winner} />
+          <ScoreTable post={post} winner={winner} friendIds={friendIds} />
         </>
       ) : (
+        // No Friend tag here: next to three set boxes it would cut the names short
         <Scoreboard post={post} winner={winner} />
       )}
 
@@ -114,7 +141,17 @@ export function ResultPostCard({ post, headerAction }: ResultPostCardProps) {
   );
 }
 
-type ScoreProps = { post: ResultPost; winner: number };
+type ScoreProps = { post: ResultPost; winner: number; friendIds?: Set<string> };
+
+/** Small "Friend" tag after a team's names (design: Community · Friends v2) */
+function FriendTag({ team, friendIds }: { team: Team; friendIds?: Set<string> }) {
+  if (!friendIds || !team.some((player) => friendIds.has(player.id))) return null;
+  return (
+    <Text className="overflow-hidden rounded-lg bg-primary-soft px-1.5 py-0.5 font-bold text-[11px] text-primary-dark">
+      Friend
+    </Text>
+  );
+}
 
 // Friendly results are blue, competitive ones ink, so the two read apart at a glance
 const scoreboardTone = {
@@ -166,7 +203,7 @@ function Scoreboard({ post, winner }: ScoreProps) {
               <Text
                 numberOfLines={1}
                 className={cn(
-                  "flex-1 text-[14px]",
+                  "shrink text-[14px]",
                   isWinner ? "font-black text-accent-foreground" : cn("font-semibold", tone.soft),
                 )}
               >
@@ -211,7 +248,7 @@ function Scoreboard({ post, winner }: ScoreProps) {
 }
 
 /** Light score table under a team photo; winners get a WIN tag, lost sets are muted. */
-function ScoreTable({ post, winner }: ScoreProps) {
+function ScoreTable({ post, winner, friendIds }: ScoreProps) {
   return (
     <View className="gap-1.5 rounded-2xl bg-background p-3">
       {post.teams.map((team, teamIndex) => {
@@ -243,6 +280,7 @@ function ScoreTable({ post, winner }: ScoreProps) {
                   WIN
                 </Text>
               ) : null}
+              <FriendTag team={team} friendIds={friendIds} />
             </View>
             {post.sets.map((set, setIndex) => {
               const wonSet = set[teamIndex] > set[1 - teamIndex];
