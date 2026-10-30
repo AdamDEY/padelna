@@ -5,7 +5,6 @@ import type {
   NextMatch,
   OpenMatch,
   PastMatch,
-  ShareableMatch,
   UpcomingMatch,
 } from "@/types/match";
 import type { Player, PlayerStats } from "@/types/player";
@@ -134,24 +133,6 @@ export const pastMatches: PastMatch[] = [
       [4, 6],
       [5, 7],
     ],
-  },
-];
-
-/** Recent matches you can post from the Community + menu */
-export const shareableMatches: ShareableMatch[] = [
-  {
-    id: "match-share-1",
-    playedAt: inDays(-5, 19),
-    clubName: "Gammarth Padel",
-    players: [players.mehdi, players.sarra],
-    missing: "score",
-  },
-  {
-    id: "match-share-2",
-    playedAt: inDays(-8, 18),
-    clubName: "Lac Padel Arena",
-    players: [players.karim, players.omar],
-    missing: "photo",
   },
 ];
 

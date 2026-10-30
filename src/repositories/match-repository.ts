@@ -11,6 +11,7 @@ import type {
   OpenMatch,
   PastMatch,
   PendingReview,
+  ShareableMatch,
   UpcomingMatch,
 } from "@/types/match";
 import type { Player } from "@/types/player";
@@ -23,6 +24,8 @@ const STILL_PLAYING_MS = 90 * 60_000;
 const SCORE_SAVE_WINDOW_MS = 7 * 86_400_000;
 // How many finished matches My matches lists
 const PAST_MATCH_LIMIT = 30;
+// Matches older than this are too old to post to Community
+const SHAREABLE_DAYS = 30;
 // Match photos are private; their links work this long before the app asks for a new one
 const PHOTO_LINK_SECONDS = 60 * 60;
 const PHOTO_BUCKET = "match-photos";
@@ -344,6 +347,60 @@ export async function fetchMyPendingScores(): Promise<PendingReview[]> {
       return [{ ...base, action: "confirm", closesAt: score.expiresAt }];
     }
     return [];
+  });
+}
+
+/**
+ * Recent matches you hosted that could still make a Community post: the score was never
+ * added (while there is still time to add it), or it was added without a team photo.
+ * Most recent first.
+ */
+export async function fetchMyShareableMatches(): Promise<ShareableMatch[]> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("You’re signed out. Sign in again.");
+
+  const now = Date.now();
+  const { data, error } = await supabase
+    .from("match_players")
+    .select(`matches!inner(${MATCH_SELECT})`)
+    .eq("player_id", user.id)
+    .eq("matches.host_id", user.id)
+    .eq("matches.status", "open")
+    .gte("matches.starts_at", new Date(now - SHAREABLE_DAYS * 86_400_000).toISOString())
+    .lte("matches.starts_at", new Date(now - STILL_PLAYING_MS).toISOString());
+  if (error) throw error;
+
+  const rows = (data as unknown as { matches: MatchRow }[])
+    .map((row) => row.matches)
+    .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
+  const cards = await fetchPlayerCards(rows);
+
+  return rows.flatMap((row): ShareableMatch[] => {
+    const match = toMatchDetails(row, cards);
+    // A match that never had 4 players wasn't played
+    if (!match.isFull) return [];
+
+    const endsAt = match.startsAt.getTime() + match.durationMinutes * 60_000;
+    const { score } = match;
+    let missing: ShareableMatch["missing"];
+    if (!score) {
+      if (now >= endsAt + SCORE_SAVE_WINDOW_MS) return [];
+      missing = "score";
+    } else if (score.status !== "expired" && !score.photoPath) {
+      missing = "photo";
+    } else {
+      return [];
+    }
+
+    return [
+      {
+        id: match.id,
+        playedAt: match.startsAt,
+        clubName: match.clubName || t("match.yourMatch"),
+        players: match.players.filter((player) => player.id !== user.id),
+        missing,
+      },
+    ];
   });
 }
 

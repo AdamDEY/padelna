@@ -487,8 +487,9 @@ export const fr: Messages = {
     addScore: "Ajouter le score",
     noPhoto: "Score enregistré · pas de photo",
     addPhoto: "Ajouter une photo",
-    addingScore: "Ajout d’un score",
-    addingPhoto: "Ajout d’une photo",
+    nothingToPost: "Aucun match récent à publier. Les matchs que tu organises apparaissent ici tant qu’ils n’ont pas de score et de photo d’équipe.",
+    photoAdded: "Photo ajoutée",
+    photoFailed: "Impossible d’ajouter la photo",
     logging: "Ajout d’un match",
   },
 

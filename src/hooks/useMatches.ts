@@ -11,6 +11,7 @@ import {
   fetchMatchPhotoUrl,
   fetchMyPastMatches,
   fetchMyPendingScores,
+  fetchMyShareableMatches,
   fetchMyUpcomingMatches,
   fetchOpenMatches,
   joinMatch,
@@ -29,6 +30,8 @@ export const myMatchesKey = ["my-matches"] as const;
 export const pastMatchesKey = [...myMatchesKey, "past"] as const;
 export const openMatchesKey = ["open-matches"] as const;
 export const matchKey = (id: string) => ["match", id] as const;
+// Under myMatchesKey too: a new score or photo changes what can still be shared
+export const shareableMatchesKey = [...myMatchesKey, "shareable"] as const;
 export const pendingScoresKey = ["pending-scores"] as const;
 export const friendsFeedKey = ["friends-feed"] as const;
 
@@ -126,6 +129,15 @@ export function useMyPastMatches() {
     queryKey: pastMatchesKey,
     queryFn: fetchMyPastMatches,
     refetchInterval: SAFETY_REFETCH_MS,
+  });
+}
+
+/** Recent matches you hosted that still lack a score or a team photo, for the Community + menu. */
+export function useShareableMatches(enabled = true) {
+  return useQuery({
+    queryKey: shareableMatchesKey,
+    queryFn: fetchMyShareableMatches,
+    enabled,
   });
 }
 

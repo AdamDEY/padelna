@@ -482,8 +482,9 @@ export const en = {
     addScore: "Add score",
     noPhoto: "Score saved · no photo",
     addPhoto: "Add photo",
-    addingScore: "Adding a score",
-    addingPhoto: "Adding a photo",
+    nothingToPost: "No recent matches to post. Matches you host show up here until they have a score and a team photo.",
+    photoAdded: "Photo added",
+    photoFailed: "Couldn’t add the photo",
     logging: "Logging a match",
   },
 
