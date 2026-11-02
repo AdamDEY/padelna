@@ -101,7 +101,15 @@ export default function Profile() {
     },
     // The design leaves Reviews out until the first one arrives
     ...(noStats ? [] : [{ label: t("profile.reviews"), value: String(profile.reviewCount) }]),
-    { label: t("profile.friends"), value: noStats ? String(friendCount) : String(profile.friendCount) },
+    {
+      label: t("profile.friends"),
+      // The real count, from your connections; the profile's own number is still mock
+      value: String(friendCount),
+      onPress: () =>
+        friendCount === 0
+          ? toast.show({ label: t("friends.lockedTitle"), description: t("friends.lockedText") })
+          : router.push("/friends"),
+    },
     { label: t("profile.aboutMe") },
   ];
 

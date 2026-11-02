@@ -27,6 +27,14 @@ export type DiscoverPlayer = PlayerSuggestion & {
   joinedAt: Date;
 };
 
+/** A player you're connected to, with your history together */
+export type Friend = PlayerSuggestion & {
+  /** Full matches you've both played in */
+  matchesTogether: number;
+  lastPlayedAt?: Date;
+  connectedAt: Date;
+};
+
 /** What the player preview and full profile show beyond the card */
 export type PlayerDetails = {
   side: "left" | "right" | "both";

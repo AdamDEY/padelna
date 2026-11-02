@@ -53,6 +53,11 @@ export function formatMonthName(date: Date, now = new Date()) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
+/** "19 Oct" */
+export function formatDayMonth(date: Date) {
+  return new Intl.DateTimeFormat(dateLocale(), { day: "numeric", month: "short" }).format(date);
+}
+
 /** "Sat 25" */
 export function formatWeekdayDay(date: Date) {
   return `${formatWeekday(date)} ${date.getDate()}`;
