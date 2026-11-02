@@ -65,13 +65,16 @@ export type ShareableMatch = {
   missing: "score" | "photo";
 };
 
-/** A finished match waiting for you: the host adds its score, the other team confirms it */
+/**
+ * A finished match waiting for you: the host adds its score, the other team confirms it,
+ * and once there is a score everyone rates the other players.
+ */
 export type PendingReview = {
   matchId: string;
   playedAt: Date;
   clubName: string;
-  action: "add" | "confirm";
-  /** Last moment to add or confirm the score */
+  action: "add" | "confirm" | "rate";
+  /** Last moment to add or confirm the score, or to rate the players */
   closesAt: Date;
 };
 
@@ -88,6 +91,8 @@ export type MatchScore = {
   submittedTeam: 1 | 2;
   /** When a pending score expires */
   expiresAt: Date;
+  /** When the other team confirmed it; rating closes a few days later */
+  confirmedAt?: Date;
   /** Storage path of the team photo the host added; shown through a signed URL */
   photoPath?: string;
 };
@@ -121,4 +126,6 @@ export type MatchDetails = {
   isFull?: boolean;
   /** Once the host has sent one */
   score?: MatchScore;
+  /** Database matches only: who rated this match. Ratings are anonymous, so players only see themselves here. */
+  ratedBy?: string[];
 };

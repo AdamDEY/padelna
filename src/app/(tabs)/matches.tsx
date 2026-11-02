@@ -203,7 +203,9 @@ function MyMatches() {
           key={review.matchId}
           review={review}
           onPress={() =>
-            router.push({ pathname: "/match/[id]", params: { id: review.matchId } })
+            review.action === "rate"
+              ? router.push({ pathname: "/match/[id]/rate", params: { id: review.matchId } })
+              : router.push({ pathname: "/match/[id]", params: { id: review.matchId } })
           }
         />
       ))}

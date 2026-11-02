@@ -1,5 +1,5 @@
 import { PressableFeedback } from "heroui-native";
-import { ChevronRight, ShieldCheck, Trophy } from "lucide-react-native";
+import { ChevronRight, ShieldCheck, Star, Trophy } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
@@ -15,9 +15,10 @@ type RateResultBannerProps = {
 const copy = {
   add: { title: "reviewBanner.add", icon: Trophy },
   confirm: { title: "reviewBanner.confirm", icon: ShieldCheck },
+  rate: { title: "reviewBanner.rate", icon: Star },
 } as const;
 
-/** Peach reminder that a finished match's score is waiting for you to add or confirm. */
+/** Peach reminder that a finished match is waiting for you: add or confirm its score, or rate the players. */
 export function RateResultBanner({ review, onPress }: RateResultBannerProps) {
   const { t } = useTranslation();
   const daysLeft = Math.max(daysUntil(review.closesAt), 0);

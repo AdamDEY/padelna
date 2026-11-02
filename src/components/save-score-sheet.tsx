@@ -64,13 +64,15 @@ type SaveScoreSheetProps = {
   mode: Mode;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  /** After the score is sent, e.g. to go on to rating the players */
+  onSaved?: () => void;
 };
 
 /**
  * "Match finished!" sheet where the score is typed set by set (design: Match finished ·
  * save score). One player from the other team then confirms it.
  */
-export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: SaveScoreSheetProps) {
+export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange, onSaved }: SaveScoreSheetProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const submitScore = useSubmitScore();
@@ -138,6 +140,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
           description: (error as Error).message,
         });
         onOpenChange(false);
+        onSaved?.();
         return;
       }
     }
@@ -148,6 +151,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange }: Save
       description: t("scoreSheet.sentText"),
     });
     onOpenChange(false);
+    onSaved?.();
   }
 
   return (

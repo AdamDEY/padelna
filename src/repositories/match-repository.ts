@@ -4,6 +4,7 @@ import { t } from "i18next";
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
 import { teamOf, winningTeam, type SetScore } from "@/lib/padel-score";
+import { guestId, isRatingOpen, playersToRate, ratingClosesAt, type PlayerRating } from "@/lib/player-rating";
 import type {
   MatchDetails,
   MatchScore,
@@ -38,7 +39,8 @@ const MATCH_SELECT = `
   players_needed, price, note, status,
   court:courts(number, club:clubs(id, name)),
   match_players(seat, player_id),
-  score:match_scores(team1_games, team2_games, status, submitted_by, submitted_team, expires_at, photo_path)
+  score:match_scores(team1_games, team2_games, status, submitted_by, submitted_team, expires_at, confirmed_at, photo_path),
+  ratings:player_ratings(rater_id)
 `;
 
 type MatchRow = {
@@ -57,6 +59,8 @@ type MatchRow = {
   match_players: { seat: number; player_id: string }[];
   // One-to-one, so PostgREST embeds an object (or null), not a list
   score: ScoreRow | null;
+  // Only the ratings you gave are readable, one row per player you rated
+  ratings: { rater_id: string }[];
 };
 
 type ScoreRow = {
@@ -66,6 +70,7 @@ type ScoreRow = {
   submitted_by: string;
   submitted_team: 1 | 2;
   expires_at: string;
+  confirmed_at: string | null;
   photo_path: string | null;
 };
 
@@ -284,6 +289,19 @@ export async function fetchMatchPhotoUrl(path: string) {
   return data.signedUrl;
 }
 
+/**
+ * Rates the other players in a finished match, all at once; ratings are anonymous and final.
+ * Throws with a readable message when it can't.
+ */
+export async function submitRatings(matchId: string, ratings: PlayerRating[]) {
+  const { error } = await supabase.rpc("submit_ratings", {
+    p_match_id: matchId,
+    p_player_ids: ratings.map((item) => item.playerId),
+    p_ratings: ratings.map((item) => item.rating),
+  });
+  if (error) throw error;
+}
+
 /** Confirms the score the other team sent. */
 export async function confirmScore(matchId: string) {
   const { error } = await supabase.rpc("confirm_score", { p_match_id: matchId });
@@ -291,8 +309,9 @@ export async function confirmScore(matchId: string) {
 }
 
 /**
- * Finished matches where it's your turn: you host one with no score yet, or the other
- * team sent a score you can confirm. Most recent first.
+ * Finished matches where it's your turn: you host one with no score yet, the other
+ * team sent a score you can confirm, or there's a score and you haven't rated the
+ * other players yet. Most recent first.
  */
 export async function fetchMyPendingScores(): Promise<PendingReview[]> {
   const user = await getCurrentUser();
@@ -327,6 +346,9 @@ export async function fetchMyPendingScores(): Promise<PendingReview[]> {
     }
     if (score.status === "pending" && teamOf(match, user.id) !== score.submittedTeam) {
       return [{ ...base, action: "confirm", closesAt: score.expiresAt }];
+    }
+    if (isRatingOpen(match, user.id, new Date(now)) && playersToRate(match, user.id).length > 0) {
+      return [{ ...base, action: "rate", closesAt: ratingClosesAt(score) }];
     }
     return [];
   });
@@ -502,7 +524,7 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     const taken = row.match_players.find((item) => item.seat === seat);
     if (taken) return cards.get(taken.player_id);
     if (seat > 1 && seat <= guestSeats) {
-      return { id: `guest-${row.id}-${seat}`, firstName: t("match.guest"), lastName: "" };
+      return { id: guestId(row.id, seat), firstName: t("match.guest"), lastName: "" };
     }
     return undefined;
   });
@@ -527,6 +549,7 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     // The host and their guests, plus one row per player who joined
     isFull: row.match_players.length === row.players_needed + 1,
     score: row.score ? toMatchScore(row.score) : undefined,
+    ratedBy: [...new Set(row.ratings.map((rating) => rating.rater_id))],
   };
 }
 
@@ -539,6 +562,7 @@ function toMatchScore(row: ScoreRow): MatchScore {
     submittedBy: row.submitted_by,
     submittedTeam: row.submitted_team,
     expiresAt,
+    confirmedAt: row.confirmed_at ? new Date(row.confirmed_at) : undefined,
     photoPath: row.photo_path ?? undefined,
   };
 }
