@@ -549,9 +549,9 @@ export const fr: Messages = {
     loading: "Chargement du fil",
     loadingMore: "Chargement…",
     showOlder: "Voir les résultats plus anciens",
-    emptyFriendsTitle: "Pas encore de résultat",
-    emptyFriendsText:
-      "Quand toi ou tes amis terminez un match et que les deux équipes confirment le score, il apparaît ici.",
+    emptyFriendsTitle: "Les matchs de tes amis apparaissent ici",
+    emptyFriendsText: "Connecte-toi à des joueurs pour suivre leurs résultats.",
+    meanwhileTitle: "Pendant ce temps en Tunisie",
     emptyTitle: "Pas encore de résultat ici",
     emptyText: "Les matchs joués ici apparaîtront quand les joueurs les partageront.",
     allMyClubs: "Tous mes clubs",

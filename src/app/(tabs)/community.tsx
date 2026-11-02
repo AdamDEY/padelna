@@ -7,6 +7,7 @@ import { Text, View } from "react-native";
 import { ChoiceChips } from "@/components/choice-chips";
 import { ConnectButton } from "@/components/connect-button";
 import { ClubsWeekBanner } from "@/components/clubs-week-banner";
+import { FriendsNewPlayer } from "@/components/community-friends-new-player";
 import { ConnectSheet } from "@/components/connect-sheet";
 import { IconButton } from "@/components/icon-button";
 import { Page, usePageMargins } from "@/components/page";
@@ -82,7 +83,9 @@ export default function Community() {
 
         <FeedTabs value={feed} onChange={setFeed} />
 
-        {feed === "friends" ? <FriendsFeed /> : null}
+        {feed === "friends" ? (
+          <FriendsFeed onSeeAllTunisia={() => setFeed("tunisia")} onConnectPost={setConnectPost} />
+        ) : null}
         {feed === "clubs" ? <ClubsFeed onConnect={setConnectPost} /> : null}
         {feed === "tunisia" ? <TunisiaFeed onConnect={setConnectPost} /> : null}
       </Page.Body>
@@ -131,7 +134,12 @@ function FeedTabs({ value, onChange }: { value: Feed; onChange: (feed: Feed) => 
   );
 }
 
-function FriendsFeed() {
+type FriendsFeedProps = {
+  onSeeAllTunisia: () => void;
+  onConnectPost: (post: ResultPost) => void;
+};
+
+function FriendsFeed({ onSeeAllTunisia, onConnectPost }: FriendsFeedProps) {
   const { t } = useTranslation();
   const { data: account } = useMyAccount();
   const { data, error, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -155,14 +163,14 @@ function FriendsFeed() {
     );
   }
   if (!matches || !account) return <Spinner accessibilityLabel={t("community.loading")} className="self-start" />;
+  // Nothing to show yet: what this tab is for, and people to connect with
   if (matches.length === 0) {
     return (
-      <View className="items-center gap-1 rounded-3xl border border-line bg-surface p-6">
-        <Text className="font-bold text-[15px] text-foreground">{t("community.emptyFriendsTitle")}</Text>
-        <Text className="text-center font-normal text-[14px] text-muted">
-          {t("community.emptyFriendsText")}
-        </Text>
-      </View>
+      <FriendsNewPlayer
+        me={{ id: account.id, firstName: account.firstName, lastName: account.lastName, avatarUrl: account.avatarUrl }}
+        onSeeAllTunisia={onSeeAllTunisia}
+        onConnectPost={onConnectPost}
+      />
     );
   }
 
