@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router";
 import { Clock, Heart } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Linking, Platform, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { CourtHero } from "@/components/court-hero";
 import { IconButton } from "@/components/icon-button";
@@ -18,31 +18,10 @@ import { useUpcomingOpenMatches } from "@/hooks/useMatches";
 import { translateLabel } from "@/i18n";
 import { shouldSkipBookingNotice } from "@/lib/booking-notice";
 import { formatDistance, formatPhone, todaysHours } from "@/lib/club";
-import type { ClubCard } from "@/types/club";
+import { showDirections } from "@/lib/directions";
 
 // How far the white sheet slides up over the photo
 const SHEET_OVERLAP = 34;
-
-function openDirections(club: ClubCard) {
-  const hasPin = club.latitude !== undefined && club.longitude !== undefined;
-  const label = encodeURIComponent(club.name);
-  const place = encodeURIComponent(`${club.name}, ${club.address || `${club.area}, ${club.city}`}`);
-  const url = hasPin
-    ? Platform.OS === "ios"
-      ? `https://maps.apple.com/?ll=${club.latitude},${club.longitude}&q=${label}`
-      : `geo:${club.latitude},${club.longitude}?q=${club.latitude},${club.longitude}(${label})`
-    : Platform.OS === "ios"
-      ? `https://maps.apple.com/?q=${place}`
-      : `geo:0,0?q=${place}`;
-  Linking.openURL(url).catch(() => {
-    // No maps app; fall back to the web
-    Linking.openURL(
-      hasPin
-        ? `https://www.google.com/maps/search/?api=1&query=${club.latitude},${club.longitude}`
-        : `https://www.google.com/maps/search/?api=1&query=${place}`,
-    );
-  });
-}
 
 export default function ClubDetail() {
   const { t } = useTranslation();
@@ -195,7 +174,7 @@ export default function ClubDetail() {
         <Button
           size="lg"
           variant="secondary"
-          onPress={() => openDirections(club)}
+          onPress={() => showDirections(club)}
           className="flex-1"
         >
           {t("clubDetail.directions")}

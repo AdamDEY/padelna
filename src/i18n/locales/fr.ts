@@ -259,6 +259,12 @@ export const fr: Messages = {
     joinRight: "Rejoindre l’équipe {{team}} · côté droit",
     pickSpot: "Choisis une place pour rejoindre",
   },
+  directions: {
+    title: "Ouvrir l’itinéraire dans…",
+    appleMaps: "Plans",
+    googleMaps: "Google Maps",
+    cancel: "Annuler",
+  },
   myMatch: {
     title: "Ton match",
     hosting: "Organisateur",
