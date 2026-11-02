@@ -111,6 +111,8 @@ function toMessage(push: ClaimedPush) {
     title: text.title,
     body: text.body,
     sound: "default",
+    // Android: the app's own channel (src/lib/push-notifications.ts), not Expo's "Miscellaneous" one
+    channelId: "default",
     // The app opens this route when the push is tapped
     data: { url: push.url },
   };
