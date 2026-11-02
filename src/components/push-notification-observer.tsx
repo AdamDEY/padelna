@@ -2,6 +2,7 @@ import { router, usePathname, type Href } from "expo-router";
 import * as Notifications from "expo-notifications";
 import i18n from "i18next";
 import { useEffect } from "react";
+import { AppState } from "react-native";
 
 import { registerThisPhone } from "@/hooks/usePushNotifications";
 
@@ -38,12 +39,19 @@ export function PushNotificationObserver() {
     currentPath = pathname;
   }, [pathname]);
 
-  // Saved again on every launch and language change, so the token and push language stay current
+  // Saved on every launch, language change and return to the app (pushes may have just been
+  // turned on in the phone's Settings), so the token and push language stay current
   useEffect(() => {
     const register = () => registerThisPhone().catch((error) => console.warn("Push token not saved", error));
     register();
     i18n.on("languageChanged", register);
-    return () => i18n.off("languageChanged", register);
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") register();
+    });
+    return () => {
+      i18n.off("languageChanged", register);
+      subscription.remove();
+    };
   }, []);
 
   // The tap that opened the app, or one while it's running
