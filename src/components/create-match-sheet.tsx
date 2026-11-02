@@ -64,6 +64,15 @@ function defaultStart() {
   return date;
 }
 
+/** The default start, moved to `day` at 18:00 when that isn't today */
+function startOn(day?: Date) {
+  const start = defaultStart();
+  if (!day || daysUntil(day, start) === 0) return start;
+  const next = new Date(day);
+  next.setHours(18, 0, 0, 0);
+  return next;
+}
+
 /** Half a level either side of the host, as a starting point */
 function defaultLevelRange(level: number): [number, number] {
   return [Math.max(MIN_LEVEL, level - 0.5), Math.min(MAX_LEVEL, level + 0.5)];
@@ -74,6 +83,8 @@ type CreateMatchSheetProps = {
   onOpenChange: (open: boolean) => void;
   /** Club to preselect (e.g. from a club page); the host can still change it */
   initialClubName?: string;
+  /** Day to preselect (e.g. the day open on Matches); the host can still change it */
+  initialDate?: Date;
 };
 
 /**
@@ -81,7 +92,12 @@ type CreateMatchSheetProps = {
  * court you pick the club and court; without one, a note says to add them once
  * booked. The match type explains whether the result counts toward your level.
  */
-export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: CreateMatchSheetProps) {
+export function CreateMatchSheet({
+  isOpen,
+  onOpenChange,
+  initialClubName,
+  initialDate,
+}: CreateMatchSheetProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const accent = useCSSVariable("--color-accent") as string;
@@ -99,7 +115,9 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
   const club =
     pickedClub ?? (initialClub ? { value: initialClub.id, label: initialClub.name } : undefined);
   const [court, setCourt] = useState<Option | undefined>();
-  const [startsAt, setStartsAt] = useState(defaultStart);
+  // Until the host picks a day or time, the start follows `initialDate`
+  const [pickedStart, setStartsAt] = useState<Date>();
+  const startsAt = pickedStart ?? startOn(initialDate);
   // Until the host moves the slider, the range follows their level (which may load after the sheet)
   const [pickedRange, setLevelRange] = useState<[number, number]>();
   const levelRange = pickedRange ?? defaultLevelRange(myLevel);
@@ -128,7 +146,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
       setIsBooked(true);
       setClub(undefined);
       setCourt(undefined);
-      setStartsAt(defaultStart());
+      setStartsAt(undefined);
       setLevelRange(undefined);
       setKind("friendly");
       setPlayersNeeded(2);

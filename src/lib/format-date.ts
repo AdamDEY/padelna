@@ -44,6 +44,11 @@ export function formatWeekday(date: Date) {
   return formattersFor(dateLocale()).weekday.format(date);
 }
 
+/** "Sat 25" */
+export function formatWeekdayDay(date: Date) {
+  return `${formatWeekday(date)} ${date.getDate()}`;
+}
+
 /** "Saturday 25 October" */
 export function formatFullDate(date: Date) {
   return formattersFor(dateLocale()).fullDate.format(date);
