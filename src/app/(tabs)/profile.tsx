@@ -1,13 +1,14 @@
 import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { Button, cn, PressableFeedback, Spinner } from "heroui-native";
-import { BarChart3, ChevronRight } from "lucide-react-native";
+import { ChevronRight } from "lucide-react-native";
 import { Fragment, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/icon";
+import { NewPlayerCards } from "@/components/new-player-cards";
 import { LevelChart } from "@/components/level-chart";
 import { Page } from "@/components/page";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
@@ -16,11 +17,14 @@ import { ProfileHero } from "@/components/profile-hero";
 import { WinRateBars } from "@/components/win-rate-bars";
 import { useMyPastMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
+import { usePlayerDetails } from "@/hooks/usePlayers";
 
 export default function Profile() {
   const { t } = useTranslation();
   const { data: profile, error, refetch, isRefetching } = useMyProfile();
   const { data: pastMatches } = useMyPastMatches();
+  // The profile's own friend count is mock, so ask for the real one
+  const friendCount = usePlayerDetails(profile?.player.id).data?.friendCount ?? 0;
 
   const insets = useSafeAreaInsets();
   // White status bar text while the blue header is behind it; dark once it scrolls away
@@ -86,10 +90,11 @@ export default function Profile() {
   const links = [
     {
       label: t("profile.matchHistory"),
-      value: noStats ? undefined : t("profile.matchesCount", { count: profile.matchesPlayed }),
+      value: t("profile.matchesCount", { count: noStats ? 0 : profile.matchesPlayed }),
     },
-    { label: t("profile.reviews"), value: noStats ? undefined : String(profile.reviewCount) },
-    { label: t("profile.friends"), value: noStats ? undefined : String(profile.friendCount) },
+    // The design leaves Reviews out until the first one arrives
+    ...(noStats ? [] : [{ label: t("profile.reviews"), value: String(profile.reviewCount) }]),
+    { label: t("profile.friends"), value: noStats ? String(friendCount) : String(profile.friendCount) },
     { label: t("profile.aboutMe") },
   ];
 
@@ -100,11 +105,14 @@ export default function Profile() {
           <ProfileHero
             profile={profile}
             hasPlayed={!noStats}
+            friendCount={friendCount}
             onPressSettings={() => router.push("/settings")}
           />
         </View>
 
-        {noStats ? null : (
+        {noStats ? (
+          <NewPlayerCards friendCount={friendCount} levelLabel={profile.level.toFixed(1)} />
+        ) : (
           <Card>
             <View className="flex-row items-baseline justify-between">
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
@@ -182,18 +190,6 @@ export default function Profile() {
             </View>
           </Card>
           </Fragment>
-        ) : noStats ? (
-          <Card className="items-center gap-2 py-6">
-            <View className="size-12 items-center justify-center rounded-full bg-primary-soft">
-              <Icon as={BarChart3} size={24} color="primary-dark" />
-            </View>
-            <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-              {t("profile.statsSoonTitle")}
-            </Text>
-            <Text className="text-center font-normal text-[14px] leading-5 text-muted">
-              {t("profile.statsSoonBody")}
-            </Text>
-          </Card>
         ) : null}
 
         <Card className="gap-0 py-0">
