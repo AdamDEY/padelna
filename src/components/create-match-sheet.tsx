@@ -6,10 +6,10 @@ import {
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { router } from "expo-router";
 import { BottomSheet, Button, cn, Slider, useToast } from "heroui-native";
-import { Check, Clock, Info, MapPin, Minus, Plus, Trophy } from "lucide-react-native";
+import { CalendarDays, Check, Clock, Info, MapPin, Minus, Plus, Trophy } from "lucide-react-native";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 // Gesture Handler's Pressable: React Native's doesn't get taps inside the sheet
 import { Pressable as GesturePressable } from "react-native-gesture-handler";
 import { useCSSVariable } from "uniwind";
@@ -273,20 +273,13 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
 
             <View className="flex-row gap-2.5">
               <Field label={t("createMatch.date")} className="flex-1">
-                <PickerBox>
-                  <DateTimePicker
-                    value={startsAt}
-                    mode="date"
-                    display="compact"
-                    locale={dateLocale()}
-                    minimumDate={now}
-                    maximumDate={lastDay}
-                    accentColor={accent}
-                    themeVariant="light"
-                    onValueChange={(_, date) => setDay(date)}
-                    onChange={(_, date) => date && setDay(date)}
-                  />
-                </PickerBox>
+                <DateField
+                  value={startsAt}
+                  minimumDate={now}
+                  maximumDate={lastDay}
+                  accentColor={accent}
+                  onChange={setDay}
+                />
               </Field>
               <Field
                 label={t("createMatch.time")}
@@ -417,9 +410,69 @@ function Field({
   );
 }
 
+type DateFieldProps = {
+  value: Date;
+  minimumDate: Date;
+  maximumDate: Date;
+  accentColor: string;
+  onChange: (date: Date) => void;
+};
+
 /**
- * Field box around the native date picker. iOS shows its compact picker
- * inside; Android opens the system dialog from it.
+ * Date field. iOS shows its compact picker inside the box. On Android the picker is a dialog
+ * that opens the moment it is mounted, so it is only mounted while the player is choosing a date.
+ */
+function DateField({ value, minimumDate, maximumDate, accentColor, onChange }: DateFieldProps) {
+  const [isPicking, setIsPicking] = useState(false);
+
+  if (Platform.OS !== "android") {
+    return (
+      <PickerBox>
+        <DateTimePicker
+          value={value}
+          mode="date"
+          display="compact"
+          locale={dateLocale()}
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
+          accentColor={accentColor}
+          themeVariant="light"
+          onValueChange={(_, date) => onChange(date)}
+          onChange={(_, date) => date && onChange(date)}
+        />
+      </PickerBox>
+    );
+  }
+
+  return (
+    <>
+      <GesturePressable onPress={() => setIsPicking(true)} accessibilityRole="button">
+        <PickerBox>
+          <Icon as={CalendarDays} size={18} color="accent" />
+          <Text className="font-semibold text-[15px] text-foreground">{formatMatchDay(value)}</Text>
+        </PickerBox>
+      </GesturePressable>
+      {isPicking ? (
+        <DateTimePicker
+          value={value}
+          mode="date"
+          presentation="dialog"
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
+          accentColor={accentColor}
+          onValueChange={(_, date) => {
+            setIsPicking(false);
+            onChange(date);
+          }}
+          onDismiss={() => setIsPicking(false)}
+        />
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * Field box around the native date picker (or the button that opens it on Android).
  */
 function PickerBox({ children }: { children: ReactNode }) {
   return (
