@@ -13,6 +13,7 @@ import { PlayerSheet } from "@/components/player-sheet";
 import { SaveScoreSheet } from "@/components/save-score-sheet";
 import { SettingsRow, SettingsSection } from "@/components/settings-section";
 import { useClubs } from "@/hooks/useClubs";
+import { useMatchChatUnreadCount } from "@/hooks/useMatchChat";
 import { useCancelMatch, useConfirmScore, useLeaveMatch } from "@/hooks/useMatches";
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { InfoNote } from "@/components/info-note";
@@ -53,6 +54,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const confirmScore = useConfirmScore();
   const { data: account } = useMyAccount();
   const { data: clubs = [] } = useClubs();
+  const { data: unreadMessages = 0 } = useMatchChatUnreadCount(match.id);
   const isHost = role === "host";
   const [now, setNow] = useState(() => new Date());
   const [scoreSheet, setScoreSheet] = useState<"add" | "correct" | "edit">();
@@ -299,25 +301,21 @@ export function MyMatch({ match, role }: MyMatchProps) {
           </InfoNote>
         ) : null}
 
-        {!isOver ? (
         <View className="flex-row gap-2.5">
-          <ActionTile
-            icon={MapPin}
-            label={t("myMatch.directions")}
-            onPress={openDirections}
-          />
-          <ActionTile
-            icon={CalendarDays}
-            label={t("myMatch.calendar")}
-            onPress={chooseCalendar}
-          />
+          {!isOver ? (
+            <>
+              <ActionTile icon={MapPin} label={t("myMatch.directions")} onPress={openDirections} />
+              <ActionTile icon={CalendarDays} label={t("myMatch.calendar")} onPress={chooseCalendar} />
+            </>
+          ) : null}
+          {/* The chat stays open after the match, e.g. to sort out the score or play again */}
           <ActionTile
             icon={MessageSquare}
             label={t("myMatch.groupChat")}
-            onPress={() => comingSoon(t("myMatch.groupChat"))}
+            showDot={unreadMessages > 0}
+            onPress={() => router.push({ pathname: "/match/[id]/chat", params: { id: match.id } })}
           />
         </View>
-        ) : null}
 
         <View className="gap-3 rounded-[20px] border border-line bg-surface p-3.5">
           <View className="flex-row items-baseline justify-between">
@@ -481,20 +479,27 @@ function ScoreSection({ match, myId, hostName, canAdd, isTooLateToAdd }: ScoreSe
 function ActionTile({
   icon,
   label,
+  showDot,
   onPress,
 }: {
   icon: LucideIcon;
   label: string;
+  /** Orange unread dot, e.g. new chat messages */
+  showDot?: boolean;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <PressableFeedback
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={showDot ? t("common.unread", { label }) : label}
       className="h-16 flex-1 items-center justify-center gap-1 rounded-2xl border border-line bg-surface"
     >
-      <Icon as={icon} size={20} color="accent" />
+      <View>
+        <Icon as={icon} size={20} color="accent" />
+        {showDot ? <View className="absolute -end-1 -top-0.5 size-2 rounded-full bg-dot" /> : null}
+      </View>
       <Text className="font-bold text-[12px] text-foreground">{label}</Text>
     </PressableFeedback>
   );

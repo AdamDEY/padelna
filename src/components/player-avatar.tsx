@@ -39,6 +39,11 @@ export function stackTintIndices(players: Player[]) {
   return indices;
 }
 
+/** Text colour of the player's avatar tint, e.g. for their name above a chat message */
+export function tintTextClassFor(player: Player) {
+  return tints[tintIndexFor(player)].fg;
+}
+
 /** "Sami B." */
 export function shortNameOf(player: Player) {
   return `${player.firstName} ${player.lastName.charAt(0)}.`;
