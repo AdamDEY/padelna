@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import { ClubRow } from "@/components/club-row";
 import { ConnectionRequestsBanner } from "@/components/connection-requests-banner";
@@ -11,6 +11,7 @@ import { CreateMatchSheet } from "@/components/create-match-sheet";
 import { HomeHeader } from "@/components/home-header";
 import { NextMatchCard } from "@/components/next-match-card";
 import { OpenMatchCard } from "@/components/open-match-card";
+import { OpenMatchesEmptyCard } from "@/components/open-matches-empty-card";
 import { Page } from "@/components/page";
 import { ScoreReminder } from "@/components/score-reminder";
 import { SectionHeader } from "@/components/section-header";
@@ -59,6 +60,9 @@ export default function Home() {
     [openMatches, level],
   );
 
+  // Nothing suits the level: the card below replaces the carousel and the floating button
+  const hasNoOpenMatches = openMatches !== undefined && matchesForYou.length === 0;
+
   return (
     <Page>
       <Page.Fixed>
@@ -85,7 +89,7 @@ export default function Home() {
           <SectionHeader
             title={t("home.openMatchesTitle")}
             subtitle={t("home.aroundYourLevel", { level: level.toFixed(1) })}
-            actionLabel={t("common.seeAll")}
+            actionLabel={hasNoOpenMatches ? undefined : t("common.seeAll")}
           />
           <Page.Carousel itemWidth={OPEN_MATCH_CARD_WIDTH}>
             {matchesForYou.map((match) => (
@@ -98,10 +102,12 @@ export default function Home() {
               />
             ))}
           </Page.Carousel>
-          {openMatches !== undefined && matchesForYou.length === 0 ? (
-            <Text className="font-normal text-[14px] text-muted">
-              {t("home.noOpenMatches")}
-            </Text>
+          {hasNoOpenMatches ? (
+            <OpenMatchesEmptyCard
+              player={profile?.player}
+              level={level}
+              onCreate={() => setIsCreating(true)}
+            />
           ) : null}
         </View>
 
@@ -122,7 +128,7 @@ export default function Home() {
         <View style={{ height: FLOATING_BUTTON_SPACE }} />
       </Page.Body>
 
-      <CreateMatchButton onPress={() => setIsCreating(true)} />
+      {hasNoOpenMatches ? null : <CreateMatchButton onPress={() => setIsCreating(true)} />}
       <CreateMatchSheet isOpen={isCreating} onOpenChange={setIsCreating} />
       <ConnectionRequestsSheet
         requests={requests}

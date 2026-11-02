@@ -65,7 +65,9 @@ export const fr: Messages = {
     youLevel: "Toi, niveau {{level}}",
     openMatchesTitle: "Matchs ouverts pour toi",
     aroundYourLevel: "Autour de ton niveau {{level}}",
-    noOpenMatches: "Aucun match ouvert cette semaine. Crée-en un et invite des joueurs.",
+    noOpenMatchesTitle: "Sois le premier à ouvrir un match",
+    noOpenMatchesBody: "Personne autour de {{level}} n’a encore publié de match. Choisis une heure et nous préviendrons les joueurs de ton niveau.",
+    createMatchAction: "Créer un match",
     clubsNearby: "Clubs près de chez toi",
     clubs: "Clubs",
     nextMatch: {
