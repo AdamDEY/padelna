@@ -44,6 +44,15 @@ export function formatWeekday(date: Date) {
   return formattersFor(dateLocale()).weekday.format(date);
 }
 
+/** "October", or "October 2025" for another year */
+export function formatMonthName(date: Date, now = new Date()) {
+  const name = new Intl.DateTimeFormat(dateLocale(), {
+    month: "long",
+    ...(date.getFullYear() === now.getFullYear() ? {} : { year: "numeric" as const }),
+  }).format(date);
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 /** "Sat 25" */
 export function formatWeekdayDay(date: Date) {
   return `${formatWeekday(date)} ${date.getDate()}`;

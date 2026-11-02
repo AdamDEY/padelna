@@ -75,6 +75,7 @@ export default function RootLayout() {
             <Stack.Protected guard={isReady}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="settings" />
+              <Stack.Screen name="match-history" />
               <Stack.Screen name="clubs" />
               <Stack.Screen name="club/[id]/index" />
               <Stack.Screen name="match/[id]/index" />
