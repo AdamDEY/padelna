@@ -9,6 +9,7 @@ import {
   fetchPlayerDetails,
   fetchPlayedWith,
   fetchPlayersAtMyClubs,
+  removeConnection,
   requestConnection,
   respondToConnection,
   searchPlayers,
@@ -59,6 +60,10 @@ export function useSearchPlayers(query: string) {
 
 export function useRequestConnection() {
   return useMutation({ mutationFn: requestConnection, onSettled: refreshPlayers });
+}
+
+export function useRemoveConnection() {
+  return useMutation({ mutationFn: removeConnection, onSettled: refreshPlayers });
 }
 
 export function useRespondToConnection() {
