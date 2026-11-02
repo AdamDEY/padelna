@@ -1,8 +1,8 @@
 import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { Button, cn, PressableFeedback, Spinner } from "heroui-native";
-import { ChevronRight } from "lucide-react-native";
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { BarChart3, ChevronRight } from "lucide-react-native";
+import { Fragment, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,11 +14,13 @@ import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { translateLabel } from "@/i18n";
 import { ProfileHero } from "@/components/profile-hero";
 import { WinRateBars } from "@/components/win-rate-bars";
+import { useMyPastMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
 
 export default function Profile() {
   const { t } = useTranslation();
   const { data: profile, error, refetch, isRefetching } = useMyProfile();
+  const { data: pastMatches } = useMyPastMatches();
 
   const insets = useSafeAreaInsets();
   // White status bar text while the blue header is behind it; dark once it scrolls away
@@ -76,10 +78,18 @@ export default function Profile() {
   const latest = profile.levelHistory[profile.levelHistory.length - 1];
   const levelChange = latest && first ? latest.level - first.level : 0;
 
+  // The profile's numbers are still mock, so "played" comes from the real past matches.
+  // Win rates, partners and reputation only make sense once one has been played.
+  const hasStats = pastMatches !== undefined && pastMatches.length > 0;
+  const noStats = pastMatches !== undefined && pastMatches.length === 0;
+
   const links = [
-    { label: t("profile.matchHistory"), value: t("profile.matchesCount", { count: profile.matchesPlayed }) },
-    { label: t("profile.reviews"), value: String(profile.reviewCount) },
-    { label: t("profile.friends"), value: String(profile.friendCount) },
+    {
+      label: t("profile.matchHistory"),
+      value: noStats ? undefined : t("profile.matchesCount", { count: profile.matchesPlayed }),
+    },
+    { label: t("profile.reviews"), value: noStats ? undefined : String(profile.reviewCount) },
+    { label: t("profile.friends"), value: noStats ? undefined : String(profile.friendCount) },
     { label: t("profile.aboutMe") },
   ];
 
@@ -87,82 +97,104 @@ export default function Profile() {
     <Page underStatusBar>
       <Page.Body className="gap-[18px] px-0" onScrollY={handleScroll}>
         <View onLayout={(event) => (heroHeight.current = event.nativeEvent.layout.height)}>
-          <ProfileHero profile={profile} onPressSettings={() => router.push("/settings")} />
+          <ProfileHero
+            profile={profile}
+            hasPlayed={!noStats}
+            onPressSettings={() => router.push("/settings")}
+          />
         </View>
 
-        <Card>
-          <View className="flex-row items-baseline justify-between">
-            <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-              {t("profile.levelOverTime")}
-            </Text>
-            {levelChange > 0 ? (
-              <Text className="font-bold text-[13px] text-success">
-                {t("profile.levelUp", {
-                  change: levelChange.toFixed(1),
-                  count: profile.levelHistory.length,
-                })}
+        {noStats ? null : (
+          <Card>
+            <View className="flex-row items-baseline justify-between">
+              <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
+                {t("profile.levelOverTime")}
               </Text>
-            ) : null}
-          </View>
-          <LevelChart points={profile.levelHistory} />
-        </Card>
+              {levelChange > 0 ? (
+                <Text className="font-bold text-[13px] text-success">
+                  {t("profile.levelUp", {
+                    change: levelChange.toFixed(1),
+                    count: profile.levelHistory.length,
+                  })}
+                </Text>
+              ) : null}
+            </View>
+            <LevelChart points={profile.levelHistory} />
+          </Card>
+        )}
 
-        <Card className="gap-3.5">
-          <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-            {t("profile.whereYouWin")}
-          </Text>
-          <WinRateBars groups={profile.winRates} />
-        </Card>
-
-        <Card>
-          <View className="flex-row items-baseline justify-between">
+        {hasStats ? (
+          <Fragment>
+          <Card className="gap-3.5">
             <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-              {t("profile.bestPartners")}
+              {t("profile.whereYouWin")}
             </Text>
-            <Text className="font-normal text-[12px] text-muted">{t("profile.winRateTogether")}</Text>
-          </View>
-          {profile.bestPartners.map(({ player, matches, wins }) => {
-            const rate = Math.round((wins / matches) * 100);
-            return (
-              <PressableFeedback
-                key={player.id}
-                accessibilityRole="button"
-                accessibilityLabel={t("profile.partnerA11y", {
-                  name: shortNameOf(player),
-                  matches: t("profile.matchesCount", { count: matches }),
-                  wins: t("profile.winsCount", { count: wins }),
-                  rate,
-                })}
-                className="flex-row items-center gap-3"
-              >
-                <PlayerAvatar player={player} size={40} />
-                <View className="flex-1">
-                  <Text className="font-bold text-[15px] text-foreground">{shortNameOf(player)}</Text>
-                  <Text className="font-normal text-[12px] text-muted">
-                    {t("profile.matchesCount", { count: matches })} · {t("profile.winsCount", { count: wins })}
-                  </Text>
-                </View>
-                <Text className="font-black text-[15px] text-accent">{rate}%</Text>
-              </PressableFeedback>
-            );
-          })}
-        </Card>
+            <WinRateBars groups={profile.winRates} />
+          </Card>
 
-        <Card className="gap-2.5">
-          <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
-            {t("playerSheet.whatPlayersSay")}
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {profile.reputationTags.map((tag) => (
-              <Text
-                key={tag.label}
-                className="overflow-hidden rounded-[14px] bg-primary-soft px-3 py-[7px] font-bold text-[13px] text-primary-dark"
-              >
-                {translateLabel("tags", tag.label)} · {tag.count}
+          <Card>
+            <View className="flex-row items-baseline justify-between">
+              <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
+                {t("profile.bestPartners")}
               </Text>
-            ))}
-          </View>
-        </Card>
+              <Text className="font-normal text-[12px] text-muted">{t("profile.winRateTogether")}</Text>
+            </View>
+            {profile.bestPartners.map(({ player, matches, wins }) => {
+              const rate = Math.round((wins / matches) * 100);
+              return (
+                <PressableFeedback
+                  key={player.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("profile.partnerA11y", {
+                    name: shortNameOf(player),
+                    matches: t("profile.matchesCount", { count: matches }),
+                    wins: t("profile.winsCount", { count: wins }),
+                    rate,
+                  })}
+                  className="flex-row items-center gap-3"
+                >
+                  <PlayerAvatar player={player} size={40} />
+                  <View className="flex-1">
+                    <Text className="font-bold text-[15px] text-foreground">{shortNameOf(player)}</Text>
+                    <Text className="font-normal text-[12px] text-muted">
+                      {t("profile.matchesCount", { count: matches })} · {t("profile.winsCount", { count: wins })}
+                    </Text>
+                  </View>
+                  <Text className="font-black text-[15px] text-accent">{rate}%</Text>
+                </PressableFeedback>
+              );
+            })}
+          </Card>
+
+          <Card className="gap-2.5">
+            <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
+              {t("playerSheet.whatPlayersSay")}
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              {profile.reputationTags.map((tag) => (
+                <Text
+                  key={tag.label}
+                  className="overflow-hidden rounded-[14px] bg-primary-soft px-3 py-[7px] font-bold text-[13px] text-primary-dark"
+                >
+                  {translateLabel("tags", tag.label)} · {tag.count}
+                </Text>
+              ))}
+            </View>
+          </Card>
+          </Fragment>
+        ) : noStats ? (
+          <Card className="items-center gap-2 py-6">
+            <View className="size-12 items-center justify-center rounded-full bg-primary-soft">
+              <Icon as={BarChart3} size={24} color="primary-dark" />
+            </View>
+            <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
+              {t("profile.statsSoonTitle")}
+            </Text>
+            <Text className="text-center font-normal text-[14px] leading-5 text-muted">
+              {t("profile.statsSoonBody")}
+            </Text>
+          </Card>
+        ) : null}
 
         <Card className="gap-0 py-0">
           {links.map((link, index) => (
