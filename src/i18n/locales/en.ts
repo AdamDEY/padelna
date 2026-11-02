@@ -545,9 +545,9 @@ export const en = {
     loading: "Loading the feed",
     loadingMore: "Loading…",
     showOlder: "Show older results",
-    emptyFriendsTitle: "No results yet",
-    emptyFriendsText:
-      "Once you or your friends finish a match and both teams confirm the score, it shows up here.",
+    emptyFriendsTitle: "Your friends’ matches show up here",
+    emptyFriendsText: "Connect with players to follow their results.",
+    meanwhileTitle: "Meanwhile in Tunisia",
     emptyTitle: "No results here yet",
     emptyText: "Matches played here will show up once players share them.",
     allMyClubs: "All my clubs",
