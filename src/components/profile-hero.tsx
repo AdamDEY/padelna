@@ -12,6 +12,8 @@ import type { PlayerProfile } from "@/types/profile";
 
 const RING_SIZE = 104;
 const RING_STROKE = 9;
+// A dashed ring until there is a match to measure progress from
+const RING_DASHES = "6 6";
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2 - 3.5;
 
 const sideKeys = {
@@ -26,10 +28,12 @@ type ProfileHeroProps = {
   onPressFriends?: () => void;
   /** False until a first match is played: the stats, progress and review count are left out */
   hasPlayed?: boolean;
+  /** Real friend count; the profile's own is still mock */
+  friendCount?: number;
 };
 
 /** Blue profile header: who you are, your level ring with progress, and headline stats. */
-export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlayed = true }: ProfileHeroProps) {
+export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlayed = true, friendCount }: ProfileHeroProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const lime = useCSSVariable("--color-lime") as string;
@@ -45,8 +49,21 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlaye
     { value: String(profile.matchesPlayed), label: t("profile.played") },
     { value: `${profile.winRate}%`, label: t("profile.winRate") },
     { value: streak, label: t("profile.streak") },
-    { value: String(profile.friendCount), label: t("profile.friends"), onPress: onPressFriends },
+    {
+      value: String(friendCount ?? profile.friendCount),
+      label: t("profile.friends"),
+      onPress: onPressFriends,
+    },
   ];
+  // New players have no results yet, so only "Played" and "Friends" carry a number
+  const shownStats = hasPlayed
+    ? stats
+    : [
+        { ...stats[0], value: "0" },
+        { ...stats[1], value: "–", dim: true },
+        { ...stats[2], value: "–", dim: true },
+        stats[3],
+      ];
 
   return (
     <View
@@ -104,18 +121,21 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlaye
               fill="none"
               stroke="rgba(255,255,255,0.18)"
               strokeWidth={RING_STROKE}
+              strokeDasharray={hasPlayed ? undefined : RING_DASHES}
             />
-            <Circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_RADIUS}
-              fill="none"
-              stroke={lime}
-              strokeWidth={RING_STROKE}
-              strokeLinecap="round"
-              strokeDasharray={`${circumference * profile.progressToNext} ${circumference}`}
-              transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
-            />
+            {hasPlayed ? (
+              <Circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={RING_RADIUS}
+                fill="none"
+                stroke={lime}
+                strokeWidth={RING_STROKE}
+                strokeLinecap="round"
+                strokeDasharray={`${circumference * profile.progressToNext} ${circumference}`}
+                transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+              />
+            ) : null}
           </Svg>
           <View className="absolute inset-0 items-center justify-center">
             <Text className="font-black text-[32px] leading-[34px] text-accent-foreground">
@@ -145,31 +165,34 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlaye
           </View>
         ) : (
           <View className="flex-1 gap-1.5">
-            <Text className="font-black text-[16px] text-accent-foreground">{t("profile.newPlayerTitle")}</Text>
+            <Text className="self-start overflow-hidden rounded-[10px] bg-lime px-2.5 py-1 font-bold text-[12px] text-lime-foreground">
+              {t("profile.startingLevel")}
+            </Text>
+            <Text className="font-black text-[16px] text-accent-foreground">{t("profile.welcome")}</Text>
             <Text className="font-normal text-[13px] leading-[18px] text-primary-tint-text">
-              {t("profile.newPlayerHint")}
+              {t("profile.welcomeHint")}
             </Text>
           </View>
         )}
       </View>
 
-      {hasPlayed ? (
-        <View className="flex-row rounded-[18px] bg-white/10 py-3">
-          {stats.map((stat, index) => (
-            <Pressable
-              key={stat.label}
-              disabled={!stat.onPress}
-              onPress={stat.onPress}
-              accessibilityRole={stat.onPress ? "button" : undefined}
-              accessibilityLabel={`${stat.value} ${stat.label}`}
-              className={cn("flex-1 items-center", index > 0 && "border-s border-white/20")}
-            >
-              <Text className="font-black text-[19px] text-accent-foreground">{stat.value}</Text>
-              <Text className="font-normal text-[11px] text-primary-tint-text">{stat.label}</Text>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
+      <View className="flex-row rounded-[18px] bg-white/10 py-3">
+        {shownStats.map((stat, index) => (
+          <Pressable
+            key={stat.label}
+            disabled={!stat.onPress}
+            onPress={stat.onPress}
+            accessibilityRole={stat.onPress ? "button" : undefined}
+            accessibilityLabel={`${stat.value} ${stat.label}`}
+            className={cn("flex-1 items-center", index > 0 && "border-s border-white/20")}
+          >
+            <Text className={cn("font-black text-[19px] text-accent-foreground", "dim" in stat && "opacity-50")}>
+              {stat.value}
+            </Text>
+            <Text className="font-normal text-[11px] text-primary-tint-text">{stat.label}</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
