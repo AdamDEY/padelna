@@ -24,10 +24,12 @@ type ProfileHeroProps = {
   profile: PlayerProfile;
   onPressSettings?: () => void;
   onPressFriends?: () => void;
+  /** False until a first match is played: the stats, progress and review count are left out */
+  hasPlayed?: boolean;
 };
 
 /** Blue profile header: who you are, your level ring with progress, and headline stats. */
-export function ProfileHero({ profile, onPressSettings, onPressFriends }: ProfileHeroProps) {
+export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlayed = true }: ProfileHeroProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const lime = useCSSVariable("--color-lime") as string;
@@ -123,40 +125,51 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends }: Profil
           </View>
         </View>
 
-        <View className="flex-1 gap-1.5">
-          <Text className="font-black text-[16px] text-accent-foreground">
-            {t("profile.progress", { percent, next: nextLevel.toFixed(1) })}
-          </Text>
-          <Text className="font-normal text-[13px] leading-[18px] text-primary-tint-text">
-            {t("profile.hint", {
-              wins: profile.nextLevelHint.wins,
-              level: profile.nextLevelHint.opponentLevel.toFixed(1),
-            })}
-          </Text>
-          <Text className="self-start overflow-hidden rounded-[10px] bg-white/15 px-2.5 py-1 font-bold text-[12px] text-accent-foreground">
-            {t("profile.basedOn", {
-              matches: t("profile.matchesCount", { count: profile.matchesPlayed }),
-              reviews: t("profile.reviewsCount", { count: profile.reviewCount }),
-            })}
-          </Text>
-        </View>
+        {hasPlayed ? (
+          <View className="flex-1 gap-1.5">
+            <Text className="font-black text-[16px] text-accent-foreground">
+              {t("profile.progress", { percent, next: nextLevel.toFixed(1) })}
+            </Text>
+            <Text className="font-normal text-[13px] leading-[18px] text-primary-tint-text">
+              {t("profile.hint", {
+                wins: profile.nextLevelHint.wins,
+                level: profile.nextLevelHint.opponentLevel.toFixed(1),
+              })}
+            </Text>
+            <Text className="self-start overflow-hidden rounded-[10px] bg-white/15 px-2.5 py-1 font-bold text-[12px] text-accent-foreground">
+              {t("profile.basedOn", {
+                matches: t("profile.matchesCount", { count: profile.matchesPlayed }),
+                reviews: t("profile.reviewsCount", { count: profile.reviewCount }),
+              })}
+            </Text>
+          </View>
+        ) : (
+          <View className="flex-1 gap-1.5">
+            <Text className="font-black text-[16px] text-accent-foreground">{t("profile.newPlayerTitle")}</Text>
+            <Text className="font-normal text-[13px] leading-[18px] text-primary-tint-text">
+              {t("profile.newPlayerHint")}
+            </Text>
+          </View>
+        )}
       </View>
 
-      <View className="flex-row rounded-[18px] bg-white/10 py-3">
-        {stats.map((stat, index) => (
-          <Pressable
-            key={stat.label}
-            disabled={!stat.onPress}
-            onPress={stat.onPress}
-            accessibilityRole={stat.onPress ? "button" : undefined}
-            accessibilityLabel={`${stat.value} ${stat.label}`}
-            className={cn("flex-1 items-center", index > 0 && "border-s border-white/20")}
-          >
-            <Text className="font-black text-[19px] text-accent-foreground">{stat.value}</Text>
-            <Text className="font-normal text-[11px] text-primary-tint-text">{stat.label}</Text>
-          </Pressable>
-        ))}
-      </View>
+      {hasPlayed ? (
+        <View className="flex-row rounded-[18px] bg-white/10 py-3">
+          {stats.map((stat, index) => (
+            <Pressable
+              key={stat.label}
+              disabled={!stat.onPress}
+              onPress={stat.onPress}
+              accessibilityRole={stat.onPress ? "button" : undefined}
+              accessibilityLabel={`${stat.value} ${stat.label}`}
+              className={cn("flex-1 items-center", index > 0 && "border-s border-white/20")}
+            >
+              <Text className="font-black text-[19px] text-accent-foreground">{stat.value}</Text>
+              <Text className="font-normal text-[11px] text-primary-tint-text">{stat.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }
