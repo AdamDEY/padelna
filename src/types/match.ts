@@ -52,6 +52,10 @@ export type PastMatch = {
   /** "unconfirmed": a score was sent but the other team hasn't agreed; "none": no score counts */
   result: "won" | "lost" | "unconfirmed" | "none";
   sets: [number, number][];
+  kind: "friendly" | "competitive";
+  /** The player on your team, when there is one */
+  partner?: Player;
+  opponents: Player[];
 };
 
 /** A match you played through the app that you can still share to Community */

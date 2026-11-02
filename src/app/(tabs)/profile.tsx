@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
-import { Button, cn, PressableFeedback, Spinner } from "heroui-native";
+import { Button, cn, PressableFeedback, Spinner, useToast } from "heroui-native";
 import { ChevronRight } from "lucide-react-native";
 import { Fragment, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,14 +15,16 @@ import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { translateLabel } from "@/i18n";
 import { ProfileHero } from "@/components/profile-hero";
 import { WinRateBars } from "@/components/win-rate-bars";
-import { useMyPastMatches } from "@/hooks/useMatches";
+import { useMatchHistory, useMyPastMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { usePlayerDetails } from "@/hooks/usePlayers";
 
 export default function Profile() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { data: profile, error, refetch, isRefetching } = useMyProfile();
   const { data: pastMatches } = useMyPastMatches();
+  const { data: history } = useMatchHistory();
   // The profile's own friend count is mock, so ask for the real one
   const friendCount = usePlayerDetails(profile?.player.id).data?.friendCount ?? 0;
 
@@ -90,7 +92,12 @@ export default function Profile() {
   const links = [
     {
       label: t("profile.matchHistory"),
-      value: t("profile.matchesCount", { count: noStats ? 0 : profile.matchesPlayed }),
+      // The history screen counts the real matches; the profile's own number is still mock
+      value: t("profile.matchesCount", { count: noStats ? 0 : (history?.length ?? profile.matchesPlayed) }),
+      onPress: () =>
+        noStats
+          ? toast.show({ label: t("profile.historyLockedTitle"), description: t("profile.historyLockedText") })
+          : router.push("/match-history"),
     },
     // The design leaves Reviews out until the first one arrives
     ...(noStats ? [] : [{ label: t("profile.reviews"), value: String(profile.reviewCount) }]),
@@ -197,6 +204,7 @@ export default function Profile() {
             <PressableFeedback
               key={link.label}
               accessibilityRole="button"
+              onPress={link.onPress}
               accessibilityLabel={link.value ? `${link.label}, ${link.value}` : link.label}
               className={cn(
                 "h-[50px] flex-row items-center justify-between",

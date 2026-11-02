@@ -409,7 +409,7 @@ export async function fetchMyShareableMatches(): Promise<ShareableMatch[]> {
 }
 
 /** Matches you played that are over and had all 4 players, most recent first. */
-export async function fetchMyPastMatches(): Promise<PastMatch[]> {
+export async function fetchMyPastMatches(limit = PAST_MATCH_LIMIT): Promise<PastMatch[]> {
   const user = await getCurrentUser();
   if (!user) throw new Error("You’re signed out. Sign in again.");
 
@@ -424,7 +424,7 @@ export async function fetchMyPastMatches(): Promise<PastMatch[]> {
   const rows = (data as unknown as { matches: MatchRow }[])
     .map((row) => row.matches)
     .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
-    .slice(0, PAST_MATCH_LIMIT);
+    .slice(0, limit);
   const cards = await fetchPlayerCards(rows);
 
   return rows.flatMap((row): PastMatch[] => {
@@ -443,12 +443,19 @@ export async function fetchMyPastMatches(): Promise<PastMatch[]> {
           : winner === myTeam
             ? "won"
             : "lost";
+    // Seats 1–2 are team 1, seats 3–4 team 2
+    const seats = match.seats ?? [];
+    const mySeats = myTeam === 2 ? seats.slice(2) : seats.slice(0, 2);
+    const theirSeats = myTeam === 2 ? seats.slice(0, 2) : seats.slice(2);
     return [
       {
         id: match.id,
         playedAt: match.startsAt,
         clubName: match.clubName || t("match.courtNotBooked"),
         courtName: match.courtName,
+        kind: match.kind,
+        partner: mySeats.find((player) => player !== undefined && player.id !== user.id),
+        opponents: theirSeats.filter((player): player is Player => player !== undefined),
         result,
         // Shown from your side: your games first
         sets:

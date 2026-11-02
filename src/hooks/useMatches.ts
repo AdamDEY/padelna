@@ -137,7 +137,19 @@ export function useLeaveMatch() {
 export function useMyPastMatches() {
   return useQuery({
     queryKey: pastMatchesKey,
-    queryFn: fetchMyPastMatches,
+    queryFn: () => fetchMyPastMatches(),
+    refetchInterval: SAFETY_REFETCH_MS,
+  });
+}
+
+// The history screen lists everything you played, not just the latest few
+const HISTORY_LIMIT = 500;
+
+/** Every match you played that is over, most recent first, for Match history. */
+export function useMatchHistory() {
+  return useQuery({
+    queryKey: [...pastMatchesKey, "history"],
+    queryFn: () => fetchMyPastMatches(HISTORY_LIMIT),
     refetchInterval: SAFETY_REFETCH_MS,
   });
 }
