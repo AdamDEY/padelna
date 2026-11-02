@@ -3,7 +3,7 @@ import { Button, PressableFeedback, useToast } from "heroui-native";
 import { CalendarDays, Check, Clock, MapPin, MessageSquare, Trophy, Users } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Text, View } from "react-native";
+import { ActionSheetIOS, Alert, Linking, Platform, Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
 import { MatchLineUp } from "@/components/match-line-up";
@@ -15,6 +15,7 @@ import { SettingsRow, SettingsSection } from "@/components/settings-section";
 import { useCancelMatch, useConfirmScore, useLeaveMatch } from "@/hooks/useMatches";
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { InfoNote } from "@/components/info-note";
+import { addToCalendar, googleCalendarUrl, outlookCalendarUrl, type CalendarEventDetails } from "@/lib/add-to-calendar";
 import { formatMatchDay, formatStartsIn } from "@/lib/format-date";
 import { teamOf } from "@/lib/padel-score";
 import type { MatchDetails } from "@/types/match";
@@ -85,9 +86,73 @@ export function MyMatch({ match, role }: MyMatchProps) {
     .filter(Boolean)
     .join(" · ");
 
-  // These need chat, maps and calendar support, or the player-management API
+  // These need chat and maps support, or the player-management API
   function comingSoon(label: string) {
     toast.show({ label, description: t("myMatch.comingSoon") });
+  }
+
+  const calendarEvent: CalendarEventDetails = {
+    title: `${t("myMatch.calendarEventTitle")}${match.clubName ? ` · ${match.clubName}` : ""}`,
+    startsAt: match.startsAt,
+    endsAt,
+    location: match.isCourtBooked ? place : undefined,
+    notes: details,
+  };
+
+  async function addToPhoneCalendar() {
+    try {
+      const result = await addToCalendar(calendarEvent);
+      if (!result.granted) {
+        toast.show({ variant: "danger", label: t("myMatch.calendar"), description: t("myMatch.calendarDenied") });
+      } else if (result.saved) {
+        toast.show({
+          variant: "success",
+          label: t("myMatch.calendarAdded"),
+          description: t("myMatch.calendarHint"),
+        });
+      }
+    } catch (error) {
+      toast.show({
+        variant: "danger",
+        label: t("myMatch.calendarFailed"),
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
+
+  // The event is a one-time copy, so remind the player to fix it if the match changes
+  function openCalendarLink(url: string) {
+    Linking.openURL(url).then(
+      () => toast.show({ label: t("myMatch.calendarHint") }),
+      (error: Error) =>
+        toast.show({ variant: "danger", label: t("myMatch.calendarFailed"), description: error.message }),
+    );
+  }
+
+  function chooseCalendar() {
+    const options = [
+      { label: t("myMatch.calendarPhone"), run: addToPhoneCalendar },
+      { label: t("myMatch.calendarGoogle"), run: () => openCalendarLink(googleCalendarUrl(calendarEvent)) },
+      { label: t("myMatch.calendarOutlook"), run: () => openCalendarLink(outlookCalendarUrl(calendarEvent)) },
+    ];
+    if (Platform.OS === "ios") {
+      // A native action sheet fits four rows; Alert on Android takes three buttons at most
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: t("myMatch.calendarChoose"),
+          options: [...options.map((option) => option.label), t("myMatch.calendarCancel")],
+          cancelButtonIndex: options.length,
+        },
+        (index) => options[index]?.run(),
+      );
+    } else {
+      Alert.alert(
+        t("myMatch.calendarChoose"),
+        undefined,
+        options.map((option) => ({ text: option.label, onPress: option.run })),
+        { cancelable: true },
+      );
+    }
   }
 
   function confirmLeave() {
@@ -220,7 +285,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
           <ActionTile
             icon={CalendarDays}
             label={t("myMatch.calendar")}
-            onPress={() => comingSoon(t("myMatch.calendar"))}
+            onPress={chooseCalendar}
           />
           <ActionTile
             icon={MessageSquare}
