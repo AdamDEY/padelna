@@ -20,7 +20,8 @@ import { InfoNote } from "@/components/info-note";
 import { SegmentedControl } from "@/components/segmented-control";
 import { myLevel as placeholderLevel } from "@/data/mock";
 import { useMyProfile } from "@/hooks/useMyProfile";
-import { useClubs, useCreateMatch } from "@/hooks/useMatches";
+import { useBookableClubs } from "@/hooks/useClubs";
+import { useCreateMatch } from "@/hooks/useMatches";
 import { dateLocale, daysUntil, formatMatchDay } from "@/lib/format-date";
 
 // Room the pinned Publish button takes, so the last field can scroll above it
@@ -83,7 +84,7 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
   const { t } = useTranslation();
   const { toast } = useToast();
   const accent = useCSSVariable("--color-accent") as string;
-  const { data: clubs = [] } = useClubs();
+  const clubs = useBookableClubs();
   const { data: profile } = useMyProfile();
   const createMatch = useCreateMatch();
   const myLevel = profile?.level ?? placeholderLevel;

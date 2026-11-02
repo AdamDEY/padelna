@@ -14,8 +14,9 @@ import { OpenMatchCard } from "@/components/open-match-card";
 import { Page } from "@/components/page";
 import { ScoreReminder } from "@/components/score-reminder";
 import { SectionHeader } from "@/components/section-header";
-import { clubsNearby, myLevel } from "@/data/mock";
+import { myLevel } from "@/data/mock";
 import { myMatchesKey, openMatchesKey, useHomeOpenMatches, useMyUpcomingMatches } from "@/hooks/useMatches";
+import { useNearbyClubs } from "@/hooks/useClubs";
 import { connectionRequestsKey, useConnectionRequests } from "@/hooks/usePlayers";
 import { myProfileKey, useMyProfile } from "@/hooks/useMyProfile";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
@@ -48,6 +49,7 @@ export default function Home() {
   const nextMatch = upcoming?.[0];
 
   const { data: openMatches } = useHomeOpenMatches();
+  const { clubs: nearbyClubs, hasDistances } = useNearbyClubs();
   // Open matches that suit your level, soonest first
   const matchesForYou = useMemo(
     () =>
@@ -105,11 +107,11 @@ export default function Home() {
 
         <View className="gap-2.5">
           <SectionHeader
-            title={t("home.clubsNearby")}
+            title={t(hasDistances ? "home.clubsNearby" : "home.clubs")}
             actionLabel={t("common.seeAll")}
             onPressAction={() => router.push("/clubs")}
           />
-          {clubsNearby.map((club) => (
+          {nearbyClubs.map((club) => (
             <ClubRow
               key={club.id}
               club={club}

@@ -5,18 +5,19 @@ import { Text, View } from "react-native";
 
 import { CourtPlaceholder } from "@/components/court-placeholder";
 import { Icon } from "@/components/icon";
-import type { Club } from "@/types/club";
+import { formatDistance } from "@/lib/club";
+import type { ClubCard } from "@/types/club";
 
 type ClubRowProps = {
-  club: Club;
+  club: ClubCard;
   onPress?: () => void;
 };
 
-/** A club in a list: court thumbnail, name, distance, courts and open matches. */
+/** A club in a list: court thumbnail, name, distance (or area), courts and open matches. */
 export function ClubRow({ club, onPress }: ClubRowProps) {
   const { t } = useTranslation();
   const details = [
-    `${club.distanceKm.toFixed(1)} km`,
+    club.distanceKm === undefined ? club.area : formatDistance(club.distanceKm),
     t("club.courts", { count: club.courtCount }),
     t("club.openMatches", { count: club.openMatchCount }),
   ].join(" · ");

@@ -14,6 +14,8 @@ export type NextMatch = {
 export type OpenMatch = {
   id: string;
   startsAt: Date;
+  /** Set once the host has booked a court */
+  clubId?: string;
   clubName: string;
   durationMinutes: number;
   levelMin: number;

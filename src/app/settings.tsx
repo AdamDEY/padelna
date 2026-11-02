@@ -31,7 +31,9 @@ import {
 } from "@/components/settings-section";
 import type { Hand, PlayStyle, Side } from "@/components/setup-game-step";
 import { LANGUAGE_NAMES, LANGUAGES, setLanguage, type Language } from "@/i18n";
-import { allClubs, cities, me, myAccount, myClubNames, myProfile, upcomingMatches } from "@/data/mock";
+import { cities, me, myAccount, myProfile, upcomingMatches } from "@/data/mock";
+import { useClubs } from "@/hooks/useClubs";
+import { useMyClubs } from "@/hooks/usePlayers";
 import { myProfileKey, useMyAccount } from "@/hooks/useMyProfile";
 import { queryClient } from "@/lib/query-client";
 import { deleteOwnAccount, signOut } from "@/repositories/auth-repository";
@@ -103,7 +105,11 @@ function SettingsForm({ account }: { account: MyAccount }) {
   const [hand, setHand] = useState<Hand>(account.hand);
   const [side, setSide] = useState<Side>(account.side);
   const [playStyle, setPlayStyle] = useState<PlayStyle>(account.playStyle);
-  const [clubs, setClubs] = useState(myClubNames);
+  const { data: myClubs = [] } = useMyClubs();
+  const { data: allClubs = [] } = useClubs();
+  // Until you add or remove one, the list is the clubs you've played at
+  const [editedClubs, setEditedClubs] = useState<string[]>();
+  const clubs = editedClubs ?? myClubs.map((club) => club.name);
   const [notifications, setNotifications] = useState(myAccount.notifications);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -315,12 +321,15 @@ function SettingsForm({ account }: { account: MyAccount }) {
                 <ClubChip
                   key={club}
                   name={club}
-                  onRemove={() => setClubs((current) => current.filter((name) => name !== club))}
+                  onRemove={() => setEditedClubs(clubs.filter((name) => name !== club))}
                 />
               ))}
               <AddClubButton
-                options={allClubs.map((club) => club.name).filter((name) => !clubs.includes(name))}
-                onAdd={(name) => setClubs((current) => [...current, name])}
+                options={allClubs
+                  .filter((club) => club.status === "published")
+                  .map((club) => club.name)
+                  .filter((name) => !clubs.includes(name))}
+                onAdd={(name) => setEditedClubs([...clubs, name])}
               />
             </View>
           </View>

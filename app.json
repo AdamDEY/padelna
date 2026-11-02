@@ -53,6 +53,12 @@
       ],
       "expo-localization",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Padelna uses your location to show how far each club is from you."
+        }
+      ],
+      [
         "expo-calendar",
         {
           "writeOnlyAccess": true,

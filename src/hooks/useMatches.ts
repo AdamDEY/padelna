@@ -6,7 +6,6 @@ import {
   cancelMatch,
   confirmScore,
   createMatch,
-  fetchClubs,
   fetchMatch,
   fetchMatchPhotoUrl,
   fetchMyPastMatches,
@@ -24,7 +23,6 @@ import {
 // the lists also reload now and then while they are on screen
 const SAFETY_REFETCH_MS = 30_000;
 
-export const clubsKey = ["clubs"] as const;
 export const myMatchesKey = ["my-matches"] as const;
 // Under myMatchesKey, so anything that reloads your matches reloads your history too
 export const pastMatchesKey = [...myMatchesKey, "past"] as const;
@@ -64,10 +62,19 @@ export function useHomeOpenMatches() {
   });
 }
 
-/** Every club with its courts, for choosing where a match is booked. */
-export function useClubs() {
-  // Clubs change rarely (a CMS adds them), so keep them for the whole session
-  return useQuery({ queryKey: clubsKey, queryFn: fetchClubs, staleTime: Infinity });
+// The club screens count and list open matches this many days ahead
+const CLUB_OPEN_MATCHES_DAYS = 30;
+
+/** Open matches with a free spot over the next month, for the club lists and club pages. */
+export function useUpcomingOpenMatches() {
+  return useQuery({
+    queryKey: [...openMatchesKey, "next-days", CLUB_OPEN_MATCHES_DAYS],
+    queryFn: () => {
+      const from = new Date();
+      return fetchOpenMatches(from, new Date(from.getTime() + CLUB_OPEN_MATCHES_DAYS * 86_400_000));
+    },
+    refetchInterval: SAFETY_REFETCH_MS,
+  });
 }
 
 /** One match with its line-up; `enabled` stays off for ids that aren't database matches. */

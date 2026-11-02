@@ -66,8 +66,8 @@ Screens are built from the Padelna design canvas: https://claude.ai/artifact/F3x
 - `(auth)/` — `sign-in`, `sign-up` in their own stack, no tab bar. Not wired to real auth yet; reachable via `com.padelna.app:///sign-in`.
 - `setup` — profile setup after sign up, **one screen whose steps swap in place** (no navigation between steps): step 1 About you (`SetupAboutStep`), step 2 Your game (`SetupGameStep`), step 3 the level quiz (`SetupQuizStep`, questions in `src/data/level-quiz.ts`; 3 of the 8 are active for now, one question per page, picking an answer moves on after 300 ms). The starting-level result screen is not built yet, so finishing the quiz opens onboarding.
 - `onboarding` — four pages after setup (Find players, Trusted level, Fair play, Community) that swap in place like setup, with `SetupProgress` showing "n of 4". Skip jumps to the Fair play page, which every player must accept with "I agree"; "Let’s play" goes to Home. Pictures live in `src/components/onboarding-illustrations.tsx`. The screen holds all the values; the header with `SetupProgress` stays put, and Back steps back inside the screen.
-- Pushed over the tabs by the root `Stack` (tab bar hidden): `club/[id]/index`, `club/[id]/reviews`, `clubs` (All clubs), `match/[id]`, `settings` (Edit profile, from the Profile hero's top-right button), `design-check`.
-- Short actions open as **bottom sheets** on the current screen, not as new pages: Create match (from the Home FAB), Rate the club, Connect, Share a match (from the Community + button).
+- Pushed over the tabs by the root `Stack` (tab bar hidden): `club/[id]/index`, `clubs` (All clubs), `match/[id]`, `settings` (Edit profile, from the Profile hero's top-right button), `design-check`.
+- Short actions open as **bottom sheets** on the current screen, not as new pages: Create match (from the Home FAB), Connect, Share a match (from the Community + button).
 - Navigate with `router.push({ pathname: "/club/[id]", params: { id } })` and `<Link>` from `expo-router`; read params with `useLocalSearchParams`.
 
 ## Shared components (reuse before writing new ones)
@@ -75,8 +75,8 @@ Screens are built from the Padelna design canvas: https://claude.ai/artifact/F3x
 - **Layout:** `Page` (+ `usePageMargins()`; `Page.Header bar` gives the white settings-style header, used with `<Page underStatusBar>`), `SettingsSection` / `SettingsRow` / `SettingsSwitchRow` / `SettingsFieldLabel` (settings cards and rows), `SectionHeader`, `CourtHero` (tinted court illustration hero with optional ball and right action), `CourtPlaceholder`.
 - **Controls:** `IconButton` (variants, `showDot`), `ConnectButton` (Connect / Pending / Accept / Connected for one player), `SegmentedControl` (same look as HeroUI Tabs on Matches, but works inside bottom sheets; use it for every segmented control; `size="sm"` for four short options), `Dropdown` (HeroUI Select with a custom trigger, works in sheets and screens), `OptionTile` (icon-over-label choice tile), `AnswerCard` (radio-style answer, design.md "Answer card"), `PhotoPicker` (round profile photo, `expo-image-picker`; `current` shows the existing avatar), `ChoiceChips`, `FilterChip`, `DateStrip`, `StarRating`, `CreateMatchButton` (Home FAB).
 - **Display:** `SetupProgress` (3-segment "n of 3" bar), `Icon`, `PlayerAvatar` (+ `shortNameOf`, `stackTintIndices`), `LevelChip`, `InfoNote` (info / warning), `MatchLineUp`, `LevelChart`, `WinRateBars`, `PadelnaLogo`.
-- **Cards and rows:** `NextMatchCard`, `OpenMatchCard`, `UpcomingMatchCard`, `MatchListItem`, `PastMatchRow`, `ResultPostCard`, `MatchScoreCard` (score set by set + confirmation status), `ClubRow`, `ClubListItem`, `ClubMatchRow`, `ClubReviewCard`, `ClubReviewDetailCard`, `ClubReviewsSummary`, `RateResultBanner`, `PlayerSuggestionRow`, `PlayedWithTile`, `ConnectionRequestsBanner`, `ProfileHero`, `HomeHeader`.
-- **Sheets:** `CreateMatchSheet`, `RateClubSheet`, `ConnectSheet`, `ShareMatchSheet`, `DeleteAccountSheet` (type DELETE to confirm), `SaveScoreSheet` (add, correct or edit a score; the host can add a team photo with `TeamPhotoPicker`, Gallery only), `ConnectionRequestsSheet`, `PlayerSheet` (tap a player: preview that expands to the full profile; opens from Players and match line-ups).
+- **Cards and rows:** `NextMatchCard`, `OpenMatchCard`, `UpcomingMatchCard`, `MatchListItem`, `PastMatchRow`, `ResultPostCard`, `MatchScoreCard` (score set by set + confirmation status), `ClubRow`, `ClubListItem`, `ClubMatchRow`, `ClubReviewCard`, `ClubReviewDetailCard`, `ClubReviewsSummary` (not on any screen yet), `RateResultBanner`, `PlayerSuggestionRow`, `PlayedWithTile`, `ConnectionRequestsBanner`, `ProfileHero`, `HomeHeader`.
+- **Sheets:** `CreateMatchSheet`, `RateClubSheet` (not opened from anywhere yet), `ConnectSheet`, `ShareMatchSheet`, `DeleteAccountSheet` (type DELETE to confirm), `SaveScoreSheet` (add, correct or edit a score; the host can add a team photo with `TeamPhotoPicker`, Gallery only), `ConnectionRequestsSheet`, `PlayerSheet` (tap a player: preview that expands to the full profile; opens from Players and match line-ups).
 
 ## Code style
 
@@ -115,9 +115,13 @@ Match the existing files; read a neighbouring component before writing a new one
 - Connect buttons use the light blue **secondary** button everywhere.
 - Prices are per player, in TND. Phone numbers are Tunisian (`+216`, 8 digits).
 
+## Clubs
+
+Clubs are real data from Supabase (`clubs`, `courts`, `club_hours`, `club_photos`, filled in from the admin dashboard), read by `src/repositories/club-repository.ts` and `src/hooks/useClubs.ts`. `useClubCards` adds the open-match count, "your club" and the distance on top; distance needs the player's location (`useMyLocation`, `expo-location`) and a club with a map pin, so it's left out otherwise. Drafts are hidden by the database; only `published` clubs can host new matches. **Ratings and reviews are not wired up**: there is no reviews table yet, so no club screen shows stars, tags or reviews. The review components (`ClubReviewCard`, `ClubReviewDetailCard`, `ClubReviewsSummary`, `RateClubSheet`, `StarRating`) are kept for when it exists; they take their data as props (`ClubRatings`, `ClubReview` in `src/types/club.ts`, tag list in `src/data/club-review-tags.ts`). The old reviews screen is in git history. Club photos aren't shown yet either (the court-line placeholder stands in); `club_photos` rows are in a private bucket and would need signed URLs.
+
 ## Data
 
-There is no backend yet. Everything reads from `src/data/mock.ts` (dates are relative to today, `me` is the signed-in player with `level: myLevel`), typed with `src/types/`. Add new mock data there with the matching type rather than inline in screens. The planned backend is **Supabase** (auth, Postgres, realtime) with TanStack Query; until that work starts, don't add networking.
+Most of the app now reads from Supabase (see the repositories). What is still mock lives in `src/data/mock.ts` (dates are relative to today, `me` is the signed-in player with `level: myLevel`), typed with `src/types/`. Add new mock data there with the matching type rather than inline in screens. The planned backend is **Supabase** (auth, Postgres, realtime) with TanStack Query; until that work starts, don't add networking.
 
 ## Workflow
 
