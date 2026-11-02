@@ -82,7 +82,6 @@ export const myAccount = {
   hand: "right" as const,
   side: "right" as const,
   playStyle: "balanced" as const,
-  notifications: { newMatches: true, invites: true, chat: true },
   matchVisibility: "Friends",
   language: "English",
 };

@@ -59,6 +59,12 @@
         }
       ],
       [
+        "expo-notifications",
+        {
+          "color": "#2D63C8"
+        }
+      ],
+      [
         "expo-calendar",
         {
           "writeOnlyAccess": true,
@@ -69,6 +75,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7b1945f1-d14b-4f7f-bc3a-328edcf99924"
+      }
+    },
+    "owner": "adamdey"
   }
 }
