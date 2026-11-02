@@ -62,7 +62,9 @@ export const en = {
     youLevel: "You, level {{level}}",
     openMatchesTitle: "Open matches for you",
     aroundYourLevel: "Around your level {{level}}",
-    noOpenMatches: "No open matches this week. Create one and invite players.",
+    noOpenMatchesTitle: "Be the first to open a match",
+    noOpenMatchesBody: "No one around {{level}} has posted a match yet. Pick a time and we’ll let players at your level know.",
+    createMatchAction: "Create a match",
     clubsNearby: "Clubs near you",
     clubs: "Clubs",
     nextMatch: {
