@@ -21,6 +21,12 @@ export type PlayerSuggestion = Player & {
   clubName?: string;
 };
 
+/** A player to discover: who they are, the side they play and when they joined */
+export type DiscoverPlayer = PlayerSuggestion & {
+  side: "left" | "right" | "both";
+  joinedAt: Date;
+};
+
 /** What the player preview and full profile show beyond the card */
 export type PlayerDetails = {
   side: "left" | "right" | "both";

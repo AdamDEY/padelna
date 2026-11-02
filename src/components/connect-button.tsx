@@ -13,6 +13,8 @@ const MIN_LABEL_SCALE = 0.8;
 const sizes = {
   // design: 28 px pills under the "You played with" faces
   sm: { box: "h-7 self-stretch rounded-[10px] px-1", text: "text-[12px]", icon: 0, hitSlop: 8 },
+  // design: 36 px button across the bottom of a discover card
+  card: { box: "h-9 self-stretch rounded-xl px-3", text: "text-[14px]", icon: 14, hitSlop: 4 },
   // design: 34 px buttons at the end of a player row
   md: { box: "h-[34px] rounded-xl px-3", text: "text-[13px]", icon: 14, hitSlop: 5 },
   // design: 52 px blue button in the player sheet

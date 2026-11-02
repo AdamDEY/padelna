@@ -5,6 +5,7 @@ import { queryClient } from "@/lib/query-client";
 import { onSignedInChange } from "@/repositories/auth-repository";
 import {
   fetchConnectionRequests,
+  fetchDiscoverPlayers,
   fetchMyClubs,
   fetchPlayerDetails,
   fetchPlayedWith,
@@ -40,6 +41,10 @@ export function usePlayedWith() {
 
 export function usePlayersAtMyClubs() {
   return useQuery({ queryKey: [...playersKey, "at-my-clubs"], queryFn: fetchPlayersAtMyClubs });
+}
+
+export function useDiscoverPlayers() {
+  return useQuery({ queryKey: [...playersKey, "discover"], queryFn: fetchDiscoverPlayers });
 }
 
 export function useConnectionRequests() {

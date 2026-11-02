@@ -24,6 +24,8 @@ type PlayerSuggestionRowProps = {
   action: ReactNode;
   /** Opens the player's preview */
   onPress?: () => void;
+  /** Replaces the default "level · club · friends" line */
+  details?: string;
 };
 
 /** White player row: avatar, short name, level · club · friends in common, and an action. */
@@ -31,6 +33,7 @@ export function PlayerSuggestionRow({
   player,
   action,
   onPress,
+  details,
 }: PlayerSuggestionRowProps) {
   const { t } = useTranslation();
 
@@ -55,7 +58,7 @@ export function PlayerSuggestionRow({
             numberOfLines={2}
             className="font-normal text-[13px] text-muted"
           >
-            {suggestionDetails(player)}
+            {details ?? suggestionDetails(player)}
           </Text>
         </View>
       </Pressable>

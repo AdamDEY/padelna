@@ -1,7 +1,7 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
-import type { ConnectionState, PlayerDetails, PlayerSuggestion } from "@/types/player";
+import type { ConnectionState, DiscoverPlayer, PlayerDetails, PlayerSuggestion } from "@/types/player";
 
 // How long to wait before reconnecting after the live connection fails
 const RECONNECT_DELAY_MS = 5_000;
@@ -74,6 +74,17 @@ export function fetchPlayedWith() {
 /** Players at your clubs within half a level of you, friends in common first. */
 export function fetchPlayersAtMyClubs() {
   return fetchList("get_players_at_my_clubs");
+}
+
+/** Players within a level of you to connect with, your city and closest level first. */
+export async function fetchDiscoverPlayers(): Promise<DiscoverPlayer[]> {
+  const { data, error } = await supabase.rpc("get_discover_players");
+  if (error) throw error;
+  return (data as (SuggestionRow & { side: DiscoverPlayer["side"]; joined_at: string })[]).map((row) => ({
+    ...toSuggestion(row),
+    side: row.side,
+    joinedAt: new Date(row.joined_at),
+  }));
 }
 
 /** Connection requests waiting for you, newest first. */
