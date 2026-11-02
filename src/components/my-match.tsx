@@ -20,6 +20,7 @@ import { showDirections } from "@/lib/directions";
 import { addToCalendar, googleCalendarUrl, outlookCalendarUrl, type CalendarEventDetails } from "@/lib/add-to-calendar";
 import { formatMatchDay, formatStartsIn } from "@/lib/format-date";
 import { teamOf } from "@/lib/padel-score";
+import { isRatingOpen, playersToRate } from "@/lib/player-rating";
 import type { MatchDetails } from "@/types/match";
 import type { Player } from "@/types/player";
 import type { LucideIcon } from "lucide-react-native";
@@ -76,6 +77,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const canEdit = isPending && score.submittedBy === myId;
   const isTooLateToAdd = now.getTime() >= endsAt.getTime() + SCORE_SAVE_WINDOW_MS;
   const canAdd = isOver && isHost && !score && match.isFull !== false && !isTooLateToAdd;
+  const canRate = account !== undefined && isRatingOpen(match, myId, now) && playersToRate(match, myId).length > 0;
   const place = match.isCourtBooked
     ? [match.clubName, match.courtName].filter(Boolean).join(" · ")
     : t("myMatch.courtNotBookedYet");
@@ -188,9 +190,21 @@ export function MyMatch({ match, role }: MyMatchProps) {
     ]);
   }
 
+  function ratePlayers() {
+    router.push({ pathname: "/match/[id]/rate", params: { id: match.id } });
+  }
+
+  // Rating comes right after the score, unless you already rated this match
+  function rateAfterScore() {
+    if (!match.ratedBy?.includes(myId) && playersToRate(match, myId).length > 0) ratePlayers();
+  }
+
   function confirm() {
     confirmScore.mutate(match.id, {
-      onSuccess: () => toast.show({ variant: "success", label: t("myMatch.scoreConfirmed") }),
+      onSuccess: () => {
+        toast.show({ variant: "success", label: t("myMatch.scoreConfirmed") });
+        rateAfterScore();
+      },
       onError: (error) =>
         toast.show({ variant: "danger", label: t("myMatch.confirmFailed"), description: error.message }),
     });
@@ -386,6 +400,17 @@ export function MyMatch({ match, role }: MyMatchProps) {
             <Button.Label className="text-muted">{t("myMatch.notRight")}</Button.Label>
           </Button>
         </Page.Footer>
+      ) : canRate ? (
+        <Page.Footer className="gap-1">
+          <Button size="lg" onPress={ratePlayers}>
+            {t("myMatch.ratePlayers")}
+          </Button>
+          {canEdit ? (
+            <Button variant="ghost" onPress={() => setScoreSheet("edit")}>
+              <Button.Label className="text-muted">{t("myMatch.editScore")}</Button.Label>
+            </Button>
+          ) : null}
+        </Page.Footer>
       ) : canEdit ? (
         <Page.Footer>
           <Button size="lg" variant="secondary" onPress={() => setScoreSheet("edit")}>
@@ -401,6 +426,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
           mode={scoreSheet ?? "add"}
           isOpen={scoreSheet !== undefined}
           onOpenChange={(open) => !open && setScoreSheet(undefined)}
+          onSaved={scoreSheet === "edit" ? undefined : rateAfterScore}
         />
       ) : null}
       <PlayerSheet

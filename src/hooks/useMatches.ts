@@ -1,6 +1,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+import { myProfileKey } from "@/hooks/useMyProfile";
 import type { SetScore } from "@/lib/padel-score";
+import type { PlayerRating } from "@/lib/player-rating";
 import { queryClient } from "@/lib/query-client";
 import {
   cancelMatch,
@@ -15,6 +17,7 @@ import {
   fetchOpenMatches,
   joinMatch,
   leaveMatch,
+  submitRatings,
   submitScore,
   uploadMatchPhoto,
 } from "@/repositories/match-repository";
@@ -169,7 +172,23 @@ export function useSubmitScore() {
 export function useConfirmScore() {
   return useMutation({
     mutationFn: confirmScore,
-    onSettled: (_, __, matchId) => refreshMatches(matchId),
+    onSettled: (_, __, matchId) => {
+      refreshMatches(matchId);
+      // If everyone already rated, confirming a competitive score changes levels right away
+      queryClient.invalidateQueries({ queryKey: myProfileKey });
+    },
+  });
+}
+
+export function useSubmitRatings() {
+  return useMutation({
+    mutationFn: ({ matchId, ratings }: { matchId: string; ratings: PlayerRating[] }) =>
+      submitRatings(matchId, ratings),
+    onSettled: (_, __, { matchId }) => {
+      refreshMatches(matchId);
+      // The last rating of a competitive match can change your level right away
+      queryClient.invalidateQueries({ queryKey: myProfileKey });
+    },
   });
 }
 

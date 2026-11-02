@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 
 import { SaveScoreSheet } from "@/components/save-score-sheet";
@@ -57,6 +58,7 @@ export function ScoreReminder() {
       mode="add"
       isOpen={isOpen}
       onOpenChange={setIsOpen}
+      onSaved={() => router.push({ pathname: "/match/[id]/rate", params: { id: match.id } })}
     />
   );
 }
