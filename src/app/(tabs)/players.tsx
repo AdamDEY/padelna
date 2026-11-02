@@ -7,20 +7,25 @@ import { ConnectButton } from "@/components/connect-button";
 import { ConnectionRequestsBanner } from "@/components/connection-requests-banner";
 import { ConnectionRequestsSheet } from "@/components/connection-requests-sheet";
 import { Page } from "@/components/page";
+import { CIRCLE_GOAL, CircleBanner, PlayersNewPlayer } from "@/components/players-new-player";
 import { PlayedWithTile } from "@/components/played-with-tile";
 import { PlayerSheet } from "@/components/player-sheet";
 import { PlayerSuggestionRow } from "@/components/player-suggestion-row";
 import { SectionHeader } from "@/components/section-header";
+import { useMyPastMatches } from "@/hooks/useMatches";
+import { useMyAccount } from "@/hooks/useMyProfile";
 import {
   playersKey,
   useConnectionRequests,
+  useDiscoverPlayers,
+  usePlayerDetails,
   useMyClubs,
   usePlayedWith,
   usePlayersAtMyClubs,
   useSearchPlayers,
 } from "@/hooks/usePlayers";
 import { queryClient } from "@/lib/query-client";
-import type { PlayerSuggestion } from "@/types/player";
+import type { DiscoverPlayer, PlayerSuggestion } from "@/types/player";
 
 // design: "You played with" shows four faces to a row
 const TILES_PER_ROW = 4;
@@ -54,6 +59,11 @@ export default function Players() {
   }
   const { data: requests = [] } = useConnectionRequests();
   const isSearching = query.trim().length >= MIN_SEARCH_LENGTH;
+  const { data: pastMatches } = useMyPastMatches();
+  const { data: account } = useMyAccount();
+  // Someone with no match yet gets people to discover instead of "you played with"
+  const isNewPlayer = pastMatches !== undefined && pastMatches.length === 0;
+  const friendCount = usePlayerDetails(account?.id).data?.friendCount ?? 0;
 
 
   return (
@@ -74,12 +84,19 @@ export default function Players() {
               <SearchField.ClearButton />
             </SearchField.Group>
           </SearchField>
+          {!isSearching && isNewPlayer && friendCount < CIRCLE_GOAL ? <CircleBanner done={friendCount} /> : null}
           {!isSearching && requests.length > 0 ? (
             <ConnectionRequestsBanner requesters={requests} onReview={() => setIsReviewing(true)} />
           ) : null}
         </View>
 
-        {isSearching ? <SearchResults query={query} onPreview={preview} /> : <Suggestions onPreview={preview} />}
+        {isSearching ? (
+          <SearchResults query={query} onPreview={preview} />
+        ) : isNewPlayer ? (
+          <Discover me={{ level: account?.level, city: account?.city, side: account?.side }} onPreview={preview} />
+        ) : (
+          <Suggestions onPreview={preview} />
+        )}
       </Page.Body>
 
       <PlayerSheet player={selected} isOpen={isPreviewing} onOpenChange={setIsPreviewing} />
@@ -93,6 +110,17 @@ export default function Players() {
 }
 
 type PreviewProps = { onPreview: (player: PlayerSuggestion) => void };
+
+function Discover({ me, onPreview }: PreviewProps & { me: React.ComponentProps<typeof PlayersNewPlayer>["me"] }) {
+  const { t } = useTranslation();
+  const discover = useDiscoverPlayers();
+
+  return (
+    <ListState query={discover} emptyText={t("players.discoverEmpty")}>
+      {(players) => <PlayersNewPlayer players={players as DiscoverPlayer[]} me={me} onPreview={onPreview} />}
+    </ListState>
+  );
+}
 
 function Suggestions({ onPreview }: PreviewProps) {
   const { t } = useTranslation();
@@ -175,7 +203,7 @@ function SearchResults({ query, onPreview }: PreviewProps & { query: string }) {
 
 type ListStateProps = {
   query: {
-    data?: PlayerSuggestion[];
+    data?: PlayerSuggestion[] | DiscoverPlayer[];
     error: Error | null;
     refetch: () => unknown;
     isRefetching: boolean;
