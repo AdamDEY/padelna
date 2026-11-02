@@ -256,6 +256,12 @@ export const en = {
     joinRight: "Join Team {{team}} · Right side",
     pickSpot: "Pick a spot to join",
   },
+  directions: {
+    title: "Open directions in…",
+    appleMaps: "Apple Maps",
+    googleMaps: "Google Maps",
+    cancel: "Cancel",
+  },
   myMatch: {
     title: "Your match",
     hosting: "Hosting",

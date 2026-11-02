@@ -12,9 +12,11 @@ import { Page } from "@/components/page";
 import { PlayerSheet } from "@/components/player-sheet";
 import { SaveScoreSheet } from "@/components/save-score-sheet";
 import { SettingsRow, SettingsSection } from "@/components/settings-section";
+import { useClubs } from "@/hooks/useClubs";
 import { useCancelMatch, useConfirmScore, useLeaveMatch } from "@/hooks/useMatches";
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { InfoNote } from "@/components/info-note";
+import { showDirections } from "@/lib/directions";
 import { addToCalendar, googleCalendarUrl, outlookCalendarUrl, type CalendarEventDetails } from "@/lib/add-to-calendar";
 import { formatMatchDay, formatStartsIn } from "@/lib/format-date";
 import { teamOf } from "@/lib/padel-score";
@@ -49,6 +51,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const leaveMatch = useLeaveMatch();
   const confirmScore = useConfirmScore();
   const { data: account } = useMyAccount();
+  const { data: clubs = [] } = useClubs();
   const isHost = role === "host";
   const [now, setNow] = useState(() => new Date());
   const [scoreSheet, setScoreSheet] = useState<"add" | "correct" | "edit">();
@@ -86,7 +89,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
     .filter(Boolean)
     .join(" · ");
 
-  // These need chat and maps support, or the player-management API
+  // These need chat support, or the player-management API
   function comingSoon(label: string) {
     toast.show({ label, description: t("myMatch.comingSoon") });
   }
@@ -153,6 +156,13 @@ export function MyMatch({ match, role }: MyMatchProps) {
         { cancelable: true },
       );
     }
+  }
+
+  // The court isn't booked yet, so there is no club to go to
+  function openDirections() {
+    const club = clubs.find((item) => item.id === match.clubId);
+    if (club) showDirections(club);
+    else toast.show({ label: t("myMatch.directions"), description: t("myMatch.courtNotBookedYet") });
   }
 
   function confirmLeave() {
@@ -280,7 +290,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
           <ActionTile
             icon={MapPin}
             label={t("myMatch.directions")}
-            onPress={() => comingSoon(t("myMatch.directions"))}
+            onPress={openDirections}
           />
           <ActionTile
             icon={CalendarDays}
