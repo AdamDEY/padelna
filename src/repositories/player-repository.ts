@@ -120,6 +120,12 @@ export async function respondToConnection(playerId: string, accept: boolean) {
   if (error) throw error;
 }
 
+/** Cancels a request you sent, or removes a player you're connected to. */
+export async function removeConnection(playerId: string) {
+  const { error } = await supabase.rpc("remove_connection", { p_player_id: playerId });
+  if (error) throw error;
+}
+
 /**
  * Calls `onChange` whenever one of your connections or requests changes (row-level
  * security only sends your own), and when the connection (re)starts. Returns a stop function.
