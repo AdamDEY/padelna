@@ -98,6 +98,8 @@ Match the existing files; read a neighbouring component before writing a new one
 - `Select` inside a sheet needs a custom trigger; long option lists go in a gesture-handler `ScrollView` with a `maxHeight` (see `create-match-sheet.tsx`).
 - HeroUI `Label` only accepts plain text; put extras like "(optional)" in a `Text` next to it.
 - Adding a native module (e.g. `expo-image-picker`) needs a rebuild: `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npx expo run:ios --no-bundler --device "iPhone 17"` (the locale is required by CocoaPods; non-interactive shells don't load `~/.zshrc`).
+- Adding or changing a config plugin in `app.json` (entitlements, `googleServicesFile`, notification icon) needs `npx expo prebuild --platform ios|android` first; `expo run` alone doesn't re-apply it to the existing `ios/` and `android/`.
+- Android builds need JDK 17: the Mac's default Java is too new for Gradle. Run `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home npx expo run:android --no-bundler` on the `Pixel_10` emulator.
 - Heroes drawn for a 44 pt status bar must offset by `insets.top - 44` (see `sign-in.tsx`) so they don't collide with taller status bars.
 - In the Simulator, iOS's "Strong Password" overlay blocks typing into `textContentType="newPassword"` fields (no Keychain). That's a simulator limitation; keep the content type.
 

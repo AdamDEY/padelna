@@ -14,7 +14,7 @@ import {
 import { Lock, LogOut, Plus, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Text, View } from "react-native";
+import { Alert, Linking, Text, View } from "react-native";
 
 import { DeleteAccountSheet } from "@/components/delete-account-sheet";
 import { Dropdown } from "@/components/dropdown";
@@ -31,10 +31,17 @@ import {
 } from "@/components/settings-section";
 import type { Hand, PlayStyle, Side } from "@/components/setup-game-step";
 import { LANGUAGE_NAMES, LANGUAGES, setLanguage, type Language } from "@/i18n";
-import { cities, me, myAccount, myProfile, upcomingMatches } from "@/data/mock";
+import { cities, me, myProfile, upcomingMatches } from "@/data/mock";
 import { useClubs } from "@/hooks/useClubs";
 import { useMyClubs } from "@/hooks/usePlayers";
 import { myProfileKey, useMyAccount } from "@/hooks/useMyProfile";
+import {
+  askForPushNotifications,
+  stopPushNotifications,
+  useNotificationSettings,
+  usePushPermission,
+  useSaveNotificationSettings,
+} from "@/hooks/usePushNotifications";
 import { queryClient } from "@/lib/query-client";
 import { deleteOwnAccount, signOut } from "@/repositories/auth-repository";
 import { updateProfile } from "@/repositories/profile-repository";
@@ -110,7 +117,6 @@ function SettingsForm({ account }: { account: MyAccount }) {
   // Until you add or remove one, the list is the clubs you've played at
   const [editedClubs, setEditedClubs] = useState<string[]>();
   const clubs = editedClubs ?? myClubs.map((club) => club.name);
-  const [notifications, setNotifications] = useState(myAccount.notifications);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -181,6 +187,8 @@ function SettingsForm({ account }: { account: MyAccount }) {
   async function logOut() {
     // Signing out clears the session on the device even if the network call fails
     try {
+      // While still signed in, so this phone stops getting your pushes
+      await stopPushNotifications();
       await signOut();
     } catch (error) {
       toast.show({
@@ -367,21 +375,7 @@ function SettingsForm({ account }: { account: MyAccount }) {
         </SettingsSection>
 
         <SettingsSection title={t("settings.notifications")}>
-          <SettingsSwitchRow
-            label={t("settings.newMatchesAtLevel")}
-            isSelected={notifications.newMatches}
-            onSelectedChange={(on) => setNotifications((current) => ({ ...current, newMatches: on }))}
-          />
-          <SettingsSwitchRow
-            label={t("settings.invites")}
-            isSelected={notifications.invites}
-            onSelectedChange={(on) => setNotifications((current) => ({ ...current, invites: on }))}
-          />
-          <SettingsSwitchRow
-            label={t("settings.chat")}
-            isSelected={notifications.chat}
-            onSelectedChange={(on) => setNotifications((current) => ({ ...current, chat: on }))}
-          />
+          <NotificationRows />
           <SettingsRow
             label={t("settings.whoCanSee")}
             value={t("settings.visibilityFriends")}
@@ -435,6 +429,72 @@ function formatPhone(digits: string) {
 }
 
 /** Language row: opens a list and switches the whole app at once (it isn't part of Save). */
+/** Push on or off for this phone, then a switch per kind of push (saved to your account). */
+function NotificationRows() {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const { data: permission } = usePushPermission();
+  const { data: settings } = useNotificationSettings();
+  const saveSettings = useSaveNotificationSettings();
+
+  // iOS shows its prompt only once; after that, pushes are switched on or off in Settings
+  function changePermission() {
+    if (permission === "undetermined") void askForPushNotifications();
+    else Linking.openSettings();
+  }
+
+  function setKind(kind: keyof NonNullable<typeof settings>, on: boolean) {
+    if (!settings) return;
+    saveSettings.mutate(
+      { ...settings, [kind]: on },
+      {
+        onError: (error) =>
+          toast.show({ variant: "danger", label: t("settings.notificationsSaveFailed"), description: error.message }),
+      },
+    );
+  }
+
+  return (
+    <>
+      <SettingsRow
+        label={t("settings.pushNotifications")}
+        value={
+          permission === "granted"
+            ? t("settings.pushOn")
+            : permission === "denied"
+              ? t("settings.pushOpenSettings")
+              : t("settings.pushTurnOn")
+        }
+        onPress={changePermission}
+      />
+      {settings ? (
+        <>
+          <SettingsSwitchRow
+            label={t("settings.notifyChat")}
+            isSelected={settings.chat}
+            onSelectedChange={(on) => setKind("chat", on)}
+          />
+          <SettingsSwitchRow
+            label={t("settings.notifyMatchUpdates")}
+            isSelected={settings.matchUpdates}
+            onSelectedChange={(on) => setKind("matchUpdates", on)}
+          />
+          <SettingsSwitchRow
+            label={t("settings.notifyScores")}
+            isSelected={settings.scores}
+            onSelectedChange={(on) => setKind("scores", on)}
+          />
+          <SettingsSwitchRow
+            label={t("settings.notifyConnections")}
+            isSelected={settings.connections}
+            onSelectedChange={(on) => setKind("connections", on)}
+          />
+        </>
+      ) : null}
+    </>
+  );
+}
+
 function LanguageRow() {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);

@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Uniwind } from "uniwind";
 
+import { PushNotificationObserver } from "@/components/push-notification-observer";
 import { useAuthState } from "@/hooks/useAuthState";
 import { restoreLanguage } from "@/i18n";
 import { useMatchesRealtime } from "@/hooks/useMatchesRealtime";
@@ -86,6 +87,8 @@ export default function RootLayout() {
               <Stack.Screen name="onboarding" />
             </Stack.Protected>
           </Stack>
+          {/* Only for a player with a profile, so a tapped push always lands on an allowed screen */}
+          {isReady ? <PushNotificationObserver /> : null}
         </HeroUINativeProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>

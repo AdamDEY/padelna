@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "933365905057",
+    "project_id": "padelna-af9ca",
+    "storage_bucket": "padelna-af9ca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933365905057:android:84d1f394a58ca791d9e2e0",
+        "android_client_info": {
+          "package_name": "com.padelna.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "933365905057-qlbpa5ln3stc494188nkucjui722s2r8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4j07sJTpl1pVwmZp7BmW12iLOKfaR2Ro"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "933365905057-qlbpa5ln3stc494188nkucjui722s2r8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "933365905057-44pci2o6njimk2r37oa18lm51c0o8ipv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.padelna.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

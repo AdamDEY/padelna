@@ -22,6 +22,7 @@ import { myLevel as placeholderLevel } from "@/data/mock";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useBookableClubs } from "@/hooks/useClubs";
 import { useCreateMatch } from "@/hooks/useMatches";
+import { askForPushNotifications } from "@/hooks/usePushNotifications";
 import { dateLocale, daysUntil, formatMatchDay } from "@/lib/format-date";
 
 // Room the pinned Publish button takes, so the last field can scroll above it
@@ -185,6 +186,8 @@ export function CreateMatchSheet({ isOpen, onOpenChange, initialClubName }: Crea
           });
           handleOpenChange(false);
           router.push({ pathname: "/match/[id]", params: { id: matchId } });
+          // The first moment pushes matter: hearing when players join
+          void askForPushNotifications();
         },
         onError: (error) =>
           toast.show({

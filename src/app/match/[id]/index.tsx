@@ -18,6 +18,7 @@ import { getMatchDetails, me, myLevel } from "@/data/mock";
 import type { Player } from "@/types/player";
 import { useClubs } from "@/hooks/useClubs";
 import { useJoinMatch, useMatch } from "@/hooks/useMatches";
+import { askForPushNotifications } from "@/hooks/usePushNotifications";
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { clubTint } from "@/lib/club";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
@@ -132,7 +133,7 @@ export default function MatchDetail() {
       joinStoredMatch.mutate(
         { matchId: match!.id, seat },
         {
-          onSuccess: () =>
+          onSuccess: () => {
             toast.show({
               variant: "success",
               label: t("matchDetail.youAreIn"),
@@ -140,7 +141,10 @@ export default function MatchDetail() {
                 title,
                 club: match!.clubName || t("matchDetail.courtToBook"),
               }),
-            }),
+            });
+            // The first moment pushes matter: the chat and match updates
+            void askForPushNotifications();
+          },
           onError: (error) =>
             toast.show({
               variant: "danger",
