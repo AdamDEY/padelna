@@ -6,6 +6,7 @@ import { onSignedInChange } from "@/repositories/auth-repository";
 import {
   fetchConnectionRequests,
   fetchDiscoverPlayers,
+  fetchMyFriends,
   fetchMyClubs,
   fetchPlayerDetails,
   fetchPlayedWith,
@@ -41,6 +42,10 @@ export function usePlayedWith() {
 
 export function usePlayersAtMyClubs() {
   return useQuery({ queryKey: [...playersKey, "at-my-clubs"], queryFn: fetchPlayersAtMyClubs });
+}
+
+export function useMyFriends() {
+  return useQuery({ queryKey: [...playersKey, "friends"], queryFn: fetchMyFriends });
 }
 
 export function useDiscoverPlayers() {
