@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { translateLabel } from "@/i18n";
-import type { ClubDetails } from "@/types/club";
+import type { ClubRatings } from "@/types/club";
 
 // Aspects rated below this show in orange so weak spots stand out
 const WEAK_RATING = 4;
 
 type ClubReviewsSummaryProps = {
-  club: Pick<ClubDetails, "rating" | "reviewCount" | "ratingBreakdown">;
+  club: Pick<ClubRatings, "rating" | "reviewCount" | "ratingBreakdown">;
 };
 
 /** Overall rating next to a bar per aspect (court surface, lighting, …). */

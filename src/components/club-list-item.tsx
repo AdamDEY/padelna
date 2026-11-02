@@ -1,25 +1,22 @@
 import { PressableFeedback } from "heroui-native";
-import { Star } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { CourtPlaceholder } from "@/components/court-placeholder";
-import { Icon } from "@/components/icon";
-import type { Club } from "@/types/club";
+import { formatDistance } from "@/lib/club";
+import type { ClubCard } from "@/types/club";
 
-function formatDistance(km: number) {
-  return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
-}
-
-/** A club in the All clubs list: thumbnail, name, rating, place, open matches. */
-export function ClubListItem({ club, onPress }: { club: Club; onPress?: () => void }) {
+/** A club in the All clubs list: thumbnail, name, place, distance, open matches. */
+export function ClubListItem({ club, onPress }: { club: ClubCard; onPress?: () => void }) {
   const { t } = useTranslation();
   const details = [
     club.area,
     club.region,
-    formatDistance(club.distanceKm),
+    club.distanceKm === undefined ? null : formatDistance(club.distanceKm),
     t("club.courts", { count: club.courtCount }),
-  ].join(" · ");
+  ]
+    .filter(Boolean)
+    .join(" · ");
   const openMatches =
     club.openMatchCount === 0 ? null : t("club.openMatches", { count: club.openMatchCount });
 
@@ -29,7 +26,6 @@ export function ClubListItem({ club, onPress }: { club: Club; onPress?: () => vo
       accessibilityRole="button"
       accessibilityLabel={[
         club.name,
-        t("clubs.ratedA11y", { rating: club.rating.toFixed(1) }),
         details,
         openMatches ?? t("clubs.noOpenMatchesA11y"),
         club.isMyClub ? t("clubs.yourClubA11y") : null,
@@ -44,10 +40,6 @@ export function ClubListItem({ club, onPress }: { club: Club; onPress?: () => vo
             <Text numberOfLines={1} className="flex-1 font-bold text-[15px] text-foreground">
               {club.name}
             </Text>
-            <View className="flex-row items-center gap-[3px]">
-              <Icon as={Star} size={13} color="star" filled />
-              <Text className="font-bold text-[13px] text-foreground">{club.rating.toFixed(1)}</Text>
-            </View>
           </View>
           <Text numberOfLines={1} className="font-normal text-[12px] text-muted">
             {details}

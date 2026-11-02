@@ -9,15 +9,15 @@ import { ChoiceChips } from "@/components/choice-chips";
 import { ClubListItem } from "@/components/club-list-item";
 import { Icon } from "@/components/icon";
 import { Page } from "@/components/page";
-import { allClubs, clubRegions } from "@/data/mock";
+import { useClubCards } from "@/hooks/useClubs";
 
 const ALL = "all";
 
-type SortOrder = "nearest" | "rating";
+type SortOrder = "nearest" | "matches";
 
 const sortLabels = {
   nearest: "clubs.sortNearest",
-  rating: "clubs.sortRating",
+  matches: "clubs.sortMatches",
 } as const satisfies Record<SortOrder, string>;
 
 /** Lower-case and strip accents, so "cafe" finds "Café" */
@@ -32,21 +32,30 @@ export default function AllClubs() {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState(ALL);
-  const [sortOrder, setSortOrder] = useState<SortOrder>("nearest");
+  const [chosenSort, setChosenSort] = useState<SortOrder>("nearest");
+  const { clubs: allClubs, isLoading, hasDistances } = useClubCards();
+
+  // Without distances (no location shared, or no map pins yet) the list sorts by open matches
+  const sortOrder: SortOrder = hasDistances ? chosenSort : "matches";
+  const published = useMemo(() => allClubs.filter((club) => club.status !== "draft"), [allClubs]);
+  const regions = useMemo(() => [...new Set(published.map((club) => club.region))].sort(), [published]);
 
   const clubs = useMemo(() => {
     const search = normalize(query.trim());
-    return allClubs
+    return published
       .filter((club) => region === ALL || club.region === region)
       .filter(
         (club) =>
           !search ||
-          normalize(`${club.name} ${club.area} ${club.region}`).includes(search),
+          normalize(`${club.name} ${club.area} ${club.city} ${club.region}`).includes(search),
       )
-      .sort((a, b) =>
-        sortOrder === "nearest" ? a.distanceKm - b.distanceKm : b.rating - a.rating,
-      );
-  }, [query, region, sortOrder]);
+      .sort((a, b) => {
+        if (sortOrder === "nearest" && a.distanceKm !== undefined && b.distanceKm !== undefined) {
+          return a.distanceKm - b.distanceKm;
+        }
+        return b.openMatchCount - a.openMatchCount || a.name.localeCompare(b.name);
+      });
+  }, [published, query, region, sortOrder]);
 
   return (
     <Page>
@@ -61,7 +70,7 @@ export default function AllClubs() {
               {t("clubs.title")}
             </Text>
             <Text className="font-normal text-[13px] text-muted">
-              {t("clubs.subtitle", { count: allClubs.length })}
+              {t("clubs.subtitle", { count: published.length })}
             </Text>
           </>
         }
@@ -85,7 +94,7 @@ export default function AllClubs() {
         <ChoiceChips
           options={[
             { value: ALL, label: t("clubs.allRegions") },
-            ...clubRegions.map((name) => ({ value: name, label: name })),
+            ...regions.map((name) => ({ value: name, label: name })),
           ]}
           value={region}
           onChange={setRegion}
@@ -95,17 +104,19 @@ export default function AllClubs() {
           <Text className="font-bold text-[14px] text-foreground">
             {t("clubs.count", { count: clubs.length })}
           </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("clubs.sortA11y", { order: t(sortLabels[sortOrder]).toLowerCase() })}
-            onPress={() => setSortOrder((order) => (order === "nearest" ? "rating" : "nearest"))}
-            hitSlop={10}
-            className="flex-row items-center gap-1"
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          >
-            <Text className="font-bold text-[13px] text-link">{t(sortLabels[sortOrder])}</Text>
-            <Icon as={ChevronDown} size={14} color="link" />
-          </Pressable>
+          {hasDistances ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("clubs.sortA11y", { order: t(sortLabels[sortOrder]).toLowerCase() })}
+              onPress={() => setChosenSort(sortOrder === "nearest" ? "matches" : "nearest")}
+              hitSlop={10}
+              className="flex-row items-center gap-1"
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Text className="font-bold text-[13px] text-link">{t(sortLabels[sortOrder])}</Text>
+              <Icon as={ChevronDown} size={14} color="link" />
+            </Pressable>
+          ) : null}
         </View>
 
         <View className="gap-2.5">
@@ -116,7 +127,7 @@ export default function AllClubs() {
               onPress={() => router.push({ pathname: "/club/[id]", params: { id: club.id } })}
             />
           ))}
-          {clubs.length === 0 ? (
+          {!isLoading && clubs.length === 0 ? (
             <View className="items-center gap-1 rounded-[18px] border border-line bg-surface p-6">
               <Text className="font-bold text-[15px] text-foreground">{t("clubs.noneTitle")}</Text>
               <Text className="text-center font-normal text-[14px] text-muted">

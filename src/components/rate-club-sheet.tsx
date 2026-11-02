@@ -19,9 +19,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { translateCourt, translateLabel } from "@/i18n";
 import { StarRating } from "@/components/star-rating";
-import { clubReviewTagOptions, pastMatches } from "@/data/mock";
+import { clubReviewTagOptions } from "@/data/club-review-tags";
 import { formatMatchDay } from "@/lib/format-date";
-import type { ClubDetails } from "@/types/club";
+import type { ClubCard } from "@/types/club";
 
 const courtAspects = ["Court surface", "Glass & walls", "Lighting"];
 const clubAspects = ["Rackets & balls", "Changing rooms", "Staff & welcome"];
@@ -30,19 +30,19 @@ const clubAspects = ["Rackets & balls", "Changing rooms", "Staff & welcome"];
 const FOOTER_SPACE = 104;
 
 type RateClubSheetProps = {
-  club: ClubDetails;
+  club: Pick<ClubCard, "name" | "courtCount">;
+  /** Your latest match at this club, to pre-fill the court and date */
+  lastMatchHere?: { courtName?: string; playedAt: Date };
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
 /** "How was the club?" bottom sheet: court picker, star ratings, tags, comment, Submit. */
-export function RateClubSheet({ club, isOpen, onOpenChange }: RateClubSheetProps) {
+export function RateClubSheet({ club, lastMatchHere, isOpen, onOpenChange }: RateClubSheetProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { toast } = useToast();
 
-  // Pre-fill the court and date from your latest match here
-  const lastMatchHere = pastMatches.find((match) => match.clubName === club.name);
   const courts = Array.from({ length: club.courtCount }, (_, i) => `Court ${i + 1}`);
 
   const [court, setCourt] = useState(lastMatchHere?.courtName ?? null);

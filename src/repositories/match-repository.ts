@@ -3,7 +3,6 @@ import { t } from "i18next";
 
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
-import type { Club } from "@/types/club";
 import { teamOf, winningTeam, type SetScore } from "@/lib/padel-score";
 import type {
   MatchDetails,
@@ -79,11 +78,6 @@ type PlayerCardRow = {
   avatar_url: string | null;
 };
 
-/** A club and its courts, for choosing where a match is booked */
-export type ClubWithCourts = Pick<Club, "id" | "name" | "area"> & {
-  courts: { id: string; number: number }[];
-};
-
 export type NewMatch = {
   /** Left out until the host has booked a court */
   courtId?: string;
@@ -94,19 +88,6 @@ export type NewMatch = {
   /** How many spots the host still wants to fill (1–3) */
   playersNeeded: number;
 };
-
-/** Every club with its courts. */
-export async function fetchClubs(): Promise<ClubWithCourts[]> {
-  const { data, error } = await supabase
-    .from("clubs")
-    .select("id, name, area, courts(id, number)")
-    .order("name");
-  if (error) throw error;
-  return (data as ClubWithCourts[]).map((club) => ({
-    ...club,
-    courts: [...club.courts].sort((a, b) => a.number - b.number),
-  }));
-}
 
 /** Creates a match hosted by the signed-in player and returns its id. */
 export async function createMatch(match: NewMatch) {
@@ -184,6 +165,7 @@ export async function fetchOpenMatches(from: Date, to: Date): Promise<OpenMatch[
     .map((match) => ({
       id: match.id,
       startsAt: match.startsAt,
+      clubId: match.clubId,
       clubName: match.isCourtBooked ? match.clubName : t("match.courtNotBookedYet"),
       durationMinutes: match.durationMinutes,
       levelMin: match.levelMin ?? 1,

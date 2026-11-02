@@ -57,7 +57,7 @@ export async function restoreLanguage() {
  * translation show as written.
  */
 export function translateLabel(
-  group: "tags" | "winTitles" | "winStats" | "months" | "clubTags" | "amenities" | "aspects",
+  group: "tags" | "winTitles" | "winStats" | "months" | "clubTags" | "amenities" | "facilities" | "aspects",
   label: string,
 ) {
   const key = `labels.${group}.${label}`;

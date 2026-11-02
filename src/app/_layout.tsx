@@ -76,7 +76,6 @@ export default function RootLayout() {
               <Stack.Screen name="settings" />
               <Stack.Screen name="clubs" />
               <Stack.Screen name="club/[id]/index" />
-              <Stack.Screen name="club/[id]/reviews" />
               <Stack.Screen name="match/[id]" />
               <Stack.Screen name="design-check" />
             </Stack.Protected>

@@ -1,46 +1,65 @@
-import { Button, cn } from "heroui-native";
-import { router, useLocalSearchParams } from "expo-router";
-import { Heart, Star } from "lucide-react-native";
-import { useState } from "react";
+import { Button } from "heroui-native";
+import { useLocalSearchParams } from "expo-router";
+import { Clock, Heart } from "lucide-react-native";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Linking, Platform, Pressable, Text, View } from "react-native";
+import { Linking, Platform, Text, View } from "react-native";
 
 import { CourtHero } from "@/components/court-hero";
 import { IconButton } from "@/components/icon-button";
 import { BookingNoticeSheet } from "@/components/booking-notice-sheet";
 import { ClubMatchRow } from "@/components/club-match-row";
-import { ClubReviewCard } from "@/components/club-review-card";
-import { ClubReviewsSummary } from "@/components/club-reviews-summary";
 import { CreateMatchSheet } from "@/components/create-match-sheet";
-import { Icon } from "@/components/icon";
+import { InfoNote } from "@/components/info-note";
 import { Page } from "@/components/page";
-import { RateClubSheet } from "@/components/rate-club-sheet";
 import { SectionHeader } from "@/components/section-header";
-import { getClubDetails, openMatches } from "@/data/mock";
+import { useClubCard } from "@/hooks/useClubs";
+import { useUpcomingOpenMatches } from "@/hooks/useMatches";
 import { translateLabel } from "@/i18n";
 import { shouldSkipBookingNotice } from "@/lib/booking-notice";
+import { formatDistance, formatPhone, todaysHours } from "@/lib/club";
+import type { ClubCard } from "@/types/club";
 
 // How far the white sheet slides up over the photo
 const SHEET_OVERLAP = 34;
 
-function openDirections(name: string, address: string) {
-  const query = encodeURIComponent(`${name}, ${address}`);
-  const url =
-    Platform.OS === "ios" ? `https://maps.apple.com/?q=${query}` : `geo:0,0?q=${query}`;
+function openDirections(club: ClubCard) {
+  const hasPin = club.latitude !== undefined && club.longitude !== undefined;
+  const label = encodeURIComponent(club.name);
+  const place = encodeURIComponent(`${club.name}, ${club.address || `${club.area}, ${club.city}`}`);
+  const url = hasPin
+    ? Platform.OS === "ios"
+      ? `https://maps.apple.com/?ll=${club.latitude},${club.longitude}&q=${label}`
+      : `geo:${club.latitude},${club.longitude}?q=${club.latitude},${club.longitude}(${label})`
+    : Platform.OS === "ios"
+      ? `https://maps.apple.com/?q=${place}`
+      : `geo:0,0?q=${place}`;
   Linking.openURL(url).catch(() => {
     // No maps app; fall back to the web
-    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+    Linking.openURL(
+      hasPin
+        ? `https://www.google.com/maps/search/?api=1&query=${club.latitude},${club.longitude}`
+        : `https://www.google.com/maps/search/?api=1&query=${place}`,
+    );
   });
 }
 
 export default function ClubDetail() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const club = getClubDetails(id);
+  const { club, isLoading } = useClubCard(id);
+  const { data: openMatches = [] } = useUpcomingOpenMatches();
   const [isSaved, setIsSaved] = useState(false);
-  const [isRating, setIsRating] = useState(false);
   const [isShowingNotice, setIsShowingNotice] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  const matchesHere = useMemo(
+    () =>
+      openMatches
+        .filter((match) => match.clubId === id)
+        .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime()),
+    [openMatches, id],
+  );
 
   // Players who ticked "Don't show this again" go straight to the form
   async function startCreating() {
@@ -53,25 +72,30 @@ export default function ClubDetail() {
       <Page>
         <Page.Header back />
         <Page.Body>
-          <Page.Title description={t("clubDetail.notFoundText")}>
-            {t("clubDetail.notFoundTitle")}
-          </Page.Title>
+          {isLoading ? null : (
+            <Page.Title description={t("clubDetail.notFoundText")}>
+              {t("clubDetail.notFoundTitle")}
+            </Page.Title>
+          )}
         </Page.Body>
       </Page>
     );
   }
 
-  const hasReviews = club.reviewCount > 0;
-  const latestReview = club.reviews?.[0];
-
-  const matchesHere = openMatches
-    .filter((match) => match.clubName === club.name)
-    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+  const hoursToday = todaysHours(club.hours);
+  const isOpenForMatches = club.status === "published";
+  const place = club.address || `${club.area}, ${club.city}`;
 
   const stats = [
     { value: String(club.courtCount), label: t("clubDetail.courts") },
     { value: `${club.indoorCourts} + ${club.outdoorCourts}`, label: t("clubDetail.indoorOutdoor") },
-    { value: club.openUntil, label: t("clubDetail.openUntil") },
+    ...(hoursToday
+      ? [
+          hoursToday.closed || !hoursToday.closesAt
+            ? { value: "–", label: t("clubDetail.closedToday") }
+            : { value: hoursToday.closesAt, label: t("clubDetail.openUntil") },
+        ]
+      : []),
   ];
 
   return (
@@ -96,34 +120,29 @@ export default function ClubDetail() {
           style={{ marginTop: -SHEET_OVERLAP }}
         >
           <View className="gap-1.5">
-            <View className="flex-row items-center justify-between gap-3">
-              <Text
-                accessibilityRole="header"
-                className="flex-1 font-black text-[26px] tracking-[-0.4px] text-foreground"
-              >
-                {club.name}
-              </Text>
-              {hasReviews ? (
-                <View
-                  accessible
-                  accessibilityLabel={t("clubDetail.ratedA11y", {
-                    rating: club.rating.toFixed(1),
-                    count: club.reviewCount,
-                  })}
-                  className="flex-row items-center gap-1"
-                >
-                  <Icon as={Star} size={16} color="star" filled />
-                  <Text className="font-bold text-[15px] text-foreground">
-                    {club.rating.toFixed(1)}{" "}
-                    <Text className="font-medium text-muted">({club.reviewCount})</Text>
-                  </Text>
-                </View>
-              ) : null}
-            </View>
+            <Text
+              accessibilityRole="header"
+              className="font-black text-[26px] tracking-[-0.4px] text-foreground"
+            >
+              {club.name}
+            </Text>
             <Text className="font-normal text-[15px] text-muted">
-              {club.address} · {club.distanceKm.toFixed(1)} km
+              {[place, club.distanceKm === undefined ? null : formatDistance(club.distanceKm)]
+                .filter(Boolean)
+                .join(" · ")}
             </Text>
           </View>
+
+          {club.status === "temporarily_closed" ? (
+            <InfoNote icon={Clock} tone="warning" title={t("clubDetail.temporarilyClosed")}>
+              {club.closedNote ?? ""}
+            </InfoNote>
+          ) : null}
+          {club.status === "closed" ? (
+            <InfoNote icon={Clock} tone="warning" title={t("clubDetail.closedTitle")}>
+              {t("clubDetail.closedText")}
+            </InfoNote>
+          ) : null}
 
           <View className="flex-row gap-2.5">
             {stats.map((stat) => (
@@ -141,16 +160,22 @@ export default function ClubDetail() {
             ))}
           </View>
 
-          <View className="flex-row flex-wrap gap-2">
-            {club.amenities.map((amenity) => (
-              <Text
-                key={amenity}
-                className="overflow-hidden rounded-[14px] bg-out-of-range px-3 py-1.5 font-semibold text-[13px] text-ink-2"
-              >
-                {translateLabel("amenities", amenity)}
-              </Text>
-            ))}
-          </View>
+          {club.description ? (
+            <Text className="font-normal text-[15px] leading-[22px] text-ink-2">{club.description}</Text>
+          ) : null}
+
+          {club.facilities.length > 0 ? (
+            <View className="flex-row flex-wrap gap-2">
+              {club.facilities.map((facility) => (
+                <Text
+                  key={facility}
+                  className="overflow-hidden rounded-[14px] bg-out-of-range px-3 py-1.5 font-semibold text-[13px] text-ink-2"
+                >
+                  {translateLabel("facilities", facility)}
+                </Text>
+              ))}
+            </View>
+          ) : null}
 
           <View className="gap-2.5">
             <SectionHeader size="sm" title={t("clubDetail.openHere", { count: matchesHere.length })} />
@@ -163,50 +188,6 @@ export default function ClubDetail() {
               </Text>
             ) : null}
           </View>
-
-          <View className="gap-3.5">
-            <SectionHeader
-              size="sm"
-              title={t("clubDetail.playerReviews")}
-              actionLabel={hasReviews ? t("clubDetail.seeAll", { count: club.reviewCount }) : undefined}
-              onPressAction={() =>
-                router.push({ pathname: "/club/[id]/reviews", params: { id: club.id } })
-              }
-            />
-            {hasReviews ? (
-              <ClubReviewsSummary club={club} />
-            ) : (
-              <Text className="rounded-[20px] bg-background p-4 font-normal text-[14px] leading-5 text-muted">
-                {t("clubDetail.noReviews")}
-              </Text>
-            )}
-
-            <View className="flex-row flex-wrap gap-2">
-              {club.reviewTags.map((tag) => (
-                <Text
-                  key={tag.label}
-                  className={cn(
-                    "overflow-hidden rounded-[14px] px-3 py-1.5 font-bold text-[13px]",
-                    tag.negative ? "bg-attention-soft text-attention" : "bg-success-soft text-success",
-                  )}
-                >
-                  {translateLabel("clubTags", tag.label)} · {tag.count}
-                </Text>
-              ))}
-            </View>
-
-            {latestReview ? <ClubReviewCard review={latestReview} /> : null}
-
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setIsRating(true)}
-              className="h-12 flex-row items-center justify-center gap-2 rounded-[14px] border border-primary-outline"
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-            >
-              <Icon as={Star} size={18} color="accent" />
-              <Text className="font-bold text-[15px] text-accent">{t("clubDetail.rate")}</Text>
-            </Pressable>
-          </View>
         </View>
       </Page.Body>
 
@@ -214,20 +195,21 @@ export default function ClubDetail() {
         <Button
           size="lg"
           variant="secondary"
-          onPress={() => openDirections(club.name, club.address)}
+          onPress={() => openDirections(club)}
           className="flex-1"
         >
           {t("clubDetail.directions")}
         </Button>
-        <Button size="lg" className="flex-[1.4]" onPress={startCreating}>
-          {t("clubDetail.createHere")}
-        </Button>
+        {isOpenForMatches ? (
+          <Button size="lg" className="flex-[1.4]" onPress={startCreating}>
+            {t("clubDetail.createHere")}
+          </Button>
+        ) : null}
       </Page.Footer>
 
-      <RateClubSheet club={club} isOpen={isRating} onOpenChange={setIsRating} />
       <BookingNoticeSheet
         clubName={club.name}
-        phone={club.phone}
+        phone={club.phone ? formatPhone(club.phone) : undefined}
         isOpen={isShowingNotice}
         onOpenChange={setIsShowingNotice}
         onCreate={() => {

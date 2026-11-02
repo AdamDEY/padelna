@@ -14,10 +14,12 @@ import { Page } from "@/components/page";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { PlayerSheet } from "@/components/player-sheet";
 import { seatInfo, TeamPicker } from "@/components/team-picker";
-import { allClubs, getMatchDetails, me, myLevel } from "@/data/mock";
+import { getMatchDetails, me, myLevel } from "@/data/mock";
 import type { Player } from "@/types/player";
+import { useClubs } from "@/hooks/useClubs";
 import { useJoinMatch, useMatch } from "@/hooks/useMatches";
 import { useMyAccount } from "@/hooks/useMyProfile";
+import { clubTint } from "@/lib/club";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
 
@@ -45,6 +47,7 @@ export default function MatchDetail() {
   const stored = useMatch(id, isStored);
   const { data: account, isPending: isAccountPending } = useMyAccount();
   const match = isStored ? stored.data ?? undefined : getMatchDetails(id);
+  const { data: clubs = [] } = useClubs();
   const joinStoredMatch = useJoinMatch();
   const { toast } = useToast();
   const [hasJoined, setHasJoined] = useState(false);
@@ -86,7 +89,7 @@ export default function MatchDetail() {
     );
   }
 
-  const club = allClubs.find((item) => item.id === match.clubId || item.name === match.clubName);
+  const club = clubs.find((item) => item.id === match.clubId || item.name === match.clubName);
   const players = hasJoined ? [...match.players, me] : match.players;
   const isMine = players.some((player) => player.id === me.id);
   const isFull = players.length >= match.capacity;
@@ -207,7 +210,7 @@ export default function MatchDetail() {
     <Page surface underStatusBar>
       <Page.Body className="gap-0 px-0">
         <CourtHero
-          tint={club?.placeholderTint ?? "blue"}
+          tint={club ? clubTint(club.id) : "blue"}
           showBall
           rightAction={
             <IconButton
