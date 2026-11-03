@@ -1,10 +1,8 @@
-import { BottomSheet, Button } from "heroui-native";
-import { Check, Clock } from "lucide-react-native";
+import { BottomSheet } from "heroui-native";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import { Icon } from "@/components/icon";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { winnerIndex } from "@/components/result-post-card";
 import { formatMatchDay } from "@/lib/format-date";
@@ -17,26 +15,12 @@ type ConnectSheetProps = {
   onClose: () => void;
   /** The signed-in player, left out of the list */
   meId: string;
-  friendIds?: Set<string>;
-  requestedIds?: Set<string>;
-  onToggleRequest?: (playerId: string) => void;
-  /** The button for each player; replaces the built-in Connect / Requested / Friends toggle */
-  renderAction?: (player: Player) => ReactNode;
+  /** The button for each player, usually a ConnectButton */
+  renderAction: (player: Player) => ReactNode;
 };
 
-/**
- * "Players in this match": pick who to connect with from a result card.
- * Each player shows Connect, Requested (tap to cancel) or Friends.
- */
-export function ConnectSheet({
-  post,
-  onClose,
-  meId,
-  friendIds = new Set(),
-  requestedIds = new Set(),
-  onToggleRequest,
-  renderAction,
-}: ConnectSheetProps) {
+/** "Players in this match": pick who to connect with from a result card. */
+export function ConnectSheet({ post, onClose, meId, renderAction }: ConnectSheetProps) {
   const { t } = useTranslation();
   const winner = post ? winnerIndex(post.sets) : 0;
   const sections = post
@@ -82,28 +66,13 @@ export function ConnectSheet({
                     {section.label}
                   </Text>
                   {section.players.map((player) => (
-                    <PlayerRow
-                      key={player.id}
-                      player={player}
-                      status={
-                        friendIds.has(player.id)
-                          ? "friends"
-                          : requestedIds.has(player.id)
-                            ? "requested"
-                            : "none"
-                      }
-                      onToggleRequest={() => onToggleRequest?.(player.id)}
-                      action={renderAction?.(player)}
-                    />
+                    <PlayerRow key={player.id} player={player} action={renderAction(player)} />
                   ))}
                 </View>
               ))}
 
               <Text className="rounded-[14px] bg-background px-3 py-2.5 font-normal text-[13px] leading-[19px] text-muted">
-                {/* Real requests can't be cancelled yet; the sample feeds' toggle can */}
-                {renderAction
-                  ? t("connectSheet.note")
-                  : t("connectSheet.noteCancel")}
+                {t("connectSheet.note")}
               </Text>
             </>
           ) : null}
@@ -113,19 +82,7 @@ export function ConnectSheet({
   );
 }
 
-type ConnectionStatus = "none" | "requested" | "friends";
-
-function PlayerRow({
-  player,
-  status,
-  onToggleRequest,
-  action,
-}: {
-  player: Player;
-  status: ConnectionStatus;
-  onToggleRequest: () => void;
-  action?: ReactNode;
-}) {
+function PlayerRow({ player, action }: { player: Player; action: ReactNode }) {
   const { t } = useTranslation();
   const details = [
     player.level !== undefined ? t("connectSheet.level", { level: player.level.toFixed(1) }) : null,
@@ -151,40 +108,7 @@ function PlayerRow({
         ) : null}
       </View>
 
-      {action ? (
-        action
-      ) : status === "friends" ? (
-        <View
-          accessible
-          accessibilityLabel={t("connectSheet.alreadyFriends")}
-          className="h-9 min-w-24 flex-row items-center justify-center gap-[5px] rounded-xl bg-success-soft px-3"
-        >
-          <Icon as={Check} size={14} color="success" />
-          <Text className="font-bold text-[13px] text-success">{t("connectSheet.friends")}</Text>
-        </View>
-      ) : (
-        <Button
-          size="sm"
-          variant={status === "requested" ? "outline" : "primary"}
-          onPress={onToggleRequest}
-          accessibilityLabel={
-            status === "requested"
-              ? t("connectSheet.requestedA11y", { name: player.firstName })
-              : t("connect.connectWith", { name: player.firstName })
-          }
-          hitSlop={4}
-          className="h-9 min-w-24 rounded-xl px-3.5"
-        >
-          {status === "requested" ? (
-            <>
-              <Icon as={Clock} size={14} color="muted" />
-              <Button.Label className="text-[13px] text-muted">{t("connectSheet.requested")}</Button.Label>
-            </>
-          ) : (
-            <Button.Label className="text-[13px]">{t("connect.connect")}</Button.Label>
-          )}
-        </Button>
-      )}
+      {action}
     </View>
   );
 }
