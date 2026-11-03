@@ -45,6 +45,7 @@ import { queryClient } from "@/lib/query-client";
 import { deleteOwnAccount } from "@/repositories/auth-repository";
 import { updateProfile } from "@/repositories/profile-repository";
 import type { MyAccount } from "@/types/account";
+import { errorMessage } from "@/lib/error-message";
 
 const BIO_MAX_LENGTH = 150;
 const cityOptions = cities.map((city) => ({ value: city, label: city }));
@@ -67,7 +68,7 @@ export default function Settings() {
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
                 {t("profile.loadFailed")}
               </Text>
-              <Text className="text-center font-normal text-[14px] text-muted">{error.message}</Text>
+              <Text className="text-center font-normal text-[14px] text-muted">{errorMessage(error)}</Text>
               <Button variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
                 {t("matches.tryAgain")}
               </Button>
@@ -156,7 +157,7 @@ function SettingsForm({ account }: { account: MyAccount }) {
       toast.show({
         variant: "danger",
         label: t("settings.saveFailed"),
-        description: error instanceof Error ? error.message : t("settings.tryAgain"),
+        description: errorMessage(error),
       });
     } finally {
       setIsSaving(false);
@@ -190,7 +191,7 @@ function SettingsForm({ account }: { account: MyAccount }) {
       toast.show({
         variant: "danger",
         label: t("settings.deleteFailed"),
-        description: error instanceof Error ? error.message : t("settings.tryAgain"),
+        description: errorMessage(error),
       });
       return;
     }
@@ -427,7 +428,7 @@ function NotificationRows() {
       { ...settings, [kind]: on },
       {
         onError: (error) =>
-          toast.show({ variant: "danger", label: t("settings.notificationsSaveFailed"), description: error.message }),
+          toast.show({ variant: "danger", label: t("settings.notificationsSaveFailed"), description: errorMessage(error) }),
       },
     );
   }

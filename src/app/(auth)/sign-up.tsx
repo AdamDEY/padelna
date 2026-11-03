@@ -8,6 +8,7 @@ import { SocialAuthButtons } from "@/components/social-auth-buttons";
 import { Page } from "@/components/page";
 import { signUp } from "@/repositories/auth-repository";
 import { isEmail, MIN_PASSWORD_LENGTH } from "@/lib/validation";
+import { errorMessage } from "@/lib/error-message";
 
 export default function SignUp() {
   const { t } = useTranslation();
@@ -33,7 +34,7 @@ export default function SignUp() {
       toast.show({
         variant: "danger",
         label: t("auth.createFailed"),
-        description: error instanceof Error ? error.message : t("settings.tryAgain"),
+        description: errorMessage(error),
       });
       return;
     } finally {

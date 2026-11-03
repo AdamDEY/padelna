@@ -13,6 +13,7 @@ import { SectionHeader } from "@/components/section-header";
 import { useTunisiaFeed } from "@/hooks/useFeed";
 import { useDiscoverPlayers } from "@/hooks/usePlayers";
 import type { Player, PlayerSuggestion } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 
 // design: "People you may know" cards are 112 px wide, 10 px apart
 const CARD_WIDTH = 112;
@@ -65,7 +66,7 @@ export function FriendsNewPlayer({ me, onSeeAllTunisia }: FriendsNewPlayerProps)
         {discover.error ? (
           <View className="items-start gap-2">
             <Text className="font-normal text-[14px] text-muted">
-              {t("players.loadFailed", { message: discover.error.message })}
+              {t("players.loadFailed", { message: errorMessage(discover.error) })}
             </Text>
             <Button size="sm" variant="secondary" onPress={() => discover.refetch()} isDisabled={discover.isRefetching}>
               {t("matches.tryAgain")}

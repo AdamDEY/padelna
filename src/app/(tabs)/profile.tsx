@@ -21,6 +21,7 @@ import { usePlayerDetails } from "@/hooks/usePlayers";
 import { stopPushNotifications } from "@/hooks/usePushNotifications";
 import { queryClient } from "@/lib/query-client";
 import { signOut } from "@/repositories/auth-repository";
+import { errorMessage } from "@/lib/error-message";
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -70,7 +71,7 @@ export default function Profile() {
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
                 {t("profile.loadFailed")}
               </Text>
-              <Text className="text-center font-normal text-[14px] text-muted">{error.message}</Text>
+              <Text className="text-center font-normal text-[14px] text-muted">{errorMessage(error)}</Text>
               <Button variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
                 {t("matches.tryAgain")}
               </Button>
@@ -102,7 +103,7 @@ export default function Profile() {
       toast.show({
         variant: "danger",
         label: t("settings.logOutFailed"),
-        description: error instanceof Error ? error.message : t("settings.tryAgain"),
+        description: errorMessage(error),
       });
       return;
     }

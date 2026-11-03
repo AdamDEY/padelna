@@ -17,6 +17,7 @@ import { useMyAccount } from "@/hooks/useMyProfile";
 import { playersKey, useConnectionRequests, useMyFriends, useRemoveConnection } from "@/hooks/usePlayers";
 import { queryClient } from "@/lib/query-client";
 import type { Friend } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 
 type Sort = "played" | "level" | "recent" | "az";
 
@@ -117,7 +118,7 @@ export default function Friends() {
           removeConnection.mutate(friend.id, {
             onSuccess: () => toast.show({ label: t("connect.removed", { name: friend.firstName }) }),
             onError: (err) =>
-              toast.show({ variant: "danger", label: t("connect.failed"), description: err.message }),
+              toast.show({ variant: "danger", label: t("connect.failed"), description: errorMessage(err) }),
           }),
       },
     ]);
@@ -149,7 +150,7 @@ export default function Friends() {
           {error ? (
             <View className="items-start gap-2">
               <Text className="font-normal text-[14px] text-muted">
-                {t("friends.loadFailed", { message: error.message })}
+                {t("friends.loadFailed", { message: errorMessage(error) })}
               </Text>
               <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
                 {t("matches.tryAgain")}

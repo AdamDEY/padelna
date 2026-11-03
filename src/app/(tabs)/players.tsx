@@ -26,6 +26,7 @@ import {
 } from "@/hooks/usePlayers";
 import { queryClient } from "@/lib/query-client";
 import type { DiscoverPlayer, PlayerSuggestion } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 
 // design: "You played with" shows four faces to a row
 const TILES_PER_ROW = 4;
@@ -219,7 +220,7 @@ function ListState({ query, emptyText, children }: ListStateProps) {
     return (
       <View className="items-start gap-2">
         <Text className="font-normal text-[14px] text-muted">
-          {t("players.loadFailed", { message: query.error.message })}
+          {t("players.loadFailed", { message: errorMessage(query.error) })}
         </Text>
         <Button
           size="sm"

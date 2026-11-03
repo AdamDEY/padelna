@@ -20,6 +20,7 @@ import { myProfileKey } from "@/hooks/useMyProfile";
 import { queryClient } from "@/lib/query-client";
 import { getCurrentUser, getSuggestedName } from "@/repositories/auth-repository";
 import { saveProfile } from "@/repositories/profile-repository";
+import { errorMessage } from "@/lib/error-message";
 
 type Step = 1 | 2 | 3;
 
@@ -113,7 +114,7 @@ export default function ProfileSetup() {
       toast.show({
         variant: "danger",
         label: t("settings.saveFailed"),
-        description: error instanceof Error ? error.message : t("settings.tryAgain"),
+        description: errorMessage(error),
       });
     } finally {
       setIsSaving(false);

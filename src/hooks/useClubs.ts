@@ -25,7 +25,7 @@ export function useClubs() {
  * until the clubs themselves are in; the rest fills in as it arrives.
  */
 export function useClubCards() {
-  const { data: clubs, isLoading, error } = useClubs();
+  const { data: clubs, isLoading, error, refetch, isRefetching } = useClubs();
   const { data: openMatches } = useUpcomingOpenMatches();
   const { data: myClubs } = useMyClubs();
   const location = useMyLocation();
@@ -44,13 +44,14 @@ export function useClubCards() {
   // Distances need the player's location and clubs with a map pin
   const hasDistances = cards.some((club) => club.distanceKm !== undefined);
 
-  return { clubs: cards, isLoading, error, hasDistances };
+  // Clubs already shown stay up when a later reload fails, so only a first load counts as failed
+  return { clubs: cards, isLoading, error: clubs ? null : error, refetch, isRefetching, hasDistances };
 }
 
 /** One club by id, or undefined while loading or when there is no such club. */
 export function useClubCard(id: string | undefined) {
-  const { clubs, isLoading } = useClubCards();
-  return { club: clubs.find((club) => club.id === id), isLoading };
+  const { clubs, ...rest } = useClubCards();
+  return { club: clubs.find((club) => club.id === id), ...rest };
 }
 
 /** Clubs a player can book a match at: open for new matches, with their switched-on courts. */
@@ -67,7 +68,7 @@ export function useBookableClubs() {
 
 /** The few clubs Home shows: the closest ones, or the busiest when the location isn't shared. */
 export function useNearbyClubs() {
-  const { clubs, isLoading, hasDistances } = useClubCards();
+  const { clubs, hasDistances, ...rest } = useClubCards();
   const nearby = useMemo(() => {
     const open = clubs.filter((club) => club.status === "published");
     // Without distances, show the clubs with the most matches to join
@@ -78,5 +79,5 @@ export function useNearbyClubs() {
       : [...open].sort((a, b) => b.openMatchCount - a.openMatchCount || a.name.localeCompare(b.name));
     return sorted.slice(0, NEARBY_LIMIT);
   }, [clubs, hasDistances]);
-  return { clubs: nearby, isLoading, hasDistances };
+  return { clubs: nearby, hasDistances, ...rest };
 }

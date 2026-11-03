@@ -23,6 +23,7 @@ import { useMyAccount } from "@/hooks/useMyProfile";
 import { clubTint } from "@/lib/club";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
+import { errorMessage } from "@/lib/error-message";
 
 // How far the white sheet slides up over the court
 const SHEET_OVERLAP = 36;
@@ -149,7 +150,7 @@ export default function MatchDetail() {
             toast.show({
               variant: "danger",
               label: t("matchDetail.joinFailed"),
-              description: error.message,
+              description: errorMessage(error),
             }),
         },
       );

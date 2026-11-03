@@ -12,6 +12,7 @@ import { useMatch, useShareableMatches, useUploadMatchPhoto } from "@/hooks/useM
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { formatMatchDay } from "@/lib/format-date";
 import type { ShareableMatch } from "@/types/match";
+import { errorMessage } from "@/lib/error-message";
 
 const missingCopy = {
   score: { status: "shareMatch.noScore", action: "shareMatch.addScore" },
@@ -58,7 +59,7 @@ export function ShareMatchSheet({ isOpen, onOpenChange }: ShareMatchSheetProps) 
       toast.show({
         variant: "danger",
         label: t("shareMatch.photoFailed"),
-        description: uploadError instanceof Error ? uploadError.message : t("settings.tryAgain"),
+        description: errorMessage(uploadError),
       });
     } finally {
       setPhotoMatchId(undefined);
@@ -107,7 +108,7 @@ export function ShareMatchSheet({ isOpen, onOpenChange }: ShareMatchSheetProps) 
               ))}
               {error ? (
                 <Text className="font-normal text-[14px] text-muted" onPress={() => !isRefetching && refetch()}>
-                  {t("matches.loadMineFailed", { message: error.message })} {t("matches.tryAgain")}
+                  {t("matches.loadMineFailed", { message: errorMessage(error) })} {t("matches.tryAgain")}
                 </Text>
               ) : matches === undefined ? (
                 <Spinner accessibilityLabel={t("matches.loadingMine")} className="self-start" />

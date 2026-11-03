@@ -31,6 +31,7 @@ import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { compareByFit, isPlayableFit, levelFit } from "@/lib/level-fit";
 import { queryClient } from "@/lib/query-client";
 import type { UpcomingMatch } from "@/types/match";
+import { errorMessage } from "@/lib/error-message";
 
 type Segment = "open" | "mine";
 
@@ -192,7 +193,7 @@ function OpenMatches() {
         {error ? (
           <View className="items-start gap-2">
             <Text className="font-normal text-[14px] text-muted">
-              {t("matches.loadFailed", { message: error.message })}
+              {t("matches.loadFailed", { message: errorMessage(error) })}
             </Text>
             <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
               {t("matches.tryAgain")}
@@ -268,7 +269,7 @@ function MyMatches({ onFindOpen }: { onFindOpen: () => void }) {
         {error ? (
           <View className="items-start gap-2">
             <Text className="font-normal text-[14px] text-muted">
-              {t("matches.loadMineFailed", { message: error.message })}
+              {t("matches.loadMineFailed", { message: errorMessage(error) })}
             </Text>
             <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
               {t("matches.tryAgain")}

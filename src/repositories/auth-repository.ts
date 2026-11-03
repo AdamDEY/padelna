@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 
 import * as Crypto from "expo-crypto";
+import { t } from "i18next";
 
 import { getAppleAuthentication } from "@/lib/apple-signin";
 import { getGoogleSignin, isGoogleSignInConfigured } from "@/lib/google-signin";
@@ -51,7 +52,7 @@ export async function signInWithGoogle() {
   const response = await getGoogleSignin().signIn();
   if (response.type !== "success") return null;
   const token = response.data.idToken;
-  if (!token) throw new Error("Google didn’t return a sign-in token. Please try again.");
+  if (!token) throw new Error(t("errors.googleNoToken"));
 
   const { data, error } = await supabase.auth.signInWithIdToken({ provider: "google", token });
   if (error) throw error;
@@ -85,7 +86,7 @@ export async function signInWithApple() {
     if ((error as { code?: string }).code === "ERR_REQUEST_CANCELED") return null;
     throw error;
   }
-  if (!credential.identityToken) throw new Error("Apple didn’t return a sign-in token. Please try again.");
+  if (!credential.identityToken) throw new Error(t("errors.appleNoToken"));
 
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: "apple",

@@ -8,8 +8,10 @@ import { Pressable, Text, View } from "react-native";
 import { ChoiceChips } from "@/components/choice-chips";
 import { ClubListItem } from "@/components/club-list-item";
 import { Icon } from "@/components/icon";
+import { LoadError } from "@/components/load-error";
 import { Page } from "@/components/page";
 import { useClubCards } from "@/hooks/useClubs";
+import { errorMessage } from "@/lib/error-message";
 
 const ALL = "all";
 
@@ -33,7 +35,7 @@ export default function AllClubs() {
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState(ALL);
   const [chosenSort, setChosenSort] = useState<SortOrder>("nearest");
-  const { clubs: allClubs, isLoading, hasDistances } = useClubCards();
+  const { clubs: allClubs, isLoading, error, refetch, isRefetching, hasDistances } = useClubCards();
 
   // Without distances (no location shared, or no map pins yet) the list sorts by open matches
   const sortOrder: SortOrder = hasDistances ? chosenSort : "matches";
@@ -69,9 +71,12 @@ export default function AllClubs() {
             >
               {t("clubs.title")}
             </Text>
-            <Text className="font-normal text-[13px] text-muted">
-              {t("clubs.subtitle", { count: published.length })}
-            </Text>
+            {/* A count of 0 would be wrong while the clubs haven't loaded */}
+            {isLoading || error ? null : (
+              <Text className="font-normal text-[13px] text-muted">
+                {t("clubs.subtitle", { count: published.length })}
+              </Text>
+            )}
           </>
         }
       />
@@ -101,9 +106,13 @@ export default function AllClubs() {
         />
 
         <View className="flex-row items-center justify-between">
-          <Text className="font-bold text-[14px] text-foreground">
-            {t("clubs.count", { count: clubs.length })}
-          </Text>
+          {error ? (
+            <View />
+          ) : (
+            <Text className="font-bold text-[14px] text-foreground">
+              {t("clubs.count", { count: clubs.length })}
+            </Text>
+          )}
           {hasDistances ? (
             <Pressable
               accessibilityRole="button"
@@ -127,7 +136,13 @@ export default function AllClubs() {
               onPress={() => router.push({ pathname: "/club/[id]", params: { id: club.id } })}
             />
           ))}
-          {!isLoading && clubs.length === 0 ? (
+          {error ? (
+            <LoadError
+              message={t("clubs.loadFailed", { message: errorMessage(error) })}
+              onRetry={() => refetch()}
+              isRetrying={isRefetching}
+            />
+          ) : !isLoading && clubs.length === 0 ? (
             <View className="items-center gap-1 rounded-[18px] border border-line bg-surface p-6">
               <Text className="font-bold text-[15px] text-foreground">{t("clubs.noneTitle")}</Text>
               <Text className="text-center font-normal text-[14px] text-muted">

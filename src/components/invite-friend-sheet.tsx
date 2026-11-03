@@ -11,6 +11,7 @@ import { useMyFriends } from "@/hooks/usePlayers";
 import { formatMatchDateTime } from "@/lib/format-date";
 import type { UpcomingMatch } from "@/types/match";
 import type { Friend } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 
 type InviteFriendSheetProps = {
   /** The match to invite to; null closes the sheet */
@@ -165,7 +166,7 @@ export function InviteFriendSheet({ match, onClose, meId }: InviteFriendSheetPro
 
               {error ? (
                 <Text className="font-normal text-[14px] text-muted">
-                  {t("inviteSheet.loadFailed", { message: error.message })}
+                  {t("inviteSheet.loadFailed", { message: errorMessage(error) })}
                 </Text>
               ) : friends === undefined ? (
                 <Spinner accessibilityLabel={t("inviteSheet.loading")} className="self-start" />

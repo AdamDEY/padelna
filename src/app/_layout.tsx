@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Uniwind } from "uniwind";
 
+import { CrashScreen } from "@/components/crash-screen";
 import { PushNotificationObserver } from "@/components/push-notification-observer";
 import { useAuthState } from "@/hooks/useAuthState";
 import { restoreLanguage } from "@/i18n";
@@ -28,6 +29,9 @@ import { queryClient } from "@/lib/query-client";
 Uniwind.setTheme("light");
 
 SplashScreen.preventAutoHideAsync();
+
+// A screen that crashes shows our own page instead of Expo Router's red developer one
+export { CrashScreen as ErrorBoundary };
 
 export default function RootLayout() {
   useMatchesRealtime();

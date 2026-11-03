@@ -24,6 +24,7 @@ import { useBookableClubs } from "@/hooks/useClubs";
 import { useCreateMatch } from "@/hooks/useMatches";
 import { askForPushNotifications } from "@/hooks/usePushNotifications";
 import { dateLocale, daysUntil, formatMatchDay } from "@/lib/format-date";
+import { errorMessage } from "@/lib/error-message";
 
 // Room the pinned Publish button takes, so the last field can scroll above it
 const FOOTER_SPACE = 104;
@@ -211,7 +212,7 @@ export function CreateMatchSheet({
           toast.show({
             variant: "danger",
             label: t("createMatch.publishFailed"),
-            description: error.message,
+            description: errorMessage(error),
           }),
       },
     );

@@ -1,4 +1,5 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { t } from "i18next";
 
 import { supabase } from "@/lib/supabase";
 import type { ChatMessage } from "@/types/chat";
@@ -70,7 +71,7 @@ export async function sendMatchMessage(matchId: string, body: string) {
   const { error } = await supabase.from("match_messages").insert({ match_id: matchId, body: body.trim() });
   if (error) {
     // Row-level security: you left the match, or it was cancelled
-    if (error.code === "42501") throw new Error("Only players in this match can write here.");
+    if (error.code === "42501") throw new Error(t("errors.chatPlayersOnly"));
     throw error;
   }
 }
