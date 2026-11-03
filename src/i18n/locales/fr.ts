@@ -227,14 +227,8 @@ export const fr: Messages = {
     sideA11y: "côté {{side}}",
     selected: "sélectionné",
     takeSpot: "Prendre la place {{side}} de l’équipe {{team}}",
+    openSpot: "Place {{side}} libre dans l’équipe {{team}}",
     levelA11y: "niveau {{level}}",
-  },
-  lineup: {
-    you: "Toi ?",
-    newPlayer: "{{level}} · nouveau",
-    newPlayerA11y: "nouveau joueur",
-    takeSpot: "Prendre cette place, {{side}}",
-    openSpot: "Place libre, {{side}}",
   },
   matches: {
     title: "Matchs",
@@ -442,6 +436,7 @@ export const fr: Messages = {
     messagePlayers: "Écrire aux joueurs",
     messageHost: "Écrire à l’organisateur",
     full: "Match complet",
+    alreadyStarted: "Ce match a commencé",
     askToJoin: "Demander à rejoindre",
     joinLeft: "Rejoindre l’équipe {{team}} · côté gauche",
     joinRight: "Rejoindre l’équipe {{team}} · côté droit",
