@@ -41,6 +41,8 @@ export type OpenMatch = {
 export type UpcomingMatch = NextMatch & {
   capacity: number;
   host: Player;
+  levelMin: number;
+  levelMax: number;
 };
 
 /** A finished match from your history. Sets are [your games, their games]. */

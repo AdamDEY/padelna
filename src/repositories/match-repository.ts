@@ -496,6 +496,8 @@ export async function fetchMyUpcomingMatches(): Promise<UpcomingMatch[]> {
       players: match.players,
       capacity: match.capacity,
       host: match.host!,
+      levelMin: row.level_min,
+      levelMax: row.level_max,
     };
   });
 }

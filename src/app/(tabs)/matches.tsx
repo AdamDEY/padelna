@@ -8,6 +8,7 @@ import { Text, View } from "react-native";
 import { CreateMatchSheet } from "@/components/create-match-sheet";
 import { DateStrip } from "@/components/date-strip";
 import { FilterChip } from "@/components/filter-chip";
+import { InviteFriendSheet } from "@/components/invite-friend-sheet";
 import { MatchListItem } from "@/components/match-list-item";
 import { MyMatchesEmpty, OpenMatchesEmpty } from "@/components/matches-empty-state";
 import { Page } from "@/components/page";
@@ -29,6 +30,7 @@ import { useMyAccount, useMyProfile } from "@/hooks/useMyProfile";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { compareByFit, isPlayableFit, levelFit } from "@/lib/level-fit";
 import { queryClient } from "@/lib/query-client";
+import type { UpcomingMatch } from "@/types/match";
 
 type Segment = "open" | "mine";
 
@@ -223,6 +225,7 @@ function MyMatches({ onFindOpen }: { onFindOpen: () => void }) {
   const { data: pendingScores = [] } = usePendingScores();
   const { data: pastMatches } = useMyPastMatches();
   const [isCreating, setIsCreating] = useState(false);
+  const [inviteTo, setInviteTo] = useState<UpcomingMatch | null>(null);
   // Nothing upcoming and nothing played: one welcome card instead of two empty lists
   const hasNothing = upcomingMatches?.length === 0 && pastMatches?.length === 0 && pendingScores.length === 0;
 
@@ -258,6 +261,7 @@ function MyMatches({ onFindOpen }: { onFindOpen: () => void }) {
                 match={match}
                 me={{ id: account.id, firstName: account.firstName, lastName: account.lastName }}
                 onPress={() => router.push({ pathname: "/match/[id]", params: { id: match.id } })}
+                onInvite={() => setInviteTo(match)}
               />
             ))
           : null}
@@ -301,6 +305,8 @@ function MyMatches({ onFindOpen }: { onFindOpen: () => void }) {
           </Text>
         ) : null}
       </View>
+
+      {account ? <InviteFriendSheet match={inviteTo} onClose={() => setInviteTo(null)} meId={account.id} /> : null}
     </>
   );
 }
