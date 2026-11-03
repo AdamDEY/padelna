@@ -95,6 +95,8 @@ export const upcomingMatches: UpcomingMatch[] = [
     players: [me, players.amine, players.mehdi, players.sarra],
     capacity: 4,
     host: me,
+    levelMin: 3.5,
+    levelMax: 4.5,
   },
   {
     id: "match-8",
@@ -104,6 +106,8 @@ export const upcomingMatches: UpcomingMatch[] = [
     players: [players.karim, me, players.nour],
     capacity: 4,
     host: players.karim,
+    levelMin: 4,
+    levelMax: 5,
   },
 ];
 
