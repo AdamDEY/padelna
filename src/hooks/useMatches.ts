@@ -34,15 +34,17 @@ export const matchKey = (id: string) => ["match", id] as const;
 // Under myMatchesKey too: a new score or photo changes what can still be shared
 export const shareableMatchesKey = [...myMatchesKey, "shareable"] as const;
 export const pendingScoresKey = ["pending-scores"] as const;
-export const friendsFeedKey = ["friends-feed"] as const;
+// Every Community feed sits under one key, so a confirmed score refreshes all of them
+export const communityFeedKey = ["community-feed"] as const;
+export const friendsFeedKey = [...communityFeedKey, "friends"] as const;
 
 // Everything a match change can touch: the lists and the match itself (or every match)
 export function refreshMatches(matchId?: string) {
   queryClient.invalidateQueries({ queryKey: myMatchesKey });
   queryClient.invalidateQueries({ queryKey: openMatchesKey });
   queryClient.invalidateQueries({ queryKey: pendingScoresKey });
-  // A confirmed score or new photo shows up in the Friends feed
-  queryClient.invalidateQueries({ queryKey: friendsFeedKey });
+  // A confirmed score or new photo shows up in the Community feeds
+  queryClient.invalidateQueries({ queryKey: communityFeedKey });
   queryClient.invalidateQueries({ queryKey: matchId ? matchKey(matchId) : ["match"] });
 }
 

@@ -44,3 +44,13 @@ export type FeedMatch = {
   /** Storage path of the team photo, when the host added one */
   photoPath?: string;
 };
+
+/** This week at your clubs, for the My clubs banner */
+export type ClubsWeek = { matchesPlayed: number; openForYourLevel: number };
+
+/** A player whose level rose this month, for All Tunisia */
+export type RisingPlayer = {
+  player: PlayerSuggestion;
+  /** Level gained from matches in the last 30 days */
+  levelChange: number;
+};

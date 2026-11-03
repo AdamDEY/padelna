@@ -11,14 +11,14 @@ type RisingPlayerProps = {
   player: Player;
   /** Level gained this month */
   levelChange: number;
-  city: string;
   onPress?: () => void;
 };
 
 /** A player climbing fast: avatar with a lime ring, name, level gain and city. */
-export function RisingPlayer({ player, levelChange, city, onPress }: RisingPlayerProps) {
+export function RisingPlayer({ player, levelChange, onPress }: RisingPlayerProps) {
   const { t } = useTranslation();
   const name = `${player.firstName} ${player.lastName.charAt(0)}.`;
+  const city = player.city ?? "";
 
   return (
     <PressableFeedback
@@ -33,7 +33,7 @@ export function RisingPlayer({ player, levelChange, city, onPress }: RisingPlaye
         {name}
       </Text>
       <Text numberOfLines={1} className="font-bold text-[11px] text-success">
-        ▲ {levelChange.toFixed(1)} · {city}
+        {[`▲ ${levelChange.toFixed(1)}`, city].filter(Boolean).join(" · ")}
       </Text>
     </PressableFeedback>
   );

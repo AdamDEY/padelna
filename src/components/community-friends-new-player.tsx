@@ -4,16 +4,15 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
+import { FeedMatches } from "@/components/community-feed";
 import { ConnectButton } from "@/components/connect-button";
 import { Page } from "@/components/page";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { PlayerSheet } from "@/components/player-sheet";
-import { ResultPostCard } from "@/components/result-post-card";
 import { SectionHeader } from "@/components/section-header";
-import { tunisiaPosts } from "@/data/mock";
+import { useTunisiaFeed } from "@/hooks/useFeed";
 import { useDiscoverPlayers } from "@/hooks/usePlayers";
 import type { Player, PlayerSuggestion } from "@/types/player";
-import type { ResultPost } from "@/types/post";
 
 // design: "People you may know" cards are 112 px wide, 10 px apart
 const CARD_WIDTH = 112;
@@ -24,21 +23,20 @@ type FriendsNewPlayerProps = {
   me: Player;
   /** Opens the All Tunisia tab */
   onSeeAllTunisia: () => void;
-  /** Opens the Connect sheet for a sample post */
-  onConnectPost: (post: ResultPost) => void;
 };
 
 /**
  * Community · Friends before any friend has played (design canvas "Community · Friends · new
  * player"): what the tab is for, people to connect with, and one result from around Tunisia.
  */
-export function FriendsNewPlayer({ me, onSeeAllTunisia, onConnectPost }: FriendsNewPlayerProps) {
+export function FriendsNewPlayer({ me, onSeeAllTunisia }: FriendsNewPlayerProps) {
   const { t } = useTranslation();
   const discover = useDiscoverPlayers();
   const [viewed, setViewed] = useState<PlayerSuggestion>();
   const [isViewing, setIsViewing] = useState(false);
   const people = discover.data?.slice(0, MAX_PEOPLE);
-  const post = tunisiaPosts[0];
+  // The newest result from around Tunisia; the section is left out until there is one
+  const latest = useTunisiaFeed().data?.pages[0]?.[0];
 
   return (
     <>
@@ -109,7 +107,7 @@ export function FriendsNewPlayer({ me, onSeeAllTunisia, onConnectPost }: Friends
         )}
       </View>
 
-      {post ? (
+      {latest ? (
         <View className="gap-2.5">
           <SectionHeader
             size="sm"
@@ -117,20 +115,7 @@ export function FriendsNewPlayer({ me, onSeeAllTunisia, onConnectPost }: Friends
             actionLabel={t("common.seeAll")}
             onPressAction={onSeeAllTunisia}
           />
-          <ResultPostCard
-            post={post}
-            headerAction={
-              <Button
-                size="sm"
-                variant="secondary"
-                onPress={() => onConnectPost(post)}
-                hitSlop={6}
-                className="h-8 rounded-[10px] px-3"
-              >
-                {t("connect.connect")}
-              </Button>
-            }
-          />
+          <FeedMatches matches={[latest]} myId={me.id} />
         </View>
       ) : null}
 
