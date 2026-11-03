@@ -9,6 +9,7 @@ import { ConnectionRequestsSheet } from "@/components/connection-requests-sheet"
 import { CreateMatchButton } from "@/components/create-match-button";
 import { CreateMatchSheet } from "@/components/create-match-sheet";
 import { HomeHeader } from "@/components/home-header";
+import { LoadError } from "@/components/load-error";
 import { NextMatchCard } from "@/components/next-match-card";
 import { OpenMatchCard } from "@/components/open-match-card";
 import { OpenMatchesEmptyCard } from "@/components/open-matches-empty-card";
@@ -20,9 +21,9 @@ import { myMatchesKey, openMatchesKey, useHomeOpenMatches, useMyUpcomingMatches 
 import { useNearbyClubs } from "@/hooks/useClubs";
 import { connectionRequestsKey, useConnectionRequests } from "@/hooks/usePlayers";
 import { myProfileKey, useMyProfile } from "@/hooks/useMyProfile";
+import { errorMessage } from "@/lib/error-message";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
 import { queryClient } from "@/lib/query-client";
-
 
 // Width that shows about 1.5 cards on a phone (design.md)
 const OPEN_MATCH_CARD_WIDTH = 248;
@@ -46,11 +47,14 @@ export default function Home() {
   const { data: requests = [] } = useConnectionRequests();
   const { data: profile } = useMyProfile();
   const level = profile?.level ?? myLevel;
-  const { data: upcoming } = useMyUpcomingMatches();
+  const upcomingQuery = useMyUpcomingMatches();
+  const upcoming = upcomingQuery.data;
   const nextMatch = upcoming?.[0];
 
-  const { data: openMatches } = useHomeOpenMatches();
-  const { clubs: nearbyClubs, hasDistances } = useNearbyClubs();
+  const openMatchesQuery = useHomeOpenMatches();
+  const openMatches = openMatchesQuery.data;
+  const nearby = useNearbyClubs();
+  const { clubs: nearbyClubs, hasDistances } = nearby;
   // Open matches that suit your level, soonest first
   const matchesForYou = useMemo(
     () =>
@@ -83,6 +87,12 @@ export default function Home() {
             match={nextMatch}
             onPress={() => router.push({ pathname: "/match/[id]", params: { id: nextMatch.id } })}
           />
+        ) : upcomingQuery.error && !upcoming ? (
+          <LoadError
+            message={t("home.nextMatchFailed", { message: errorMessage(upcomingQuery.error) })}
+            onRetry={() => upcomingQuery.refetch()}
+            isRetrying={upcomingQuery.isRefetching}
+          />
         ) : null}
 
         <View className="gap-3">
@@ -102,6 +112,13 @@ export default function Home() {
               />
             ))}
           </Page.Carousel>
+          {openMatchesQuery.error && !openMatches ? (
+            <LoadError
+              message={t("home.openMatchesFailed", { message: errorMessage(openMatchesQuery.error) })}
+              onRetry={() => openMatchesQuery.refetch()}
+              isRetrying={openMatchesQuery.isRefetching}
+            />
+          ) : null}
           {hasNoOpenMatches ? (
             <OpenMatchesEmptyCard
               player={profile?.player}
@@ -124,6 +141,13 @@ export default function Home() {
               onPress={() => router.push({ pathname: "/club/[id]", params: { id: club.id } })}
             />
           ))}
+          {nearby.error ? (
+            <LoadError
+              message={t("home.clubsFailed", { message: errorMessage(nearby.error) })}
+              onRetry={() => nearby.refetch()}
+              isRetrying={nearby.isRefetching}
+            />
+          ) : null}
         </View>
         <View style={{ height: FLOATING_BUTTON_SPACE }} />
       </Page.Body>

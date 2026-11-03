@@ -1,4 +1,5 @@
 import type * as CalendarModule from "expo-calendar";
+import { t } from "i18next";
 
 // Remind the player an hour before kick-off
 const REMINDER_MINUTES_BEFORE = 60;
@@ -47,7 +48,7 @@ export async function addToCalendar(
     const writable = (await Calendar.getCalendars()).filter((c) => c.allowsModifications);
     calendar = writable.find((c) => c.isPrimary) ?? writable[0];
   }
-  if (!calendar) throw new Error("No calendar on this device can take new events.");
+  if (!calendar) throw new Error(t("errors.noCalendar"));
 
   const result = await calendar.addEventWithForm({
     title: details.title,

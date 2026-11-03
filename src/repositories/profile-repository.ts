@@ -1,3 +1,5 @@
+import { t } from "i18next";
+
 import type { AboutValues } from "@/components/setup-about-step";
 import type { GameValues } from "@/components/setup-game-step";
 import { supabase } from "@/lib/supabase";
@@ -18,7 +20,7 @@ export async function hasProfile(userId: string) {
 /** The signed-in player's saved details. */
 export async function fetchMyAccount(): Promise<MyAccount> {
   const user = await getCurrentUser();
-  if (!user) throw new Error("You’re signed out. Sign in again.");
+  if (!user) throw new Error(t("errors.signedOut"));
 
   const { data, error } = await supabase
     .from("profiles")

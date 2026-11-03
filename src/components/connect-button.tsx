@@ -6,6 +6,7 @@ import { Alert, Text } from "react-native";
 import { Icon } from "@/components/icon";
 import { useRemoveConnection, useRequestConnection, useRespondToConnection } from "@/hooks/usePlayers";
 import type { PlayerSuggestion } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 
 // The small button is only as wide as its tile, so a longer label (French) shrinks a little to fit
 const MIN_LABEL_SCALE = 0.8;
@@ -42,7 +43,7 @@ export function ConnectButton({ player, size = "md" }: ConnectButtonProps) {
   const isBusy = requestConnection.isPending || respondToConnection.isPending || removeConnection.isPending;
 
   function showError(error: Error) {
-    toast.show({ variant: "danger", label: t("connect.failed"), description: error.message });
+    toast.show({ variant: "danger", label: t("connect.failed"), description: errorMessage(error) });
   }
 
   if (player.connection === "connected" || player.connection === "sent") {

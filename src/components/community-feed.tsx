@@ -12,6 +12,7 @@ import { useMatchPhotoUrl } from "@/hooks/useMatches";
 import { toFeedPost } from "@/lib/feed-post";
 import type { Player, PlayerSuggestion } from "@/types/player";
 import type { FeedMatch } from "@/types/post";
+import { errorMessage } from "@/lib/error-message";
 
 type CommunityFeedProps = {
   feed: UseInfiniteQueryResult<InfiniteData<FeedMatch[]>>;
@@ -30,7 +31,7 @@ export function CommunityFeed({ feed, myId, empty }: CommunityFeedProps) {
   if (error) {
     return (
       <View className="items-start gap-2">
-        <Text className="font-normal text-[14px] text-muted">{t("community.loadFailed", { message: error.message })}</Text>
+        <Text className="font-normal text-[14px] text-muted">{t("community.loadFailed", { message: errorMessage(error) })}</Text>
         <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
           {t("matches.tryAgain")}
         </Button>

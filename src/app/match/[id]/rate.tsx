@@ -16,6 +16,7 @@ import { formatMatchDay } from "@/lib/format-date";
 import { formatSets, teamOf } from "@/lib/padel-score";
 import { isRatingOpen, playersToRate, type RatingValue } from "@/lib/player-rating";
 import type { Player } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 
 /**
  * "How did they play?" (design: Post-match review · v2 five-point scale). Once a score is in,
@@ -108,7 +109,7 @@ export default function RatePlayers() {
         ratings: Object.entries(ratings).map(([playerId, rating]) => ({ playerId, rating })),
       });
     } catch (error) {
-      toast.show({ variant: "danger", label: t("rating.failed"), description: (error as Error).message });
+      toast.show({ variant: "danger", label: t("rating.failed"), description: errorMessage(error) });
       return;
     }
     setIsSent(true);

@@ -24,6 +24,7 @@ import { teamOf } from "@/lib/padel-score";
 import { isRatingOpen, playersToRate } from "@/lib/player-rating";
 import type { MatchDetails } from "@/types/match";
 import type { Player } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 import type { LucideIcon } from "lucide-react-native";
 
 // The countdown shows minutes at its finest, so refresh it once a minute
@@ -122,7 +123,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
       toast.show({
         variant: "danger",
         label: t("myMatch.calendarFailed"),
-        description: error instanceof Error ? error.message : undefined,
+        description: errorMessage(error),
       });
     }
   }
@@ -132,7 +133,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
     Linking.openURL(url).then(
       () => toast.show({ label: t("myMatch.calendarHint") }),
       (error: Error) =>
-        toast.show({ variant: "danger", label: t("myMatch.calendarFailed"), description: error.message }),
+        toast.show({ variant: "danger", label: t("myMatch.calendarFailed"), description: errorMessage(error) }),
     );
   }
 
@@ -185,7 +186,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
               toast.show({
                 variant: "danger",
                 label: t("myMatch.leaveFailed"),
-                description: error.message,
+                description: errorMessage(error),
               }),
           }),
       },
@@ -208,7 +209,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
         rateAfterScore();
       },
       onError: (error) =>
-        toast.show({ variant: "danger", label: t("myMatch.confirmFailed"), description: error.message }),
+        toast.show({ variant: "danger", label: t("myMatch.confirmFailed"), description: errorMessage(error) }),
     });
   }
 
@@ -228,7 +229,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
               toast.show({
                 variant: "danger",
                 label: t("myMatch.cancelFailed"),
-                description: error.message,
+                description: errorMessage(error),
               }),
           }),
       },

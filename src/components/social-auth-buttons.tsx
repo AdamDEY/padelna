@@ -8,6 +8,7 @@ import { AppleMark, GoogleMark } from "@/components/brand-marks";
 import { isAppleSignInAvailable } from "@/lib/apple-signin";
 import { signInWithApple, signInWithGoogle } from "@/repositories/auth-repository";
 import { hasProfile } from "@/repositories/profile-repository";
+import { errorMessage } from "@/lib/error-message";
 
 /**
  * "or" divider with the Google and Apple buttons (design: Sign in). Both cover
@@ -34,7 +35,7 @@ export function SocialAuthButtons() {
       toast.show({
         variant: "danger",
         label: failure,
-        description: error instanceof Error ? error.message : t("settings.tryAgain"),
+        description: errorMessage(error),
       });
     } finally {
       setIsSigningIn(false);

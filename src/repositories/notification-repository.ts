@@ -1,3 +1,5 @@
+import { t } from "i18next";
+
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
 
@@ -46,7 +48,7 @@ export async function fetchNotificationSettings(): Promise<NotificationSettings>
 
 export async function saveNotificationSettings(settings: NotificationSettings) {
   const user = await getCurrentUser();
-  if (!user) throw new Error("You’re signed out. Sign in again.");
+  if (!user) throw new Error(t("errors.signedOut"));
 
   const { error } = await supabase.from("notification_settings").upsert({
     player_id: user.id,

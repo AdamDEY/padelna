@@ -18,6 +18,7 @@ import { daysUntil, formatMatchDateTime, formatMatchDay, formatTime, formatWeekd
 import type { ChatMessage } from "@/types/chat";
 import type { MatchDetails } from "@/types/match";
 import type { Player } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 
 // Quick replies under the message box (design: Match group chat)
 const QUICK_REPLIES = ["chat.onMyWay", "chat.late", "chat.here"] as const;
@@ -158,7 +159,7 @@ function ChatScreen({ match, me, onSendFailed }: ChatScreenProps) {
       await messages.refetch();
     } catch (error) {
       if (fromDraft) setDraft(text);
-      onSendFailed((error as Error).message);
+      onSendFailed(errorMessage(error));
     } finally {
       setPending((current) => current.filter((message) => message.id !== temp.id));
     }
@@ -209,7 +210,7 @@ function ChatScreen({ match, me, onSendFailed }: ChatScreenProps) {
         ) : messages.isError ? (
           <View className="px-4">
             <InfoNote icon={X} tone="warning" title={t("chat.loadFailed")}>
-              {messages.error.message}
+              {errorMessage(messages.error)}
             </InfoNote>
           </View>
         ) : (

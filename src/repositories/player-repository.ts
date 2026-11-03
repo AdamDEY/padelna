@@ -1,4 +1,5 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { t } from "i18next";
 
 import { supabase } from "@/lib/supabase";
 import type { ConnectionState, DiscoverPlayer, Friend, PlayerDetails, PlayerSuggestion } from "@/types/player";
@@ -119,7 +120,7 @@ export async function fetchPlayerDetails(playerId: string): Promise<PlayerDetail
   const { data, error } = await supabase.rpc("get_player_profile", { p_player_id: playerId });
   if (error) throw error;
   const row = (data as DetailsRow[])[0];
-  if (!row) throw new Error("This player isn’t available.");
+  if (!row) throw new Error(t("errors.playerUnavailable"));
   return {
     side: row.side,
     hand: row.hand,

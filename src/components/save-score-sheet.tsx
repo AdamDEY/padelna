@@ -20,6 +20,7 @@ import { formatMatchDay } from "@/lib/format-date";
 import { winningTeam, type SetScore } from "@/lib/padel-score";
 import type { MatchDetails } from "@/types/match";
 import type { Player } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 
 // Best of three sets
 const SET_COUNT = 3;
@@ -124,7 +125,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange, onSave
       toast.show({
         variant: "danger",
         label: t("scoreSheet.saveFailed"),
-        description: (error as Error).message,
+        description: errorMessage(error),
       });
       return;
     }
@@ -137,7 +138,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange, onSave
         toast.show({
           variant: "danger",
           label: t("scoreSheet.photoFailed"),
-          description: (error as Error).message,
+          description: errorMessage(error),
         });
         onOpenChange(false);
         onSaved?.();

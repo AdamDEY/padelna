@@ -14,6 +14,7 @@ import { SegmentedControl } from "@/components/segmented-control";
 import { useMatchHistory } from "@/hooks/useMatches";
 import { formatMonthName } from "@/lib/format-date";
 import { groupByMonth, summarize } from "@/lib/match-history";
+import { errorMessage } from "@/lib/error-message";
 
 type ResultFilter = "all" | "won" | "lost";
 
@@ -101,7 +102,7 @@ export default function MatchHistory() {
           {error ? (
             <View className="items-start gap-2">
               <Text className="font-normal text-[14px] text-muted">
-                {t("history.loadFailed", { message: error.message })}
+                {t("history.loadFailed", { message: errorMessage(error) })}
               </Text>
               <Button size="sm" variant="secondary" onPress={() => refetch()} isDisabled={isRefetching}>
                 {t("matches.tryAgain")}

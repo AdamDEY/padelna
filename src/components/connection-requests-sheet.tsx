@@ -7,6 +7,7 @@ import { Icon } from "@/components/icon";
 import { PlayerSuggestionRow } from "@/components/player-suggestion-row";
 import { useRespondToConnection } from "@/hooks/usePlayers";
 import type { PlayerSuggestion } from "@/types/player";
+import { errorMessage } from "@/lib/error-message";
 
 type ConnectionRequestsSheetProps = {
   requests: PlayerSuggestion[];
@@ -30,7 +31,7 @@ export function ConnectionRequestsSheet({ requests, isOpen, onOpenChange }: Conn
           if (requests.length === 1) onOpenChange(false);
         },
         onError: (error) =>
-          toast.show({ variant: "danger", label: t("connections.answerFailed"), description: error.message }),
+          toast.show({ variant: "danger", label: t("connections.answerFailed"), description: errorMessage(error) }),
       },
     );
   }

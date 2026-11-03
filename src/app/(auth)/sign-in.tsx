@@ -11,6 +11,7 @@ import { PadelnaLogo } from "@/components/padelna-logo";
 import { signIn as signInWithPassword } from "@/repositories/auth-repository";
 import { hasProfile } from "@/repositories/profile-repository";
 import { isEmail, isEmailOrPhone } from "@/lib/validation";
+import { errorMessage } from "@/lib/error-message";
 
 // The design is drawn for a 44 pt status bar; taller ones push everything down
 const DESIGN_STATUS_BAR = 44;
@@ -48,7 +49,7 @@ export default function SignIn() {
       toast.show({
         variant: "danger",
         label: t("auth.signInFailed"),
-        description: error instanceof Error ? error.message : t("settings.tryAgain"),
+        description: errorMessage(error),
       });
       return;
     }

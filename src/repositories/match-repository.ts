@@ -97,7 +97,7 @@ export type NewMatch = {
 /** Creates a match hosted by the signed-in player and returns its id. */
 export async function createMatch(match: NewMatch) {
   const user = await getCurrentUser();
-  if (!user) throw new Error("You’re signed out. Sign in again.");
+  if (!user) throw new Error(t("errors.signedOut"));
 
   const { data, error } = await supabase
     .from("matches")
@@ -114,7 +114,7 @@ export async function createMatch(match: NewMatch) {
     .single();
   if (error) {
     if (error.code === OVERLAP_ERROR_CODE) {
-      throw new Error("You already host a match at that time. Pick another time.");
+      throw new Error(t("errors.hostOverlap"));
     }
     throw error;
   }
@@ -147,7 +147,7 @@ export async function fetchMatch(matchId: string): Promise<MatchDetails | null> 
  */
 export async function fetchOpenMatches(from: Date, to: Date): Promise<OpenMatch[]> {
   const user = await getCurrentUser();
-  if (!user) throw new Error("You’re signed out. Sign in again.");
+  if (!user) throw new Error(t("errors.signedOut"));
 
   const { data, error } = await supabase
     .from("matches")
@@ -315,7 +315,7 @@ export async function confirmScore(matchId: string) {
  */
 export async function fetchMyPendingScores(): Promise<PendingReview[]> {
   const user = await getCurrentUser();
-  if (!user) throw new Error("You’re signed out. Sign in again.");
+  if (!user) throw new Error(t("errors.signedOut"));
 
   const now = Date.now();
   const { data, error } = await supabase
@@ -361,7 +361,7 @@ export async function fetchMyPendingScores(): Promise<PendingReview[]> {
  */
 export async function fetchMyShareableMatches(): Promise<ShareableMatch[]> {
   const user = await getCurrentUser();
-  if (!user) throw new Error("You’re signed out. Sign in again.");
+  if (!user) throw new Error(t("errors.signedOut"));
 
   const now = Date.now();
   const { data, error } = await supabase
@@ -411,7 +411,7 @@ export async function fetchMyShareableMatches(): Promise<ShareableMatch[]> {
 /** Matches you played that are over and had all 4 players, most recent first. */
 export async function fetchMyPastMatches(limit = PAST_MATCH_LIMIT): Promise<PastMatch[]> {
   const user = await getCurrentUser();
-  if (!user) throw new Error("You’re signed out. Sign in again.");
+  if (!user) throw new Error(t("errors.signedOut"));
 
   const { data, error } = await supabase
     .from("match_players")
@@ -470,7 +470,7 @@ export async function fetchMyPastMatches(limit = PAST_MATCH_LIMIT): Promise<Past
 /** Open matches you host or play in that haven't finished, soonest first. */
 export async function fetchMyUpcomingMatches(): Promise<UpcomingMatch[]> {
   const user = await getCurrentUser();
-  if (!user) throw new Error("You’re signed out. Sign in again.");
+  if (!user) throw new Error(t("errors.signedOut"));
 
   const since = new Date(Date.now() - STILL_PLAYING_MS).toISOString();
   const { data, error } = await supabase

@@ -11,6 +11,7 @@ import { BookingNoticeSheet } from "@/components/booking-notice-sheet";
 import { ClubMatchRow } from "@/components/club-match-row";
 import { CreateMatchSheet } from "@/components/create-match-sheet";
 import { InfoNote } from "@/components/info-note";
+import { LoadError } from "@/components/load-error";
 import { Page } from "@/components/page";
 import { SectionHeader } from "@/components/section-header";
 import { useClubCard } from "@/hooks/useClubs";
@@ -19,6 +20,7 @@ import { translateLabel } from "@/i18n";
 import { shouldSkipBookingNotice } from "@/lib/booking-notice";
 import { formatDistance, formatPhone, todaysHours } from "@/lib/club";
 import { showDirections } from "@/lib/directions";
+import { errorMessage } from "@/lib/error-message";
 
 // How far the white sheet slides up over the photo
 const SHEET_OVERLAP = 34;
@@ -26,15 +28,16 @@ const SHEET_OVERLAP = 34;
 export default function ClubDetail() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { club, isLoading } = useClubCard(id);
-  const { data: openMatches = [] } = useUpcomingOpenMatches();
+  const { club, isLoading, error, refetch, isRefetching } = useClubCard(id);
+  const openMatchesQuery = useUpcomingOpenMatches();
+  const openMatches = openMatchesQuery.data;
   const [isSaved, setIsSaved] = useState(false);
   const [isShowingNotice, setIsShowingNotice] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const matchesHere = useMemo(
     () =>
-      openMatches
+      (openMatches ?? [])
         .filter((match) => match.clubId === id)
         .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime()),
     [openMatches, id],
@@ -51,7 +54,13 @@ export default function ClubDetail() {
       <Page>
         <Page.Header back />
         <Page.Body>
-          {isLoading ? null : (
+          {error ? (
+            <LoadError
+              message={t("clubDetail.loadFailed", { message: errorMessage(error) })}
+              onRetry={() => refetch()}
+              isRetrying={isRefetching}
+            />
+          ) : isLoading ? null : (
             <Page.Title description={t("clubDetail.notFoundText")}>
               {t("clubDetail.notFoundTitle")}
             </Page.Title>
@@ -161,7 +170,13 @@ export default function ClubDetail() {
             {matchesHere.map((match) => (
               <ClubMatchRow key={match.id} match={match} />
             ))}
-            {matchesHere.length === 0 ? (
+            {openMatchesQuery.error && !openMatches ? (
+              <LoadError
+                message={t("clubDetail.matchesFailed", { message: errorMessage(openMatchesQuery.error) })}
+                onRetry={() => openMatchesQuery.refetch()}
+                isRetrying={openMatchesQuery.isRefetching}
+              />
+            ) : matchesHere.length === 0 ? (
               <Text className="font-normal text-[14px] text-muted">
                 {t("clubDetail.noneHere")}
               </Text>
