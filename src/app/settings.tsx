@@ -11,7 +11,7 @@ import {
   TextField,
   useToast,
 } from "heroui-native";
-import { Lock, LogOut, Plus, X } from "lucide-react-native";
+import { Lock, Plus, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Linking, Text, View } from "react-native";
@@ -37,13 +37,12 @@ import { useMyClubs } from "@/hooks/usePlayers";
 import { myProfileKey, useMyAccount } from "@/hooks/useMyProfile";
 import {
   askForPushNotifications,
-  stopPushNotifications,
   useNotificationSettings,
   usePushPermission,
   useSaveNotificationSettings,
 } from "@/hooks/usePushNotifications";
 import { queryClient } from "@/lib/query-client";
-import { deleteOwnAccount, signOut } from "@/repositories/auth-repository";
+import { deleteOwnAccount } from "@/repositories/auth-repository";
 import { updateProfile } from "@/repositories/profile-repository";
 import type { MyAccount } from "@/types/account";
 
@@ -183,23 +182,6 @@ function SettingsForm({ account }: { account: MyAccount }) {
       router.replace("/sign-in");
     }
   }, [leaving]);
-
-  async function logOut() {
-    // Signing out clears the session on the device even if the network call fails
-    try {
-      // While still signed in, so this phone stops getting your pushes
-      await stopPushNotifications();
-      await signOut();
-    } catch (error) {
-      toast.show({
-        variant: "danger",
-        label: t("settings.logOutFailed"),
-        description: error instanceof Error ? error.message : t("settings.tryAgain"),
-      });
-      return;
-    }
-    leaveToSignIn();
-  }
 
   async function deleteAccount() {
     try {
@@ -385,10 +367,6 @@ function SettingsForm({ account }: { account: MyAccount }) {
         </SettingsSection>
 
         <View className="mt-1 gap-2.5">
-          <Button size="lg" variant="outline" onPress={logOut}>
-            <Icon as={LogOut} size={20} color="foreground" />
-            <Button.Label className="text-foreground">{t("settings.logOut")}</Button.Label>
-          </Button>
           <Button size="lg" variant="ghost" onPress={() => setIsDeleteOpen(true)}>
             <Button.Label className="text-danger">{t("settings.deleteAccount")}</Button.Label>
           </Button>

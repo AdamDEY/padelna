@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 import { t } from "i18next";
 import { Button, Spinner, Tabs } from "heroui-native";
-import { CalendarDays, SlidersHorizontal } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -9,7 +8,6 @@ import { Text, View } from "react-native";
 import { CreateMatchSheet } from "@/components/create-match-sheet";
 import { DateStrip } from "@/components/date-strip";
 import { FilterChip } from "@/components/filter-chip";
-import { IconButton } from "@/components/icon-button";
 import { MatchListItem } from "@/components/match-list-item";
 import { MyMatchesEmpty, OpenMatchesEmpty } from "@/components/matches-empty-state";
 import { Page } from "@/components/page";
@@ -68,15 +66,7 @@ export default function Matches() {
     <Page>
       {/* The title and the Open / My matches switch stay put while the lists scroll */}
       <Page.Fixed className="gap-5">
-        <Page.Title
-          action={
-            segment === "open" ? (
-              <IconButton icon={SlidersHorizontal} label={t("matches.filters")} />
-            ) : (
-              <IconButton icon={CalendarDays} label={t("matches.calendar")} />
-            )
-          }
-        >
+        <Page.Title>
           {t("matches.title")}
         </Page.Title>
 
@@ -290,7 +280,12 @@ function MyMatches({ onFindOpen }: { onFindOpen: () => void }) {
       </View>
 
       <View className="gap-2">
-        <SectionHeader size="sm" title={t("matches.past")} actionLabel={t("matches.history")} />
+        <SectionHeader
+          size="sm"
+          title={t("matches.past")}
+          actionLabel={pastMatches && pastMatches.length > 0 ? t("matches.history") : undefined}
+          onPressAction={() => router.push("/match-history")}
+        />
         {pastMatches?.map((match) => (
           <PastMatchRow
             key={match.id}
