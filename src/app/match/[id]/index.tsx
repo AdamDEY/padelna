@@ -56,6 +56,8 @@ export default function MatchDetail() {
   const [hasAsked, setHasAsked] = useState(false);
   // The seat you tapped, until you confirm with the Join button
   const [selectedSeat, setSelectedSeat] = useState<number>();
+  // When the screen opened; a match that starts while it's open is still refused by the database
+  const [openedAt] = useState(() => Date.now());
   // Kept after the sheet closes so its content doesn't vanish mid-animation
   const [viewedPlayer, setViewedPlayer] = useState<Player>();
   const [isViewingPlayer, setIsViewingPlayer] = useState(false);
@@ -112,7 +114,9 @@ export default function MatchDetail() {
     isStored && match.seats
       ? match.seats
       : Array.from({ length: match.capacity }, (_, index) => players[index]);
-  const canPick = !isMine && fits && !isFull;
+  // Nobody can join once play has begun (the database refuses too)
+  const hasStarted = openedAt >= match.startsAt.getTime();
+  const canPick = !isMine && fits && !isFull && !hasStarted;
   const picked = selectedSeat !== undefined ? seatInfo(selectedSeat, match.capacity) : undefined;
   const self: Player =
     isStored && account
@@ -371,6 +375,7 @@ export default function MatchDetail() {
             variant={fits ? "primary" : "outline"}
             isDisabled={
               isFull ||
+              hasStarted ||
               hasAsked ||
               joinStoredMatch.isPending ||
               (fits && selectedSeat === undefined)
@@ -380,15 +385,17 @@ export default function MatchDetail() {
           >
             {isFull
               ? t("matchDetail.full")
-              : !fits
-                ? hasAsked
-                  ? t("matchDetail.requestSent")
-                  : t("matchDetail.askToJoin")
-                : picked
-                  ? t(picked.side === "left" ? "matchDetail.joinLeft" : "matchDetail.joinRight", {
-                      team: picked.team,
-                    })
-                  : t("matchDetail.pickSpot")}
+              : hasStarted
+                ? t("matchDetail.alreadyStarted")
+                : !fits
+                  ? hasAsked
+                    ? t("matchDetail.requestSent")
+                    : t("matchDetail.askToJoin")
+                  : picked
+                    ? t(picked.side === "left" ? "matchDetail.joinLeft" : "matchDetail.joinRight", {
+                        team: picked.team,
+                      })
+                    : t("matchDetail.pickSpot")}
           </Button>
         )}
       </Page.Footer>

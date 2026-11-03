@@ -224,14 +224,8 @@ export const en = {
     sideA11y: "{{side}} side",
     selected: "selected",
     takeSpot: "Take the {{side}} spot in Team {{team}}",
+    openSpot: "Open {{side}} spot in Team {{team}}",
     levelA11y: "level {{level}}",
-  },
-  lineup: {
-    you: "You?",
-    newPlayer: "{{level}} · new",
-    newPlayerA11y: "new player",
-    takeSpot: "Take this spot, {{side}}",
-    openSpot: "Open spot, {{side}}",
   },
   matches: {
     title: "Matches",
@@ -439,6 +433,7 @@ export const en = {
     messagePlayers: "Message the players",
     messageHost: "Message the host",
     full: "Match is full",
+    alreadyStarted: "This match has started",
     askToJoin: "Ask to join",
     joinLeft: "Join Team {{team}} · Left side",
     joinRight: "Join Team {{team}} · Right side",

@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
-import { isOpenable } from "@/components/match-line-up";
 import { PlayerAvatar } from "@/components/player-avatar";
 import type { Player } from "@/types/player";
 
@@ -22,6 +21,11 @@ export function seatInfo(seat: number, capacity = 4) {
   } as const satisfies { team: string; side: Side };
 }
 
+/** Players on the app other than you; the host's guests have no profile to show */
+export function isOpenable(player: Player, myId?: string) {
+  return !player.id.startsWith("guest-") && player.id !== myId;
+}
+
 type TeamPickerProps = {
   /** One entry per seat, in order; an undefined entry is an open seat */
   seats: (Player | undefined)[];
@@ -35,10 +39,15 @@ type TeamPickerProps = {
   preferredSide?: "left" | "right" | "both";
   /** Tapping a player opens their profile; guests and `myId` aren't tappable */
   onPlayerPress?: (player: Player) => void;
+  /** Your seat shows "You" with a ring */
   myId?: string;
 };
 
-/** Two teams of two with dashed open seats to pick from (design: Match detail · join). */
+/**
+ * Two teams of two facing each other, the line-up on every match screen. With `onSelectSeat`
+ * the dashed open seats can be picked (design: Match detail · choose a spot); without it they
+ * just read "Open" (design: Your match · hosting · v2).
+ */
 export function TeamPicker({
   seats,
   selectedSeat,
@@ -89,7 +98,10 @@ export function TeamPicker({
                   const isMine = seat === selectedSeat;
 
                   if (isMine && me) {
-                    return <MySeat key={seat} me={me} sideLabel={sideLabel} />;
+                    return <MySeat key={seat} me={me} sideLabel={sideLabel} isPicked />;
+                  }
+                  if (player && player.id === myId) {
+                    return <MySeat key={seat} me={player} sideLabel={sideLabel} />;
                   }
                   if (player) {
                     return (
@@ -157,22 +169,24 @@ function FilledSeat({
   );
 }
 
-/** The seat you picked: your avatar with a ring and a tick. */
-function MySeat({ me, sideLabel }: { me: Player; sideLabel: string }) {
+/** Your seat: your avatar with a ring, plus a tick while you're picking it and haven't joined yet. */
+function MySeat({ me, sideLabel, isPicked = false }: { me: Player; sideLabel: string; isPicked?: boolean }) {
   const { t } = useTranslation();
   const level = me.level?.toFixed(1);
 
   return (
     <View
       accessible
-      accessibilityLabel={`${t("team.you")}, ${t("team.sideA11y", { side: sideLabel.toLowerCase() })}${level ? `, ${t("team.levelA11y", { level })}` : ""}, ${t("team.selected")}`}
+      accessibilityLabel={`${t("team.you")}, ${t("team.sideA11y", { side: sideLabel.toLowerCase() })}${level ? `, ${t("team.levelA11y", { level })}` : ""}${isPicked ? `, ${t("team.selected")}` : ""}`}
       className="w-[70px] items-center gap-[3px]"
     >
       <View>
         <PlayerAvatar player={me} size={AVATAR_SIZE - 4} ringClassName="border-accent" />
-        <View className="absolute -bottom-1 -end-1 size-[22px] items-center justify-center rounded-full border-2 border-surface bg-accent">
-          <Icon as={Check} size={12} color="accent-foreground" />
-        </View>
+        {isPicked ? (
+          <View className="absolute -bottom-1 -end-1 size-[22px] items-center justify-center rounded-full border-2 border-surface bg-accent">
+            <Icon as={Check} size={12} color="accent-foreground" />
+          </View>
+        ) : null}
       </View>
       <Text className="font-black text-[13px] text-accent">{t("team.you")}</Text>
       <Text className="font-normal text-[11px] text-muted">
@@ -203,7 +217,7 @@ function OpenSeat({
           onPress={onPress}
           isDisabled={!onPress}
           accessibilityRole="button"
-          accessibilityLabel={t("team.takeSpot", { side: sideLabel.toLowerCase(), team })}
+          accessibilityLabel={t(onPress ? "team.takeSpot" : "team.openSpot", { side: sideLabel.toLowerCase(), team })}
           className="items-center justify-center rounded-full border-2 border-dashed border-accent bg-surface"
           style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
         >

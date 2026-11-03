@@ -6,12 +6,12 @@ import { useTranslation } from "react-i18next";
 import { ActionSheetIOS, Alert, Linking, Platform, Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
-import { MatchLineUp } from "@/components/match-line-up";
 import { MatchScoreCard } from "@/components/match-score-card";
 import { Page } from "@/components/page";
 import { PlayerSheet } from "@/components/player-sheet";
 import { SaveScoreSheet } from "@/components/save-score-sheet";
 import { SettingsRow, SettingsSection } from "@/components/settings-section";
+import { TeamPicker } from "@/components/team-picker";
 import { useClubs } from "@/hooks/useClubs";
 import { useMatchChatUnreadCount } from "@/hooks/useMatchChat";
 import { useCancelMatch, useConfirmScore, useLeaveMatch } from "@/hooks/useMatches";
@@ -71,6 +71,8 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const start = formatTime(match.startsAt);
   const end = formatTime(endsAt);
   const isOver = now >= endsAt;
+  // One entry per seat, open ones undefined
+  const seats = Array.from({ length: match.capacity }, (_, index) => (match.seats ?? match.players)[index]);
   const myId = account?.id ?? "";
   const score = match.score;
   const myTeam = teamOf(match, myId);
@@ -318,33 +320,33 @@ export function MyMatch({ match, role }: MyMatchProps) {
           />
         </View>
 
-        <View className="gap-3 rounded-[20px] border border-line bg-surface p-3.5">
-          <View className="flex-row items-baseline justify-between">
-            <Text accessibilityRole="header" className="font-black text-[15px] text-foreground">
-              {t("myMatch.lineUp", { count: match.players.length, capacity: match.capacity })}
-            </Text>
-            {isHost && !isOver ? (
-              <PressableFeedback
-                onPress={() => comingSoon(t("myMatch.swappingTeams"))}
-                accessibilityRole="button"
-                hitSlop={8}
-              >
-                <Text className="font-bold text-[13px] text-accent">{t("myMatch.swapTeams")}</Text>
-              </PressableFeedback>
-            ) : null}
+        {/* Once there's a score, its card shows the teams (design: Past match recap) */}
+        {match.score ? null : (
+          <View className="gap-3 rounded-[20px] border border-line bg-surface p-3.5">
+            <View className="flex-row items-baseline justify-between">
+              <Text accessibilityRole="header" className="font-black text-[15px] text-foreground">
+                {t("myMatch.lineUp", { count: match.players.length, capacity: match.capacity })}
+              </Text>
+              {isHost && !isOver ? (
+                <PressableFeedback
+                  onPress={() => comingSoon(t("myMatch.swappingTeams"))}
+                  accessibilityRole="button"
+                  hitSlop={8}
+                >
+                  <Text className="font-bold text-[13px] text-accent">{t("myMatch.swapTeams")}</Text>
+                </PressableFeedback>
+              ) : null}
+            </View>
+            <TeamPicker
+              seats={seats}
+              onPlayerPress={(player) => {
+                setViewedPlayer(player);
+                setIsViewingPlayer(true);
+              }}
+              myId={account?.id}
+            />
           </View>
-          <MatchLineUp
-            players={match.seats ?? match.players}
-            capacity={match.capacity}
-            newPlayerIds={new Set()}
-            openSeatLabel={t("team.open")}
-            onPlayerPress={(player) => {
-              setViewedPlayer(player);
-              setIsViewingPlayer(true);
-            }}
-            myId={account?.id}
-          />
-        </View>
+        )}
 
         {isHost && !isOver ? (
         <SettingsSection title={t("myMatch.hostTools")}>
