@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { Button, cn, PressableFeedback, Spinner, useToast } from "heroui-native";
-import { ChevronRight } from "lucide-react-native";
+import { ChevronRight, LogOut } from "lucide-react-native";
 import { Fragment, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -18,6 +18,9 @@ import { WinRateBars } from "@/components/win-rate-bars";
 import { useMatchHistory, useMyPastMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { usePlayerDetails } from "@/hooks/usePlayers";
+import { stopPushNotifications } from "@/hooks/usePushNotifications";
+import { queryClient } from "@/lib/query-client";
+import { signOut } from "@/repositories/auth-repository";
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -89,6 +92,25 @@ export default function Profile() {
   const hasStats = pastMatches !== undefined && pastMatches.length > 0;
   const noStats = pastMatches !== undefined && pastMatches.length === 0;
 
+  async function logOut() {
+    // Signing out clears the session on the device even if the network call fails
+    try {
+      // While still signed in, so this phone stops getting your pushes
+      await stopPushNotifications();
+      await signOut();
+    } catch (error) {
+      toast.show({
+        variant: "danger",
+        label: t("settings.logOutFailed"),
+        description: error instanceof Error ? error.message : t("settings.tryAgain"),
+      });
+      return;
+    }
+    // The next player to sign in on this device must not see this profile; the route guards
+    // then send you to sign in
+    queryClient.clear();
+  }
+
   const links = [
     {
       label: t("profile.matchHistory"),
@@ -110,7 +132,6 @@ export default function Profile() {
           ? toast.show({ label: t("friends.lockedTitle"), description: t("friends.lockedText") })
           : router.push("/friends"),
     },
-    { label: t("profile.aboutMe") },
   ];
 
   return (
@@ -229,6 +250,13 @@ export default function Profile() {
             </PressableFeedback>
           ))}
         </Card>
+
+        <View className="mx-4">
+          <Button size="lg" variant="outline" onPress={logOut}>
+            <Icon as={LogOut} size={20} color="foreground" />
+            <Button.Label className="text-foreground">{t("settings.logOut")}</Button.Label>
+          </Button>
+        </View>
       </Page.Body>
     </Page>
   );
