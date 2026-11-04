@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { t } from "i18next";
-import { Button, Spinner, Tabs } from "heroui-native";
+import { Button, Tabs } from "heroui-native";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -10,12 +10,15 @@ import { DateStrip } from "@/components/date-strip";
 import { FilterChip } from "@/components/filter-chip";
 import { InviteFriendSheet } from "@/components/invite-friend-sheet";
 import { MatchListItem } from "@/components/match-list-item";
+import { MatchListItemSkeleton } from "@/components/match-list-item-skeleton";
+import { MatchRowSkeleton } from "@/components/match-row-skeleton";
 import { MyMatchesEmpty, OpenMatchesEmpty } from "@/components/matches-empty-state";
 import { Page } from "@/components/page";
 import { PastMatchRow } from "@/components/past-match-row";
 import { RateResultBanner } from "@/components/rate-result-banner";
 import { SectionHeader } from "@/components/section-header";
 import { UpcomingMatchCard } from "@/components/upcoming-match-card";
+import { UpcomingMatchCardSkeleton } from "@/components/upcoming-match-card-skeleton";
 import { myLevel } from "@/data/mock";
 import {
   myMatchesKey,
@@ -200,7 +203,7 @@ function OpenMatches() {
             </Button>
           </View>
         ) : openMatches === undefined ? (
-          <Spinner accessibilityLabel={t("matches.loading")} className="self-start" />
+          <MatchListItemSkeleton label={t("matches.loading")} />
         ) : null}
 
         {isEmpty ? (
@@ -276,7 +279,7 @@ function MyMatches({ onFindOpen }: { onFindOpen: () => void }) {
             </Button>
           </View>
         ) : upcomingMatches === undefined ? (
-          <Spinner accessibilityLabel={t("matches.loadingMine")} className="self-start" />
+          <UpcomingMatchCardSkeleton label={t("matches.loadingMine")} />
         ) : upcomingMatches.length === 0 ? (
           <Text className="font-normal text-[14px] text-muted">
             {t("matches.noUpcoming")}
@@ -299,7 +302,7 @@ function MyMatches({ onFindOpen }: { onFindOpen: () => void }) {
           />
         ))}
         {pastMatches === undefined ? (
-          <Spinner accessibilityLabel={t("matches.loadingPast")} className="self-start" />
+          <MatchRowSkeleton variant="past" label={t("matches.loadingPast")} />
         ) : pastMatches.length === 0 ? (
           <Text className="font-normal text-[14px] text-muted">
             {t("matches.noPast")}
