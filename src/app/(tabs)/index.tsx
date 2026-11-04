@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { ClubRow } from "@/components/club-row";
+import { ClubRowSkeleton } from "@/components/club-row-skeleton";
 import { ConnectionRequestsBanner } from "@/components/connection-requests-banner";
 import { ConnectionRequestsSheet } from "@/components/connection-requests-sheet";
 import { CreateMatchButton } from "@/components/create-match-button";
@@ -12,6 +13,7 @@ import { HomeHeader } from "@/components/home-header";
 import { LoadError } from "@/components/load-error";
 import { NextMatchCard } from "@/components/next-match-card";
 import { OpenMatchCard } from "@/components/open-match-card";
+import { OpenMatchCardSkeleton } from "@/components/open-match-card-skeleton";
 import { OpenMatchesEmptyCard } from "@/components/open-matches-empty-card";
 import { Page } from "@/components/page";
 import { ScoreReminder } from "@/components/score-reminder";
@@ -105,6 +107,12 @@ export default function Home() {
             actionLabel={hasNoOpenMatches ? undefined : t("common.seeAll")}
           />
           <Page.Carousel itemWidth={OPEN_MATCH_CARD_WIDTH}>
+            {openMatchesQuery.isLoading ? (
+              <View accessible accessibilityLabel={t("matches.loading")} accessibilityState={{ busy: true }} className="flex-row gap-3">
+                <OpenMatchCardSkeleton width={OPEN_MATCH_CARD_WIDTH} />
+                <OpenMatchCardSkeleton width={OPEN_MATCH_CARD_WIDTH} />
+              </View>
+            ) : null}
             {matchesForYou.map((match) => (
               <OpenMatchCard
                 key={match.id}
@@ -137,6 +145,7 @@ export default function Home() {
             actionLabel={t("common.seeAll")}
             onPressAction={() => router.push("/clubs")}
           />
+          {nearby.isLoading ? <ClubRowSkeleton label={t("home.loadingClubs")} /> : null}
           {nearbyClubs.map((club) => (
             <ClubRow
               key={club.id}

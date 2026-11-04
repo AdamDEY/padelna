@@ -136,6 +136,7 @@ export const en = {
     clubs: "Clubs",
     nextMatchFailed: "Couldn’t load your next match. {{message}}",
     openMatchesFailed: "Couldn’t load open matches. {{message}}",
+    loadingClubs: "Loading clubs",
     clubsFailed: "Couldn’t load clubs. {{message}}",
     nextMatch: {
       title: "Your next match",

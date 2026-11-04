@@ -139,6 +139,7 @@ export const fr: Messages = {
     clubs: "Clubs",
     nextMatchFailed: "Impossible de charger ton prochain match. {{message}}",
     openMatchesFailed: "Impossible de charger les matchs ouverts. {{message}}",
+    loadingClubs: "Chargement des clubs",
     clubsFailed: "Impossible de charger les clubs. {{message}}",
     nextMatch: {
       title: "Ton prochain match",
