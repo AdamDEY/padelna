@@ -1,5 +1,5 @@
 import type { InfiniteData, UseInfiniteQueryResult } from "@tanstack/react-query";
-import { Button, Spinner } from "heroui-native";
+import { Button } from "heroui-native";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -8,6 +8,7 @@ import { ConnectButton } from "@/components/connect-button";
 import { ConnectSheet } from "@/components/connect-sheet";
 import { PlayerSheet } from "@/components/player-sheet";
 import { ResultPostCard } from "@/components/result-post-card";
+import { ResultPostCardSkeleton } from "@/components/result-post-card-skeleton";
 import { useMatchPhotoUrl } from "@/hooks/useMatches";
 import { toFeedPost } from "@/lib/feed-post";
 import type { Player, PlayerSuggestion } from "@/types/player";
@@ -38,7 +39,7 @@ export function CommunityFeed({ feed, myId, empty }: CommunityFeedProps) {
       </View>
     );
   }
-  if (!matches) return <Spinner accessibilityLabel={t("community.loading")} className="self-start" />;
+  if (!matches) return <ResultPostCardSkeleton label={t("community.loading")} />;
   if (matches.length === 0) return empty;
 
   return (
