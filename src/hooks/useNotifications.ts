@@ -5,6 +5,7 @@ import { notificationGroup } from "@/lib/notification-group";
 import { queryClient } from "@/lib/query-client";
 import { onSignedInChange } from "@/repositories/auth-repository";
 import {
+  deleteNotification,
   fetchNotificationsPage,
   fetchUnreadCounts,
   markAllNotificationsRead,
@@ -70,6 +71,37 @@ function useMarkRead<Variables>(
         },
       );
       queryClient.setQueryData<UnreadCounts>(countsKey, (counts) => counts && affectedCounts(counts, variables));
+      return { previous };
+    },
+    onError: (_, __, context) => {
+      context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: notificationsKey }),
+  });
+}
+
+/** Removes a notification from every loaded page right away; a failed delete puts it back. */
+export function useDeleteNotification() {
+  return useMutation({
+    mutationFn: (notification: AppNotification) => deleteNotification(notification.id),
+    onMutate: async (notification: AppNotification) => {
+      await queryClient.cancelQueries({ queryKey: notificationsKey });
+      const previous = queryClient.getQueriesData({ queryKey: notificationsKey });
+      queryClient.setQueriesData<Pages>({ queryKey: [...notificationsKey, "list"] }, (current) =>
+        current && {
+          ...current,
+          pages: current.pages.map((page) => ({
+            ...page,
+            items: page.items.filter((n) => n.id !== notification.id),
+          })),
+        },
+      );
+      if (!notification.isRead) {
+        const group = notificationGroup(notification);
+        queryClient.setQueryData<UnreadCounts>(countsKey, (counts) =>
+          counts && { ...counts, [group]: Math.max(0, counts[group] - 1) },
+        );
+      }
       return { previous };
     },
     onError: (_, __, context) => {

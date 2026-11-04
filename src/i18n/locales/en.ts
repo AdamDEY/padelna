@@ -212,6 +212,8 @@ export const en = {
     emptyTitle: "You’re all caught up",
     emptyText: "Match updates, requests and reminders will show up here.",
     loadFailed: "Couldn’t load your notifications. {{message}}",
+    delete: "Delete",
+    deleteFailed: "Couldn’t delete the notification",
     showMore: "Show more",
     markFailed: "Couldn’t mark your notifications as read",
     kind: {

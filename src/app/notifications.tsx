@@ -11,6 +11,7 @@ import { NotificationRow } from "@/components/notification-row";
 import { Page, usePageMargins } from "@/components/page";
 import {
   useMarkAllNotificationsRead,
+  useDeleteNotification,
   useMarkNotificationRead,
   useNotifications,
   useUnreadCounts,
@@ -38,6 +39,7 @@ export default function Notifications() {
   const { data: requests } = useConnectionRequests();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
+  const deleteOne = useDeleteNotification();
   const respond = useRespondToConnection();
 
   // A request you've already answered (here, on Home or in Players) has nothing left to do
@@ -71,6 +73,13 @@ export default function Notifications() {
   function open(notification: AppNotification) {
     if (!notification.isRead) markRead.mutate(notification);
     router.push(notification.url as Href);
+  }
+
+  function remove(notification: AppNotification) {
+    deleteOne.mutate(notification, {
+      onError: (err) =>
+        toast.show({ variant: "danger", label: t("notifications.deleteFailed"), description: errorMessage(err) }),
+    });
   }
 
   function answer(notification: AppNotification, accepted: boolean) {
@@ -155,6 +164,7 @@ export default function Notifications() {
           fresh={fresh}
           earlier={earlier}
           onOpen={open}
+          onDelete={remove}
           hasMore={!!hasNextPage}
           isLoadingMore={isFetchingNextPage}
           onLoadMore={() => fetchNextPage()}
@@ -178,10 +188,11 @@ type ListProps = {
   onLoadMore: () => void;
   answerableIds: Set<string>;
   onOpen: (notification: AppNotification) => void;
+  onDelete: (notification: AppNotification) => void;
   onAnswer: (notification: AppNotification, accepted: boolean) => void;
 };
 
-function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore, isLoadingMore, onLoadMore, answerableIds, onOpen, onAnswer }: ListProps) {
+function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore, isLoadingMore, onLoadMore, answerableIds, onOpen, onDelete, onAnswer }: ListProps) {
   const { t } = useTranslation();
   const { bleed } = usePageMargins();
 
@@ -222,11 +233,11 @@ function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore
     <View className={bleed}>
       {fresh.length > 0 ? <SectionLabel>{t("notifications.new")}</SectionLabel> : null}
       {fresh.map((n) => (
-        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onAnswer={onAnswer} />
+        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onDelete={onDelete} onAnswer={onAnswer} />
       ))}
       {earlier.length > 0 ? <SectionLabel>{t("notifications.earlier")}</SectionLabel> : null}
       {earlier.map((n) => (
-        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onAnswer={onAnswer} />
+        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onDelete={onDelete} onAnswer={onAnswer} />
       ))}
       {hasMore ? (
         <View className="items-center py-4">
@@ -243,14 +254,16 @@ type RowProps = {
   notification: AppNotification;
   answerable: boolean;
   onOpen: (notification: AppNotification) => void;
+  onDelete: (notification: AppNotification) => void;
   onAnswer: (notification: AppNotification, accepted: boolean) => void;
 };
 
-function Row({ notification, answerable, onOpen, onAnswer }: RowProps) {
+function Row({ notification, answerable, onOpen, onDelete, onAnswer }: RowProps) {
   return (
     <NotificationRow
       notification={notification}
       onPress={() => onOpen(notification)}
+      onDelete={() => onDelete(notification)}
       onAccept={answerable ? () => onAnswer(notification, true) : undefined}
       onIgnore={answerable ? () => onAnswer(notification, false) : undefined}
     />

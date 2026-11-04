@@ -215,6 +215,8 @@ export const fr: Messages = {
     emptyTitle: "Vous êtes à jour",
     emptyText: "Les mises à jour de matchs, demandes et rappels apparaîtront ici.",
     loadFailed: "Impossible de charger vos notifications. {{message}}",
+    delete: "Supprimer",
+    deleteFailed: "Impossible de supprimer la notification",
     showMore: "Voir plus",
     markFailed: "Impossible de marquer vos notifications comme lues",
     kind: {
