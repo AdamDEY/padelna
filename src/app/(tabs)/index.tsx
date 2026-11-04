@@ -19,6 +19,7 @@ import { SectionHeader } from "@/components/section-header";
 import { myLevel } from "@/data/mock";
 import { myMatchesKey, openMatchesKey, useHomeOpenMatches, useMyUpcomingMatches } from "@/hooks/useMatches";
 import { useNearbyClubs } from "@/hooks/useClubs";
+import { notificationsKey, useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { connectionRequestsKey, useConnectionRequests } from "@/hooks/usePlayers";
 import { myProfileKey, useMyProfile } from "@/hooks/useMyProfile";
 import { errorMessage } from "@/lib/error-message";
@@ -34,7 +35,7 @@ const FLOATING_BUTTON_SPACE = 72;
 // Pull to refresh reloads everything Home shows that comes from Supabase
 function refreshHome() {
   return Promise.all(
-    [myProfileKey, myMatchesKey, openMatchesKey, connectionRequestsKey].map((queryKey) =>
+    [myProfileKey, myMatchesKey, openMatchesKey, connectionRequestsKey, notificationsKey].map((queryKey) =>
       queryClient.refetchQueries({ queryKey }),
     ),
   );
@@ -45,6 +46,7 @@ export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
   const { data: requests = [] } = useConnectionRequests();
+  const unreadNotifications = useUnreadNotificationCount();
   const { data: profile } = useMyProfile();
   const level = profile?.level ?? myLevel;
   const upcomingQuery = useMyUpcomingMatches();
@@ -74,7 +76,8 @@ export default function Home() {
           player={profile?.player}
           level={profile?.level}
           city={profile?.city}
-          hasUnreadNotifications
+          hasUnreadNotifications={unreadNotifications > 0}
+          onPressNotifications={() => router.push("/notifications")}
         />
       </Page.Fixed>
       <Page.Body onRefresh={refreshHome}>

@@ -127,6 +127,9 @@
 
   --color-out-of-range: #eef0f3;
   --color-dot: #e0703a;
+  /* Unread notification row, and the hairline between rows */
+  --color-unread: #eef3fc;
+  --color-line-soft: #eef1f4;
   --color-star: #e5a823;
 
   --color-avatar-blue: #e3ecfa;

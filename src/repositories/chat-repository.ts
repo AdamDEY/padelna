@@ -89,19 +89,24 @@ export async function fetchMatchChatUnreadCount(matchId: string) {
   return data as number;
 }
 
+let nextInstance = 0;
+
 /**
  * Calls `onChange` for every new message in a match's chat, and when the connection
  * (re)starts, since messages sent meanwhile are lost. Returns a function that stops listening.
  * `listener` keeps two screens on the same match (the match and its chat) on separate channels.
  */
 export function subscribeToMatchMessages(matchId: string, listener: string, onChange: () => void) {
+  // The same match can be on screen twice (opened again from a notification), and Supabase
+  // hands back the existing channel for a repeated name, which can't take new callbacks
+  const instance = nextInstance++;
   let channel: RealtimeChannel | undefined;
   let retryTimer: ReturnType<typeof setTimeout> | undefined;
   let isStopped = false;
 
   function connect() {
     channel = supabase
-      .channel(`match-chat-${matchId}-${listener}`)
+      .channel(`match-chat-${matchId}-${listener}-${instance}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "match_messages", filter: `match_id=eq.${matchId}` },

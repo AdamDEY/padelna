@@ -21,6 +21,7 @@ import { PushNotificationObserver } from "@/components/push-notification-observe
 import { useAuthState } from "@/hooks/useAuthState";
 import { restoreLanguage } from "@/i18n";
 import { useMatchesRealtime } from "@/hooks/useMatchesRealtime";
+import { useNotificationsRealtime } from "@/hooks/useNotifications";
 import { useConnectionsRealtime } from "@/hooks/usePlayers";
 import { usePrepareHome } from "@/hooks/usePrepareHome";
 import { queryClient } from "@/lib/query-client";
@@ -36,6 +37,7 @@ export { CrashScreen as ErrorBoundary };
 export default function RootLayout() {
   useMatchesRealtime();
   useConnectionsRealtime();
+  useNotificationsRealtime();
   // Home's data loads behind the splash screen, in parallel with the fonts
   const isHomeReady = usePrepareHome();
   const authState = useAuthState();
@@ -79,6 +81,7 @@ export default function RootLayout() {
             <Stack.Protected guard={isReady}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="settings" />
+              <Stack.Screen name="notifications" />
               <Stack.Screen name="match-history" />
               <Stack.Screen name="friends" />
               <Stack.Screen name="clubs" />
