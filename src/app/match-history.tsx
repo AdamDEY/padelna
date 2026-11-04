@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
-import { Button, Spinner } from "heroui-native";
+import { Button } from "heroui-native";
 import { Fragment, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FilterDropdown } from "@/components/filter-dropdown";
 import { MatchHistoryHero } from "@/components/match-history-hero";
 import { MatchHistoryRow } from "@/components/match-history-row";
+import { MatchRowSkeleton } from "@/components/match-row-skeleton";
 import { Page } from "@/components/page";
 import { SegmentedControl } from "@/components/segmented-control";
 import { useMatchHistory } from "@/hooks/useMatches";
@@ -109,7 +110,7 @@ export default function MatchHistory() {
               </Button>
             </View>
           ) : matches === undefined ? (
-            <Spinner accessibilityLabel={t("history.loading")} className="self-start" />
+            <MatchRowSkeleton variant="history" label={t("history.loading")} />
           ) : !hasMatches ? (
             <View className="items-center gap-1 rounded-3xl border border-line bg-surface p-6">
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
