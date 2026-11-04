@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
-import { Button, SearchField, Spinner, useToast } from "heroui-native";
+import { Button, SearchField, useToast } from "heroui-native";
 import { Fragment, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, Text, View } from "react-native";
@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChoiceChips } from "@/components/choice-chips";
 import { ConnectionRequestsSheet } from "@/components/connection-requests-sheet";
 import { FriendRow } from "@/components/friend-row";
+import { FriendRowSkeleton } from "@/components/friend-row-skeleton";
 import { Page } from "@/components/page";
 import { PlayerAvatar, shortNameOf, stackTintIndices } from "@/components/player-avatar";
 import { PlayerSheet } from "@/components/player-sheet";
@@ -157,7 +158,7 @@ export default function Friends() {
               </Button>
             </View>
           ) : friends === undefined ? (
-            <Spinner accessibilityLabel={t("friends.loading")} className="self-start" />
+            <FriendRowSkeleton />
           ) : (
             <>
               <SearchField value={query} onChange={setQuery}>

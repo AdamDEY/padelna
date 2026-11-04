@@ -214,6 +214,7 @@ export const en = {
     loadFailed: "Couldn’t load your notifications. {{message}}",
     delete: "Delete",
     deleteFailed: "Couldn’t delete the notification",
+    loading: "Loading your notifications",
     showMore: "Show more",
     markFailed: "Couldn’t mark your notifications as read",
     kind: {
