@@ -9,6 +9,7 @@ import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSw
 import { Icon } from "@/components/icon";
 import { LoadError } from "@/components/load-error";
 import { NotificationRow } from "@/components/notification-row";
+import { NotificationRowSkeleton } from "@/components/notification-row-skeleton";
 import { Page, usePageMargins } from "@/components/page";
 import {
   useMarkAllNotificationsRead,
@@ -208,8 +209,8 @@ function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore
 
   if (isLoading) {
     return (
-      <View className="items-center py-16">
-        <Spinner />
+      <View className={bleed}>
+        <NotificationRowSkeleton />
       </View>
     );
   }

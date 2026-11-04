@@ -217,6 +217,7 @@ export const fr: Messages = {
     loadFailed: "Impossible de charger vos notifications. {{message}}",
     delete: "Supprimer",
     deleteFailed: "Impossible de supprimer la notification",
+    loading: "Chargement de vos notifications",
     showMore: "Voir plus",
     markFailed: "Impossible de marquer vos notifications comme lues",
     kind: {
