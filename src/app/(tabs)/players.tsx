@@ -1,4 +1,4 @@
-import { Button, SearchField, Spinner } from "heroui-native";
+import { Button, SearchField } from "heroui-native";
 import { Fragment, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -10,7 +10,9 @@ import { Page } from "@/components/page";
 import { CIRCLE_GOAL, CircleBanner, PlayersNewPlayer } from "@/components/players-new-player";
 import { PlayedWithTile } from "@/components/played-with-tile";
 import { PlayerSheet } from "@/components/player-sheet";
+import { PlayerRowSkeleton } from "@/components/player-row-skeleton";
 import { PlayerSuggestionRow } from "@/components/player-suggestion-row";
+import { PlayerTileSkeleton } from "@/components/player-tile-skeleton";
 import { SectionHeader } from "@/components/section-header";
 import { useMyPastMatches } from "@/hooks/useMatches";
 import { useMyAccount } from "@/hooks/useMyProfile";
@@ -137,6 +139,7 @@ function Suggestions({ onPreview }: PreviewProps) {
         <ListState
           query={playedWith}
           emptyText={t("players.playedWithEmpty")}
+          skeleton={<PlayerTileSkeleton variant="tile" label={t("players.loading")} />}
         >
           {(players) =>
             inRows(players, TILES_PER_ROW).map((row, index) => (
@@ -210,11 +213,13 @@ type ListStateProps = {
     isRefetching: boolean;
   };
   emptyText: string;
+  /** Shown while loading; rows by default */
+  skeleton?: ReactNode;
   children: (players: PlayerSuggestion[]) => ReactNode;
 };
 
 /** Loading, error and empty states shared by the Players lists. */
-function ListState({ query, emptyText, children }: ListStateProps) {
+function ListState({ query, emptyText, skeleton, children }: ListStateProps) {
   const { t } = useTranslation();
   if (query.error) {
     return (
@@ -233,7 +238,7 @@ function ListState({ query, emptyText, children }: ListStateProps) {
       </View>
     );
   }
-  if (!query.data) return <Spinner accessibilityLabel={t("players.loading")} className="self-start" />;
+  if (!query.data) return skeleton ?? <PlayerRowSkeleton label={t("players.loading")} />;
   if (query.data.length === 0) {
     return <Text className="font-normal text-[14px] leading-5 text-muted">{emptyText}</Text>;
   }

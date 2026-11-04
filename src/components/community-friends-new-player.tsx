@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Button, Spinner } from "heroui-native";
+import { Button } from "heroui-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
@@ -7,6 +7,7 @@ import { Pressable, Text, View } from "react-native";
 import { FeedMatches } from "@/components/community-feed";
 import { ConnectButton } from "@/components/connect-button";
 import { Page } from "@/components/page";
+import { PlayerTileSkeleton } from "@/components/player-tile-skeleton";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { PlayerSheet } from "@/components/player-sheet";
 import { SectionHeader } from "@/components/section-header";
@@ -73,7 +74,9 @@ export function FriendsNewPlayer({ me, onSeeAllTunisia }: FriendsNewPlayerProps)
             </Button>
           </View>
         ) : !people ? (
-          <Spinner accessibilityLabel={t("players.loading")} className="self-start" />
+          <Page.Carousel itemWidth={CARD_WIDTH} gap={CARD_GAP}>
+            <PlayerTileSkeleton variant="card" label={t("players.loading")} />
+          </Page.Carousel>
         ) : people.length === 0 ? null : (
           <Page.Carousel itemWidth={CARD_WIDTH} gap={CARD_GAP}>
             {people.map((player) => (

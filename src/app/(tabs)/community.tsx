@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { cn, Spinner, Tabs } from "heroui-native";
+import { cn, Tabs } from "heroui-native";
 import { Plus } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import { CommunityFeed, CommunityFeedEmpty } from "@/components/community-feed";
 import { FriendsNewPlayer } from "@/components/community-friends-new-player";
 import { IconButton } from "@/components/icon-button";
 import { Page, usePageMargins } from "@/components/page";
+import { ResultPostCardSkeleton } from "@/components/result-post-card-skeleton";
 import { PlayerSheet } from "@/components/player-sheet";
 import { RISING_PLAYER_WIDTH, RisingPlayer } from "@/components/rising-player";
 import { SectionHeader } from "@/components/section-header";
@@ -68,7 +69,7 @@ export default function Community() {
         <FeedTabs value={feed} onChange={setFeed} />
 
         {!account ? (
-          <Spinner accessibilityLabel={t("community.loading")} className="self-start" />
+          <ResultPostCardSkeleton label={t("community.loading")} />
         ) : feed === "friends" ? (
           <FriendsFeed myId={account.id} onSeeAllTunisia={() => setFeed("tunisia")} />
         ) : feed === "clubs" ? (
