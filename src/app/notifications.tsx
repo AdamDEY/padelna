@@ -1,9 +1,10 @@
 import { router, type Href } from "expo-router";
 import { Button, cn, PressableFeedback, Spinner, useToast } from "heroui-native";
 import { BellOff } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
+import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 
 import { Icon } from "@/components/icon";
 import { LoadError } from "@/components/load-error";
@@ -32,6 +33,8 @@ export default function Notifications() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [filter, setFilter] = useState<Filter>("all");
+  // The row whose Delete button is showing; only one stays open
+  const openSwipe = useRef<SwipeableMethods>(null);
   const { data, error, refetch, isRefetching, hasNextPage, fetchNextPage, isFetchingNextPage } = useNotifications(
     filter === "all" ? undefined : filter,
   );
@@ -73,6 +76,11 @@ export default function Notifications() {
   function open(notification: AppNotification) {
     if (!notification.isRead) markRead.mutate(notification);
     router.push(notification.url as Href);
+  }
+
+  function handleSwipeOpen(swipeable: SwipeableMethods) {
+    if (openSwipe.current && openSwipe.current !== swipeable) openSwipe.current.close();
+    openSwipe.current = swipeable;
   }
 
   function remove(notification: AppNotification) {
@@ -165,6 +173,7 @@ export default function Notifications() {
           earlier={earlier}
           onOpen={open}
           onDelete={remove}
+          onSwipeOpen={handleSwipeOpen}
           hasMore={!!hasNextPage}
           isLoadingMore={isFetchingNextPage}
           onLoadMore={() => fetchNextPage()}
@@ -189,10 +198,11 @@ type ListProps = {
   answerableIds: Set<string>;
   onOpen: (notification: AppNotification) => void;
   onDelete: (notification: AppNotification) => void;
+  onSwipeOpen: (swipeable: SwipeableMethods) => void;
   onAnswer: (notification: AppNotification, accepted: boolean) => void;
 };
 
-function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore, isLoadingMore, onLoadMore, answerableIds, onOpen, onDelete, onAnswer }: ListProps) {
+function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore, isLoadingMore, onLoadMore, answerableIds, onOpen, onDelete, onSwipeOpen, onAnswer }: ListProps) {
   const { t } = useTranslation();
   const { bleed } = usePageMargins();
 
@@ -233,11 +243,11 @@ function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore
     <View className={bleed}>
       {fresh.length > 0 ? <SectionLabel>{t("notifications.new")}</SectionLabel> : null}
       {fresh.map((n) => (
-        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onDelete={onDelete} onAnswer={onAnswer} />
+        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onDelete={onDelete} onSwipeOpen={onSwipeOpen} onAnswer={onAnswer} />
       ))}
       {earlier.length > 0 ? <SectionLabel>{t("notifications.earlier")}</SectionLabel> : null}
       {earlier.map((n) => (
-        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onDelete={onDelete} onAnswer={onAnswer} />
+        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onDelete={onDelete} onSwipeOpen={onSwipeOpen} onAnswer={onAnswer} />
       ))}
       {hasMore ? (
         <View className="items-center py-4">
@@ -255,15 +265,17 @@ type RowProps = {
   answerable: boolean;
   onOpen: (notification: AppNotification) => void;
   onDelete: (notification: AppNotification) => void;
+  onSwipeOpen: (swipeable: SwipeableMethods) => void;
   onAnswer: (notification: AppNotification, accepted: boolean) => void;
 };
 
-function Row({ notification, answerable, onOpen, onDelete, onAnswer }: RowProps) {
+function Row({ notification, answerable, onOpen, onDelete, onSwipeOpen, onAnswer }: RowProps) {
   return (
     <NotificationRow
       notification={notification}
       onPress={() => onOpen(notification)}
       onDelete={() => onDelete(notification)}
+      onSwipeOpen={onSwipeOpen}
       onAccept={answerable ? () => onAnswer(notification, true) : undefined}
       onIgnore={answerable ? () => onAnswer(notification, false) : undefined}
     />

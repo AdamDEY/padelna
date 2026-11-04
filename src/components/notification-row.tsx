@@ -11,10 +11,12 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import { t } from "i18next";
-import { Fragment } from "react";
+import { Fragment, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
-import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import ReanimatedSwipeable, {
+  type SwipeableMethods,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
 
 import { Icon } from "@/components/icon";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
@@ -71,10 +73,13 @@ type NotificationRowProps = {
   onIgnore?: () => void;
   /** Swiping the row to the left reveals Delete when this is given */
   onDelete?: () => void;
+  /** Called as the row's Delete button opens, so the screen can close the one opened before */
+  onSwipeOpen?: (swipeable: SwipeableMethods) => void;
 };
 
 /** One notification (design canvas "Notifications"): avatar or icon badge, sentence, time and unread dot. */
-export function NotificationRow({ notification, onPress, onAccept, onIgnore, onDelete }: NotificationRowProps) {
+export function NotificationRow({ notification, onPress, onAccept, onIgnore, onDelete, onSwipeOpen }: NotificationRowProps) {
+  const swipeable = useRef<SwipeableMethods>(null);
   const { t } = useTranslation();
   const { kind, player, startsAt, clubName, count, isRead } = notification;
   const badge = badges[kind];
@@ -138,15 +143,17 @@ export function NotificationRow({ notification, onPress, onAccept, onIgnore, onD
 
   return (
     <ReanimatedSwipeable
+      ref={swipeable}
+      onSwipeableWillOpen={() => swipeable.current && onSwipeOpen?.(swipeable.current)}
       friction={2}
       rightThreshold={DELETE_ACTION_WIDTH / 2}
       overshootRight={false}
-      renderRightActions={(_, __, swipeable) => (
+      renderRightActions={(_, __, actions) => (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t("notifications.delete")}
           onPress={() => {
-            swipeable.close();
+            actions.close();
             onDelete();
           }}
           className="items-center justify-center gap-1 bg-attention-soft"
