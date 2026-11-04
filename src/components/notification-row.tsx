@@ -5,6 +5,7 @@ import {
   Check,
   MessageSquare,
   Star,
+  Trash2,
   UserMinus,
   UserPlus,
   type LucideIcon,
@@ -12,12 +13,16 @@ import {
 import { t } from "i18next";
 import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 
 import { Icon } from "@/components/icon";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { daysUntil, formatMatchDateTime, formatTimeAgo, formatWeekday } from "@/lib/format-date";
 import type { AppNotification, NotificationKind } from "@/types/notification";
+
+// Width of the Delete button a swipe to the left reveals (44 px target plus room for the label)
+const DELETE_ACTION_WIDTH = 88;
 
 // Beyond this many days "2 days ago" gives way to the date
 const DAYS_AGO_LIMIT = 6;
@@ -64,10 +69,12 @@ type NotificationRowProps = {
   onAccept?: () => void;
   /** Ignore */
   onIgnore?: () => void;
+  /** Swiping the row to the left reveals Delete when this is given */
+  onDelete?: () => void;
 };
 
 /** One notification (design canvas "Notifications"): avatar or icon badge, sentence, time and unread dot. */
-export function NotificationRow({ notification, onPress, onAccept, onIgnore }: NotificationRowProps) {
+export function NotificationRow({ notification, onPress, onAccept, onIgnore, onDelete }: NotificationRowProps) {
   const { t } = useTranslation();
   const { kind, player, startsAt, clubName, count, isRead } = notification;
   const badge = badges[kind];
@@ -83,7 +90,7 @@ export function NotificationRow({ notification, onPress, onAccept, onIgnore }: N
   const hasActions = !!onAccept && !!onIgnore;
 
   // The buttons sit beside the pressable row, not inside it, or the row would take their taps
-  return (
+  const row = (
     <View className={cn("border-b border-line-soft", isRead ? "bg-surface" : "bg-unread")}>
       <PressableFeedback
         onPress={onPress}
@@ -125,5 +132,32 @@ export function NotificationRow({ notification, onPress, onAccept, onIgnore }: N
         </View>
       ) : null}
     </View>
+  );
+
+  if (!onDelete) return row;
+
+  return (
+    <ReanimatedSwipeable
+      friction={2}
+      rightThreshold={DELETE_ACTION_WIDTH / 2}
+      overshootRight={false}
+      renderRightActions={(_, __, swipeable) => (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("notifications.delete")}
+          onPress={() => {
+            swipeable.close();
+            onDelete();
+          }}
+          className="items-center justify-center gap-1 bg-attention-soft"
+          style={{ width: DELETE_ACTION_WIDTH }}
+        >
+          <Icon as={Trash2} size={20} color="attention" />
+          <Text className="font-bold text-[13px] text-attention">{t("notifications.delete")}</Text>
+        </Pressable>
+      )}
+    >
+      {row}
+    </ReanimatedSwipeable>
   );
 }

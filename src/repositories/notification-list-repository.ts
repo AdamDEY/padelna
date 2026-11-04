@@ -89,6 +89,11 @@ export async function markNotificationsRead(ids: string[]) {
   if (error) throw error;
 }
 
+export async function deleteNotification(id: string) {
+  const { error } = await supabase.from("notifications").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function markAllNotificationsRead() {
   const { error } = await supabase.rpc("mark_all_notifications_read");
   if (error) throw error;
