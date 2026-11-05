@@ -7,6 +7,8 @@ import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
 import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
+import { PopIn } from "@/components/pop-in";
+import { useHasMounted } from "@/hooks/useHasMounted";
 import { useMatchPhotoUrl } from "@/hooks/useMatches";
 import { formatShortMatchDateTime } from "@/lib/format-date";
 import { teamOf, winningTeam } from "@/lib/padel-score";
@@ -106,6 +108,7 @@ export function MatchScoreCard({ match, myId }: MatchScoreCardProps) {
   const status = statusOf(match, score, myId, teams);
   const kind = kindTones[match.kind];
   const { data: photoUrl } = useMatchPhotoUrl(score.photoPath);
+  const hasMounted = useHasMounted();
 
   return (
     <View className="gap-3">
@@ -213,7 +216,10 @@ export function MatchScoreCard({ match, myId }: MatchScoreCardProps) {
         })}
 
         <View className="flex-row items-center gap-1.5 border-t border-line pt-2.5">
-          <Icon as={status.tone.icon} size={14} color={status.tone.color} />
+          {/* Keyed by status so the icon pops when the score gets confirmed while you watch */}
+          <PopIn key={score.status} animate={hasMounted}>
+            <Icon as={status.tone.icon} size={14} color={status.tone.color} />
+          </PopIn>
           <Text
             className={cn("flex-1 font-bold text-[13px]", status.tone.text)}
           >

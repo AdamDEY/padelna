@@ -3,7 +3,7 @@ import { Button } from "heroui-native";
 import { useEffect, useState, type ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { BackHandler, View } from "react-native";
-import Animated, { FadeInLeft, FadeInRight } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 import {
   CommunityIllustration,
@@ -13,6 +13,7 @@ import {
 } from "@/components/onboarding-illustrations";
 import { Page } from "@/components/page";
 import { SetupProgress } from "@/components/setup-progress";
+import { stepEntering } from "@/lib/motion";
 
 type OnboardingPage = {
   title: "onboarding.findTitle" | "onboarding.trustTitle" | "onboarding.fairTitle" | "onboarding.communityTitle";
@@ -109,7 +110,7 @@ export default function Onboarding() {
       <Page.Body scroll={false} className="pb-0">
         <Animated.View
           key={index}
-          entering={(direction === "forward" ? FadeInRight : FadeInLeft).duration(220)}
+          entering={stepEntering(direction)}
           className="flex-1 gap-[22px]"
         >
           <page.Illustration />

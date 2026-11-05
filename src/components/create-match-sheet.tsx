@@ -22,6 +22,7 @@ import { myLevel as placeholderLevel } from "@/data/mock";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useBookableClubs } from "@/hooks/useClubs";
 import { useCreateMatch } from "@/hooks/useMatches";
+import { celebrate } from "@/lib/celebrate";
 import { askForPushNotifications } from "@/hooks/usePushNotifications";
 import { dateLocale, daysUntil, formatMatchDay } from "@/lib/format-date";
 import { errorMessage } from "@/lib/error-message";
@@ -205,6 +206,7 @@ export function CreateMatchSheet({
           });
           handleOpenChange(false);
           router.push({ pathname: "/match/[id]", params: { id: matchId } });
+          celebrate();
           // The first moment pushes matter: hearing when players join
           void askForPushNotifications();
         },

@@ -6,6 +6,8 @@ import { Text, View } from "react-native";
 
 import { Icon } from "@/components/icon";
 import { PlayerAvatar } from "@/components/player-avatar";
+import { PopIn } from "@/components/pop-in";
+import { useHasMounted } from "@/hooks/useHasMounted";
 import type { Player } from "@/types/player";
 
 const AVATAR_SIZE = 52;
@@ -58,6 +60,8 @@ export function TeamPicker({
   myId,
 }: TeamPickerProps) {
   const { t } = useTranslation();
+  // Seats already filled when the screen opens stay still; one that fills afterwards pops in
+  const hasMounted = useHasMounted();
   const half = seats.length / 2;
   const teams = [seats.slice(0, half), seats.slice(half)];
 
@@ -98,10 +102,10 @@ export function TeamPicker({
                   const isMine = seat === selectedSeat;
 
                   if (isMine && me) {
-                    return <MySeat key={seat} me={me} sideLabel={sideLabel} isPicked />;
+                    return <MySeat key={seat} me={me} sideLabel={sideLabel} isPicked animate={hasMounted} />;
                   }
                   if (player && player.id === myId) {
-                    return <MySeat key={seat} me={player} sideLabel={sideLabel} />;
+                    return <MySeat key={seat} me={player} sideLabel={sideLabel} animate={hasMounted} />;
                   }
                   if (player) {
                     return (
@@ -109,6 +113,7 @@ export function TeamPicker({
                         key={seat}
                         player={player}
                         sideLabel={sideLabel}
+                        animate={hasMounted}
                         onPress={
                           onPlayerPress && isOpenable(player, myId)
                             ? () => onPlayerPress(player)
@@ -140,10 +145,12 @@ function FilledSeat({
   player,
   sideLabel,
   onPress,
+  animate,
 }: {
   player: Player;
   sideLabel: string;
   onPress?: () => void;
+  animate: boolean;
 }) {
   const { t } = useTranslation();
   const level = player.level?.toFixed(1);
@@ -157,7 +164,9 @@ function FilledSeat({
       accessibilityLabel={`${player.firstName}, ${t("team.sideA11y", { side: sideLabel.toLowerCase() })}${level ? `, ${t("team.levelA11y", { level })}` : ""}`}
       className="w-[70px] items-center gap-[3px]"
     >
-      <PlayerAvatar player={player} size={AVATAR_SIZE} />
+      <PopIn animate={animate}>
+        <PlayerAvatar player={player} size={AVATAR_SIZE} />
+      </PopIn>
       <Text numberOfLines={1} className="font-bold text-[13px] text-foreground">
         {player.firstName}
       </Text>
@@ -170,7 +179,17 @@ function FilledSeat({
 }
 
 /** Your seat: your avatar with a ring, plus a tick while you're picking it and haven't joined yet. */
-function MySeat({ me, sideLabel, isPicked = false }: { me: Player; sideLabel: string; isPicked?: boolean }) {
+function MySeat({
+  me,
+  sideLabel,
+  isPicked = false,
+  animate,
+}: {
+  me: Player;
+  sideLabel: string;
+  isPicked?: boolean;
+  animate: boolean;
+}) {
   const { t } = useTranslation();
   const level = me.level?.toFixed(1);
 
@@ -180,14 +199,14 @@ function MySeat({ me, sideLabel, isPicked = false }: { me: Player; sideLabel: st
       accessibilityLabel={`${t("team.you")}, ${t("team.sideA11y", { side: sideLabel.toLowerCase() })}${level ? `, ${t("team.levelA11y", { level })}` : ""}${isPicked ? `, ${t("team.selected")}` : ""}`}
       className="w-[70px] items-center gap-[3px]"
     >
-      <View>
+      <PopIn animate={animate}>
         <PlayerAvatar player={me} size={AVATAR_SIZE - 4} ringClassName="border-accent" />
         {isPicked ? (
           <View className="absolute -bottom-1 -end-1 size-[22px] items-center justify-center rounded-full border-2 border-surface bg-accent">
             <Icon as={Check} size={12} color="accent-foreground" />
           </View>
         ) : null}
-      </View>
+      </PopIn>
       <Text className="font-black text-[13px] text-accent">{t("team.you")}</Text>
       <Text className="font-normal text-[11px] text-muted">
         {sideLabel}
