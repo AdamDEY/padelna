@@ -18,6 +18,7 @@ import { getMatchDetails, me, myLevel } from "@/data/mock";
 import type { Player } from "@/types/player";
 import { useClubs } from "@/hooks/useClubs";
 import { useJoinMatch, useMatch } from "@/hooks/useMatches";
+import { celebrate } from "@/lib/celebrate";
 import { askForPushNotifications } from "@/hooks/usePushNotifications";
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { clubTint } from "@/lib/club";
@@ -147,6 +148,7 @@ export default function MatchDetail() {
                 club: match!.clubName || t("matchDetail.courtToBook"),
               }),
             });
+            celebrate();
             // The first moment pushes matter: the chat and match updates
             void askForPushNotifications();
           },
