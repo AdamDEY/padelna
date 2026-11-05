@@ -3,7 +3,7 @@ import { Button, useToast } from "heroui-native";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BackHandler, View } from "react-native";
-import Animated, { FadeInLeft, FadeInRight } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 import { Page } from "@/components/page";
 import {
@@ -17,6 +17,7 @@ import { SetupQuizStep } from "@/components/setup-quiz-step";
 import { levelQuizQuestions } from "@/data/level-quiz";
 import { profileExistsKey } from "@/hooks/useAuthState";
 import { myProfileKey } from "@/hooks/useMyProfile";
+import { stepEntering } from "@/lib/motion";
 import { queryClient } from "@/lib/query-client";
 import { getCurrentUser, getSuggestedName } from "@/repositories/auth-repository";
 import { saveProfile } from "@/repositories/profile-repository";
@@ -161,7 +162,7 @@ export default function ProfileSetup() {
 
       {/* A new body per page starts it scrolled to the top */}
       <Page.Body key={`${step}-${question}`}>
-        <Animated.View entering={(direction === "forward" ? FadeInRight : FadeInLeft).duration(220)}>
+        <Animated.View entering={stepEntering(direction)}>
           {step === 1 ? (
             <View className="gap-4">
               <SetupAboutStep values={about} onChange={setAbout} showErrors={aboutSubmitted} />
