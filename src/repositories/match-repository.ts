@@ -37,7 +37,7 @@ const OVERLAP_ERROR_CODE = "23P01";
 const MATCH_SELECT = `
   id, host_id, starts_at, duration_minutes, level_min, level_max, kind,
   players_needed, price, note, status,
-  court:courts(number, club:clubs(id, name)),
+  court:courts(id, number, club:clubs(id, name)),
   match_players(seat, player_id),
   score:match_scores(team1_games, team2_games, status, submitted_by, submitted_team, expires_at, confirmed_at, photo_path),
   ratings:player_ratings(rater_id)
@@ -55,7 +55,7 @@ type MatchRow = {
   price: number | null;
   note: string;
   status: "open" | "cancelled";
-  court: { number: number; club: { id: string; name: string } } | null;
+  court: { id: string; number: number; club: { id: string; name: string } } | null;
   match_players: { seat: number; player_id: string }[];
   // One-to-one, so PostgREST embeds an object (or null), not a list
   score: ScoreRow | null;
@@ -119,6 +119,49 @@ export async function createMatch(match: NewMatch) {
     throw error;
   }
   return data.id as string;
+}
+
+export type MatchChanges = {
+  startsAt: Date;
+  levelMin: number;
+  levelMax: number;
+  kind: "friendly" | "competitive";
+};
+
+/**
+ * Changes the time, level range and type of a match you host. The database only allows it
+ * before the start and while nobody else has joined.
+ */
+export async function updateMatch(matchId: string, changes: MatchChanges) {
+  const { error } = await supabase
+    .from("matches")
+    .update({
+      starts_at: changes.startsAt.toISOString(),
+      level_min: changes.levelMin,
+      level_max: changes.levelMax,
+      kind: changes.kind,
+    })
+    .eq("id", matchId)
+    // An update the policies refuse changes no row instead of failing; .single() turns that into an error
+    .select("id")
+    .single();
+  if (error) {
+    if (error.code === OVERLAP_ERROR_CODE) {
+      throw new Error(t("errors.hostOverlap"));
+    }
+    throw error;
+  }
+}
+
+/** Books, changes or clears (null) the court of a match you host. The players get a chat note. */
+export async function setMatchCourt(matchId: string, courtId: string | null) {
+  const { error } = await supabase
+    .from("matches")
+    .update({ court_id: courtId })
+    .eq("id", matchId)
+    .select("id")
+    .single();
+  if (error) throw error;
 }
 
 /** Cancels a match you host. */
@@ -544,6 +587,7 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     durationMinutes: row.duration_minutes,
     clubName: row.court?.club.name ?? "",
     clubId: row.court?.club.id,
+    courtId: row.court?.id,
     courtName: row.court ? t("match.courtNumber", { number: row.court.number }) : undefined,
     isCourtBooked: row.court !== null,
     levelMin: row.level_min,
@@ -555,6 +599,7 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     price: row.price ?? undefined,
     host: cards.get(row.host_id),
     note: row.note || undefined,
+    hasJoinedPlayers: row.match_players.some((seat) => seat.player_id !== row.host_id),
     // The host and their guests, plus one row per player who joined
     isFull: row.match_players.length === row.players_needed + 1,
     score: row.score ? toMatchScore(row.score) : undefined,

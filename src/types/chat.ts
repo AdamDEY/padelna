@@ -6,7 +6,7 @@ import type { Player } from "@/types/player";
  */
 export type ChatMessage = {
   id: string;
-  kind: "text" | "joined" | "joined_full" | "left" | "court_booked" | "cancelled";
+  kind: "text" | "joined" | "joined_full" | "left" | "court_booked" | "court_changed" | "court_unbooked" | "cancelled";
   /** Empty for notes */
   body: string;
   /** Who wrote it, or who the note is about; missing once their account is deleted */

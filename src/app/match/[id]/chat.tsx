@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { t } from "i18next";
 import { Button, cn, Input, PressableFeedback, Spinner, useToast } from "heroui-native";
-import { ArrowUp, Check, Info, Users, X } from "lucide-react-native";
+import { ArrowUp, Check, Clock, Info, Users, X } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, ScrollView, Text, View } from "react-native";
@@ -338,12 +338,23 @@ function Note({ message, me, courtName }: NoteProps) {
     );
   }
 
+  if (message.kind === "court_unbooked") {
+    return (
+      <View className="flex-row items-center gap-1.5 self-center rounded-xl bg-warning-soft px-3 py-1">
+        <Icon as={Clock} size={12} color="warning" />
+        <Text className="font-bold text-[12px] text-warning">{t("chat.courtUnbooked", { name })}</Text>
+      </View>
+    );
+  }
+
   const text = {
     joined: t("chat.joined", { name }),
     joined_full: t("chat.joinedFull", { name }),
     left: t("chat.left", { name }),
+    // The court name isn't kept with the note, and the match may have moved again since
+    court_changed: t("chat.courtChanged", { name }),
     cancelled: t("chat.cancelled", { name }),
-  }[message.kind as "joined" | "joined_full" | "left" | "cancelled"];
+  }[message.kind as "joined" | "joined_full" | "left" | "court_changed" | "cancelled"];
 
   return <Text className="self-center text-center font-bold text-[12px] text-muted">{text}</Text>;
 }

@@ -123,6 +123,10 @@ export type MatchDetails = {
   note?: string;
   /** Set for matches that come from the database, to link to the club */
   clubId?: string;
+  /** Database matches only: the booked court, so the host can change it */
+  courtId?: string;
+  /** Database matches only: whether anyone besides the host has joined (then only the court can change) */
+  hasJoinedPlayers?: boolean;
   /**
    * One entry per seat (seats 1–2 are one team, 3–4 the other): a player, a guest
    * of the host, or undefined for an open seat. `players` leaves the open ones out.
