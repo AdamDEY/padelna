@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActionSheetIOS, Alert, Linking, Platform, Text, View } from "react-native";
 
+import { EditMatchSheet } from "@/components/edit-match-sheet";
 import { Icon } from "@/components/icon";
+import { MatchBookingSheet } from "@/components/match-booking-sheet";
 import { MatchScoreCard } from "@/components/match-score-card";
 import { Page } from "@/components/page";
 import { PlayerSheet } from "@/components/player-sheet";
@@ -59,6 +61,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const isHost = role === "host";
   const [now, setNow] = useState(() => new Date());
   const [scoreSheet, setScoreSheet] = useState<"add" | "correct" | "edit">();
+  const [hostSheet, setHostSheet] = useState<"edit" | "booking">();
   const [viewedPlayer, setViewedPlayer] = useState<Player>();
   const [isViewingPlayer, setIsViewingPlayer] = useState(false);
 
@@ -99,6 +102,15 @@ export function MyMatch({ match, role }: MyMatchProps) {
   // These need chat support, or the player-management API
   function comingSoon(label: string) {
     toast.show({ label, description: t("myMatch.comingSoon") });
+  }
+
+  // Players signed up for this time, level and type, so those stay once anyone joins
+  function editMatch() {
+    if (match.hasJoinedPlayers) {
+      toast.show({ label: t("myMatch.editLockedTitle"), description: t("myMatch.editLockedText") });
+    } else {
+      setHostSheet("edit");
+    }
   }
 
   const calendarEvent: CalendarEventDetails = {
@@ -352,7 +364,8 @@ export function MyMatch({ match, role }: MyMatchProps) {
         <SettingsSection title={t("myMatch.hostTools")}>
           <SettingsRow
             label={t("myMatch.editTimeLevelType")}
-            onPress={() => comingSoon(t("myMatch.editingMatch"))}
+            value={match.hasJoinedPlayers ? t("myMatch.editLocked") : undefined}
+            onPress={editMatch}
           />
           <SettingsRow
             label={
@@ -361,7 +374,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
                 : t("myMatch.booking")
             }
             value={match.isCourtBooked ? t("myMatch.booked") : t("myMatch.addCourt")}
-            onPress={() => comingSoon(t("myMatch.booking"))}
+            onPress={() => setHostSheet("booking")}
           />
           <SettingsRow
             label={t("myMatch.managePlayers")}
@@ -429,6 +442,20 @@ export function MyMatch({ match, role }: MyMatchProps) {
           onOpenChange={(open) => !open && setScoreSheet(undefined)}
           onSaved={scoreSheet === "edit" ? undefined : rateAfterScore}
         />
+      ) : null}
+      {isHost ? (
+        <>
+          <EditMatchSheet
+            match={match}
+            isOpen={hostSheet === "edit"}
+            onOpenChange={(open) => !open && setHostSheet(undefined)}
+          />
+          <MatchBookingSheet
+            match={match}
+            isOpen={hostSheet === "booking"}
+            onOpenChange={(open) => !open && setHostSheet(undefined)}
+          />
+        </>
       ) : null}
       <PlayerSheet
         player={viewedPlayer}

@@ -3,29 +3,32 @@ import {
   BottomSheetScrollView,
   type BottomSheetFooterProps,
 } from "@gorhom/bottom-sheet";
-import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { router } from "expo-router";
-import { BottomSheet, Button, cn, Slider, useToast } from "heroui-native";
-import { CalendarDays, Check, Clock, Info, MapPin, Minus, Plus, Trophy } from "lucide-react-native";
-import { useState, type ReactNode } from "react";
+import { BottomSheet, Button, cn, useToast } from "heroui-native";
+import { Clock, Minus, Plus } from "lucide-react-native";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Platform, Text, View } from "react-native";
+import { Text, View } from "react-native";
 // Gesture Handler's Pressable: React Native's doesn't get taps inside the sheet
 import { Pressable as GesturePressable } from "react-native-gesture-handler";
-import { useCSSVariable } from "uniwind";
 
+import { CourtFields } from "@/components/court-fields";
 import { Dropdown, type DropdownOption as Option } from "@/components/dropdown";
 import { Icon } from "@/components/icon";
 import { InfoNote } from "@/components/info-note";
-import { SegmentedControl } from "@/components/segmented-control";
+import { LevelRangeSlider, MAX_LEVEL, MIN_LEVEL } from "@/components/level-range-slider";
+import { MatchKindNote } from "@/components/match-kind-note";
+import { MatchTimeFields } from "@/components/match-time-fields";
+import { SheetField } from "@/components/sheet-field";
 import { myLevel as placeholderLevel } from "@/data/mock";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useBookableClubs } from "@/hooks/useClubs";
 import { useCreateMatch } from "@/hooks/useMatches";
 import { celebrate } from "@/lib/celebrate";
 import { askForPushNotifications } from "@/hooks/usePushNotifications";
-import { dateLocale, daysUntil, formatMatchDay } from "@/lib/format-date";
+import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { errorMessage } from "@/lib/error-message";
+import { clockTime, DAYS_AHEAD } from "@/lib/match-time";
 
 // Room the pinned Publish button takes, so the last field can scroll above it
 const FOOTER_SPACE = 104;
@@ -33,23 +36,7 @@ const FOOTER_SPACE = 104;
 // Not the safe-area inset: on a tab screen that includes the tab bar's height.
 const BOTTOM_ACTION_GAP = 34;
 
-const MIN_LEVEL = 1;
-const MAX_LEVEL = 7;
-// Every padel match in Tunisia is booked for 90 minutes
-const MATCH_MINUTES = 90;
-const DAYS_AHEAD = 30;
-// Start times every half hour, 07:00 to 23:00
-const TIME_OPTIONS: Option[] = Array.from({ length: 33 }, (_, i) => {
-  const minutes = 7 * 60 + i * 30;
-  const label = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${minutes % 60 === 0 ? "00" : "30"}`;
-  return { value: label, label };
-});
-
 type MatchKind = "friendly" | "competitive";
-
-function formatTime(date: Date) {
-  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
 
 /** Today at 18:00, or the next half hour if that's already past (tomorrow 18:00 after 23:00) */
 function defaultStart() {
@@ -102,7 +89,6 @@ export function CreateMatchSheet({
 }: CreateMatchSheetProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const accent = useCSSVariable("--color-accent") as string;
   const clubs = useBookableClubs();
   const { data: profile } = useMyProfile();
   const createMatch = useCreateMatch();
@@ -130,12 +116,6 @@ export function CreateMatchSheet({
   ];
   const [playersNeeded, setPlayersNeeded] = useState(2);
 
-  const selectedClub = clubs.find((item) => item.id === club?.value);
-  const courtOptions: Option[] = (selectedClub?.courts ?? []).map((item) => ({
-    value: item.id,
-    label: String(item.number),
-  }));
-  const endsAt = new Date(startsAt.getTime() + MATCH_MINUTES * 60_000);
   // `now` is when Home opened; publish() checks the real clock again
   const isInPast = startsAt.getTime() <= now.getTime();
   // A booked court needs the club and court; otherwise those come later
@@ -156,22 +136,6 @@ export function CreateMatchSheet({
     onOpenChange(open);
   }
 
-  // The date picker changes the day, the time picker the hour; keep the other part
-  function setDay(day: Date) {
-    const next = new Date(startsAt);
-    next.setFullYear(day.getFullYear(), day.getMonth(), day.getDate());
-    setStartsAt(next);
-  }
-
-  function setTime(time: string) {
-    const [hours, minutes] = time.split(":").map(Number);
-    const next = new Date(startsAt);
-    next.setHours(hours, minutes, 0, 0);
-    setStartsAt(next);
-  }
-
-  const timeValue = TIME_OPTIONS.find((option) => option.value === formatTime(startsAt));
-
   function dayLabel(date: Date) {
     const days = daysUntil(date);
     if (days === 0) return t("time.today");
@@ -184,7 +148,7 @@ export function CreateMatchSheet({
       toast.show({ variant: "danger", label: t("createMatch.timePassed"), description: t("createMatch.pickLater") });
       return;
     }
-    const when = `${dayLabel(startsAt)} · ${formatTime(startsAt)}`;
+    const when = `${dayLabel(startsAt)} · ${clockTime(startsAt)}`;
     createMatch.mutate(
       {
         courtId: isBooked ? court?.value : undefined,
@@ -253,116 +217,33 @@ export function CreateMatchSheet({
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: FOOTER_SPACE, gap: 14 }}
           >
-            <Field label={t("createMatch.courtBooked")}>
-              <SegmentedControl
-                value={isBooked ? "yes" : "no"}
-                onChange={(value) => setIsBooked(value === "yes")}
-                options={[
-                  { value: "yes", label: t("createMatch.yesBooked"), icon: Check },
-                  { value: "no", label: t("createMatch.notYet") },
-                ]}
-              />
-            </Field>
-
-            {isBooked ? (
-              <View className="flex-row gap-2.5">
-                <Field label={t("createMatch.club")} className="flex-[2]">
-                  <Dropdown
-                    label={t("createMatch.club")}
-                    icon={MapPin}
-                    placeholder={t("createMatch.chooseClub")}
-                    options={clubs.map((item) => ({ value: item.id, label: item.name }))}
-                    value={club}
-                    onChange={(option) => {
-                      setClub(option);
-                      setCourt(undefined);
-                    }}
-                  />
-                </Field>
-                <Field label={t("createMatch.courtNumber")} className="flex-1">
-                  <Dropdown
-                    label={t("createMatch.courtNumberA11y")}
-                    placeholder="–"
-                    options={courtOptions}
-                    value={court}
-                    onChange={setCourt}
-                    isDisabled={!selectedClub}
-                  />
-                </Field>
-              </View>
-            ) : (
+            <CourtFields
+              clubs={clubs}
+              isBooked={isBooked}
+              onBookedChange={setIsBooked}
+              club={club}
+              onClubChange={setClub}
+              court={court}
+              onCourtChange={setCourt}
+            />
+            {isBooked ? null : (
               <InfoNote icon={Clock} tone="warning" title={t("createMatch.bookFirstTitle")}>
                 {t("createMatch.bookFirstText")}
               </InfoNote>
             )}
 
-            <View className="flex-row gap-2.5">
-              <Field label={t("createMatch.date")} className="flex-1">
-                <DateField
-                  value={startsAt}
-                  minimumDate={now}
-                  maximumDate={lastDay}
-                  accentColor={accent}
-                  onChange={setDay}
-                />
-              </Field>
-              <Field
-                label={t("createMatch.time")}
-                detail={`· ${t("time.minutes", { count: MATCH_MINUTES })}`}
-                className="flex-1"
-              >
-                <Dropdown
-                  label={t("createMatch.startTime")}
-                  placeholder="18:00"
-                  options={TIME_OPTIONS}
-                  value={timeValue}
-                  onChange={(option) => option && setTime(option.value)}
-                  suffix={`– ${formatTime(endsAt)}`}
-                />
-              </Field>
-            </View>
+            <MatchTimeFields
+              startsAt={startsAt}
+              onChange={setStartsAt}
+              minimumDate={now}
+              maximumDate={lastDay}
+              isInPast={isInPast}
+            />
 
-            {isInPast ? (
-              <Text accessibilityRole="alert" className="-mt-1 font-semibold text-[13px] text-danger">
-                {t("createMatch.timePassed")}. {t("createMatch.pickLater")}
-              </Text>
-            ) : null}
-
-            <Slider
-              value={levelRange}
-              onChange={(value) => Array.isArray(value) && setLevelRange([value[0], value[1]])}
-              minValue={MIN_LEVEL}
-              maxValue={MAX_LEVEL}
-              step={0.5}
-              className="gap-2"
-            >
-              <View className="flex-row items-baseline justify-between">
-                <Text className="font-bold text-[14px] text-foreground">{t("createMatch.levelRange")}</Text>
-                <Text className="font-black text-[15px] text-accent">
-                  {levelRange[0].toFixed(1)} – {levelRange[1].toFixed(1)}
-                </Text>
-              </View>
-              <Slider.Track>
-                {({ state }) => (
-                  <>
-                    <Slider.Fill />
-                    {state.values.map((_, i) => (
-                      <Slider.Thumb key={i} index={i} />
-                    ))}
-                  </>
-                )}
-              </Slider.Track>
-              <View className="flex-row justify-between">
-                <Text className="font-semibold text-[12px] text-muted">{MIN_LEVEL.toFixed(1)}</Text>
-                <Text className="font-semibold text-[12px] text-muted">
-                  {t("level.yours", { level: myLevel.toFixed(1) })}
-                </Text>
-                <Text className="font-semibold text-[12px] text-muted">{MAX_LEVEL.toFixed(1)}</Text>
-              </View>
-            </Slider>
+            <LevelRangeSlider value={levelRange} onChange={setLevelRange} myLevel={myLevel} />
 
             <View className="flex-row gap-2.5">
-              <Field label={t("createMatch.matchType")} className="flex-1">
+              <SheetField label={t("createMatch.matchType")} className="flex-1">
                 <Dropdown
                   label={t("createMatch.matchType")}
                   placeholder={t("match.kind.friendly")}
@@ -370,8 +251,8 @@ export function CreateMatchSheet({
                   value={kindOptions.find((option) => option.value === kind)}
                   onChange={(option) => option && setKind(option.value as MatchKind)}
                 />
-              </Field>
-              <Field label={t("createMatch.playersNeeded")} className="flex-1">
+              </SheetField>
+              <SheetField label={t("createMatch.playersNeeded")} className="flex-1">
                 <View className="h-[52px] flex-row items-center justify-between rounded-[14px] border border-line-input bg-surface px-1.5">
                   <StepButton
                     icon={Minus}
@@ -393,117 +274,14 @@ export function CreateMatchSheet({
                     onPress={() => setPlayersNeeded((n) => Math.min(3, n + 1))}
                   />
                 </View>
-              </Field>
+              </SheetField>
             </View>
 
-            {kind === "friendly" ? (
-              <InfoNote icon={Info} title={t("createMatch.friendlyTitle")}>
-                {t("createMatch.friendlyText")}
-              </InfoNote>
-            ) : (
-              <InfoNote icon={Trophy} title={t("createMatch.competitiveTitle")}>
-                {t("createMatch.competitiveText")}
-              </InfoNote>
-            )}
+            <MatchKindNote kind={kind} />
           </BottomSheetScrollView>
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
-  );
-}
-
-/** Label above a field (14 px / 800), with optional muted detail after it */
-function Field({
-  label,
-  detail,
-  className,
-  children,
-}: {
-  label: string;
-  detail?: string;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <View className={cn("gap-1.5", className)}>
-      <Text className="font-bold text-[14px] text-foreground">
-        {label}
-        {detail ? <Text className="font-semibold text-muted"> {detail}</Text> : null}
-      </Text>
-      {children}
-    </View>
-  );
-}
-
-type DateFieldProps = {
-  value: Date;
-  minimumDate: Date;
-  maximumDate: Date;
-  accentColor: string;
-  onChange: (date: Date) => void;
-};
-
-/**
- * Date field. iOS shows its compact picker inside the box. On Android the picker is a dialog
- * that opens the moment it is mounted, so it is only mounted while the player is choosing a date.
- */
-function DateField({ value, minimumDate, maximumDate, accentColor, onChange }: DateFieldProps) {
-  const [isPicking, setIsPicking] = useState(false);
-
-  if (Platform.OS !== "android") {
-    return (
-      <PickerBox>
-        <DateTimePicker
-          value={value}
-          mode="date"
-          display="compact"
-          locale={dateLocale()}
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
-          accentColor={accentColor}
-          themeVariant="light"
-          onValueChange={(_, date) => onChange(date)}
-          onChange={(_, date) => date && onChange(date)}
-        />
-      </PickerBox>
-    );
-  }
-
-  return (
-    <>
-      <GesturePressable onPress={() => setIsPicking(true)} accessibilityRole="button">
-        <PickerBox>
-          <Icon as={CalendarDays} size={18} color="accent" />
-          <Text className="font-semibold text-[15px] text-foreground">{formatMatchDay(value)}</Text>
-        </PickerBox>
-      </GesturePressable>
-      {isPicking ? (
-        <DateTimePicker
-          value={value}
-          mode="date"
-          presentation="dialog"
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
-          accentColor={accentColor}
-          onValueChange={(_, date) => {
-            setIsPicking(false);
-            onChange(date);
-          }}
-          onDismiss={() => setIsPicking(false)}
-        />
-      ) : null}
-    </>
-  );
-}
-
-/**
- * Field box around the native date picker (or the button that opens it on Android).
- */
-function PickerBox({ children }: { children: ReactNode }) {
-  return (
-    <View className="h-[52px] flex-row items-center gap-1.5 rounded-[14px] border border-line-input bg-surface px-2">
-      {children}
-    </View>
   );
 }
 

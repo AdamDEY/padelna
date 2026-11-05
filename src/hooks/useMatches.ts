@@ -17,9 +17,12 @@ import {
   fetchOpenMatches,
   joinMatch,
   leaveMatch,
+  setMatchCourt,
   submitRatings,
   submitScore,
+  updateMatch,
   uploadMatchPhoto,
+  type MatchChanges,
 } from "@/repositories/match-repository";
 
 // Live updates can fail without any sign (a dropped connection, a phone that was asleep), so
@@ -116,6 +119,23 @@ export function useCancelMatch() {
   return useMutation({
     mutationFn: cancelMatch,
     onSuccess: (_, matchId) => refreshMatches(matchId),
+  });
+}
+
+export function useUpdateMatch() {
+  return useMutation({
+    mutationFn: ({ matchId, changes }: { matchId: string; changes: MatchChanges }) =>
+      updateMatch(matchId, changes),
+    // Someone may have joined meanwhile, which locks these, so show the match as it is now
+    onSettled: (_, __, { matchId }) => refreshMatches(matchId),
+  });
+}
+
+export function useSetMatchCourt() {
+  return useMutation({
+    mutationFn: ({ matchId, courtId }: { matchId: string; courtId: string | null }) =>
+      setMatchCourt(matchId, courtId),
+    onSettled: (_, __, { matchId }) => refreshMatches(matchId),
   });
 }
 

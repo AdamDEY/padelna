@@ -30,6 +30,8 @@ type Kind =
   | "match_full"
   | "player_left"
   | "court_booked"
+  | "court_changed"
+  | "court_unbooked"
   | "match_cancelled"
   | "score_to_confirm"
   | "rate_players"
@@ -49,6 +51,8 @@ const texts: Record<Language, Record<Kind, (p: Params) => Text>> = {
     match_full: (p) => ({ title: "Your match is full", body: `${p.name} took the last spot · ${p.when}` }),
     player_left: (p) => ({ title: `${p.name} left your match`, body: `${p.when} · the spot is open again` }),
     court_booked: (p) => ({ title: "Court booked", body: `${p.name} booked the court for ${p.when}` }),
+    court_changed: (p) => ({ title: "Court changed", body: `${p.name} moved ${p.when} to another court. Check the details.` }),
+    court_unbooked: (p) => ({ title: "Court not booked anymore", body: `${p.name} is finding a new court for ${p.when}` }),
     match_cancelled: (p) => ({ title: "Match cancelled", body: `${p.name} cancelled the match on ${p.when}` }),
     score_to_confirm: (p) => ({
       title: "Confirm the score",
@@ -67,6 +71,8 @@ const texts: Record<Language, Record<Kind, (p: Params) => Text>> = {
     match_full: (p) => ({ title: "Ton match est complet", body: `${p.name} a pris la dernière place · ${p.when}` }),
     player_left: (p) => ({ title: `${p.name} a quitté ton match`, body: `${p.when} · la place est libre` }),
     court_booked: (p) => ({ title: "Terrain réservé", body: `${p.name} a réservé le terrain pour ${p.when}` }),
+    court_changed: (p) => ({ title: "Terrain changé", body: `${p.name} a changé de terrain pour le ${p.when}. Vérifie les détails.` }),
+    court_unbooked: (p) => ({ title: "Terrain plus réservé", body: `${p.name} cherche un autre terrain pour le ${p.when}` }),
     match_cancelled: (p) => ({ title: "Match annulé", body: `${p.name} a annulé le match du ${p.when}` }),
     score_to_confirm: (p) => ({
       title: "Confirme le score",

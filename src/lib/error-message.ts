@@ -65,6 +65,8 @@ const SERVER_MESSAGES: Record<string, ServerKey> = {
   "Your team already sent this score. A player from the other team confirms it.": "teamAlreadySent",
   "This club isn't open for new matches. Pick another one.": "clubNotOpen",
   "This court isn't available. Pick another one.": "courtUnavailable",
+  "Players have joined, so the time, level and type can't change": "playersJoinedLocked",
+  "Pick a time that hasn't passed": "pickFutureTime",
 };
 const SIGNED_OUT_MESSAGES = new Set(["Sign in first", "Not signed in"]);
 

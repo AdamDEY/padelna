@@ -7,6 +7,8 @@ export type NotificationKind =
   | "match_full"
   | "player_left"
   | "court_booked"
+  | "court_changed"
+  | "court_unbooked"
   | "match_cancelled"
   | "score_to_confirm"
   | "rate_players"
