@@ -20,7 +20,8 @@ import { ConnectButton } from "@/components/connect-button";
 import { Icon } from "@/components/icon";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { mockPlayerStats } from "@/data/mock";
-import { useFreshPlayer, usePlayerDetails } from "@/hooks/usePlayers";
+import type { PlayerTagCount } from "@/data/player-tags";
+import { useFreshPlayer, usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
 import { formatMatchDay } from "@/lib/format-date";
 import type {
   Player,
@@ -43,13 +44,6 @@ const sideLabels = {
   left: "side.leftSide",
   right: "side.rightSide",
   both: "playerSheet.bothSides",
-} as const;
-
-const tagKeys = {
-  "Fair play": true,
-  "On time": true,
-  "Strong smash": true,
-  "Great teammate": true,
 } as const;
 
 type PlayerSheetProps = {
@@ -186,7 +180,7 @@ function Header({
             {player.level.toFixed(1)}
           </Text>
           <Text className="font-bold text-[11px] text-success">
-            {t("playerSheet.reviews", { count: mockPlayerStats.reviews })}
+            {t("profile.levelWord")}
           </Text>
         </View>
       ) : null}
@@ -198,14 +192,12 @@ function Strong({ children }: { children: ReactNode }) {
   return <Text className="font-black text-foreground">{children}</Text>;
 }
 
-function Tag({ label, count }: { label: string; count: number }) {
+function Tag({ tag, count }: PlayerTagCount) {
   const { t } = useTranslation();
-  // Tags come from sample data for now; an unknown one shows as written
-  const name = label in tagKeys ? t(`playerSheet.tags.${label as keyof typeof tagKeys}`) : label;
 
   return (
     <Text className="overflow-hidden rounded-xl bg-accent-soft px-2.5 py-1.5 font-bold text-[12px] text-accent-soft-foreground">
-      {name} · {count}
+      {t(`playerTags.${tag}`)} · {count}
     </Text>
   );
 }
@@ -222,6 +214,7 @@ function Preview({ player, details, onHeight, onExpand }: PreviewProps) {
   const { t } = useTranslation();
   const mutual = player.mutualFriendCount ?? 0;
   const stats = mockPlayerStats;
+  const { data: tags = [] } = usePlayerTags(player.id);
 
   return (
     <View
@@ -242,7 +235,6 @@ function Preview({ player, details, onHeight, onExpand }: PreviewProps) {
             value: `${Math.round((stats.won / stats.matches) * 100)}%`,
             label: t("playerSheet.winRate"),
           },
-          { value: String(stats.reviews), label: t("playerSheet.reviewsLabel") },
         ].map((stat) => (
           <View
             key={stat.label}
@@ -258,11 +250,13 @@ function Preview({ player, details, onHeight, onExpand }: PreviewProps) {
         ))}
       </View>
 
-      <View className="flex-row flex-wrap gap-1.5">
-        {stats.tags.slice(0, 3).map((tag) => (
-          <Tag key={tag.label} {...tag} />
-        ))}
-      </View>
+      {tags.length > 0 ? (
+        <View className="flex-row flex-wrap gap-1.5">
+          {tags.slice(0, 3).map((item) => (
+            <Tag key={item.tag} {...item} />
+          ))}
+        </View>
+      ) : null}
 
       <PlayedTogether details={details} />
 
@@ -316,6 +310,7 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const stats: PlayerStats = mockPlayerStats;
+  const { data: tags = [] } = usePlayerTags(player.id);
   const winRate = Math.round((stats.won / stats.matches) * 100);
 
   return (
@@ -432,16 +427,18 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
           </View>
         ) : null}
 
-        <View className="gap-2">
-          <Text className="font-black text-[15px] text-foreground">
-            {t("playerSheet.whatPlayersSay")}
-          </Text>
-          <View className="flex-row flex-wrap gap-1.5">
-            {stats.tags.map((tag) => (
-              <Tag key={tag.label} {...tag} />
-            ))}
+        {tags.length > 0 ? (
+          <View className="gap-2">
+            <Text className="font-black text-[15px] text-foreground">
+              {t("playerSheet.whatPlayersSay")}
+            </Text>
+            <View className="flex-row flex-wrap gap-1.5">
+              {tags.map((item) => (
+                <Tag key={item.tag} {...item} />
+              ))}
+            </View>
           </View>
-        </View>
+        ) : null}
 
         <Button
           variant="outline"

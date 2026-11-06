@@ -1,6 +1,7 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { t } from "i18next";
 
+import type { PlayerTag, PlayerTagCount } from "@/data/player-tags";
 import { supabase } from "@/lib/supabase";
 import type { ConnectionState, DiscoverPlayer, Friend, PlayerDetails, PlayerSuggestion } from "@/types/player";
 
@@ -132,6 +133,13 @@ export async function fetchPlayerDetails(playerId: string): Promise<PlayerDetail
     connection: row.connection,
     mutualFriendCount: row.mutual_count,
   };
+}
+
+/** What players say about someone: each tag with how many players gave it, most first. */
+export async function fetchPlayerTags(playerId: string): Promise<PlayerTagCount[]> {
+  const { data, error } = await supabase.rpc("get_player_tags", { p_player_id: playerId });
+  if (error) throw error;
+  return (data as { tag: PlayerTag; count: number }[]).map((row) => ({ tag: row.tag, count: Number(row.count) }));
 }
 
 /** Sends a connection request, or accepts theirs if they already asked you. */

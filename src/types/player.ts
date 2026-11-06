@@ -51,14 +51,11 @@ export type PlayerDetails = {
   mutualFriendCount: number;
 };
 
-/** Numbers on another player's profile. Mocked until results and reviews are saved per player. */
+/** Numbers on another player's profile. Mocked until results are saved per player. */
 export type PlayerStats = {
   matches: number;
   won: number;
   lost: number;
-  reviews: number;
-  /** "Fair play" with how many players said so */
-  tags: { label: string; count: number }[];
   asPartners: { won: number; lost: number };
   asOpponents: { won: number; lost: number };
 };

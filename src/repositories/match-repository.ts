@@ -377,6 +377,10 @@ export async function submitRatings(matchId: string, ratings: PlayerRating[]) {
     p_match_id: matchId,
     p_player_ids: ratings.map((item) => item.playerId),
     p_ratings: ratings.map((item) => item.rating),
+    // { playerId: [tags] }; players with no tags are left out
+    p_tags: Object.fromEntries(
+      ratings.filter((item) => item.tags.length > 0).map((item) => [item.playerId, item.tags]),
+    ),
   });
   if (error) throw error;
 }

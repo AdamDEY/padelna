@@ -26,7 +26,7 @@ type ProfileHeroProps = {
   profile: PlayerProfile;
   onPressSettings?: () => void;
   onPressFriends?: () => void;
-  /** False until a first match is played: the stats, progress and review count are left out */
+  /** False until a first match is played: the stats and progress are left out */
   hasPlayed?: boolean;
   /** Real friend count; the profile's own is still mock */
   friendCount?: number;
@@ -157,10 +157,7 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlaye
               })}
             </Text>
             <Text className="self-start overflow-hidden rounded-[10px] bg-white/15 px-2.5 py-1 font-bold text-[12px] text-accent-foreground">
-              {t("profile.basedOn", {
-                matches: t("profile.matchesCount", { count: profile.matchesPlayed }),
-                reviews: t("profile.reviewsCount", { count: profile.reviewCount }),
-              })}
+              {t("profile.basedOn", { matches: t("profile.matchesCount", { count: profile.matchesPlayed }) })}
             </Text>
           </View>
         ) : (

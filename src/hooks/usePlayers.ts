@@ -9,6 +9,7 @@ import {
   fetchMyFriends,
   fetchMyClubs,
   fetchPlayerDetails,
+  fetchPlayerTags,
   fetchPlayedWith,
   fetchPlayersAtMyClubs,
   removeConnection,
@@ -102,6 +103,15 @@ export function useConnectionsRealtime() {
       stopListening?.();
     };
   }, []);
+}
+
+/** What players say about someone, from their ratings after competitive matches. */
+export function usePlayerTags(playerId: string | undefined) {
+  return useQuery({
+    queryKey: [...playersKey, "tags", playerId],
+    queryFn: () => fetchPlayerTags(playerId!),
+    enabled: playerId !== undefined,
+  });
 }
 
 export function usePlayerDetails(playerId: string | undefined) {
