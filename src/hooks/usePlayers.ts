@@ -13,6 +13,7 @@ import {
   fetchPlayedWith,
   fetchPlayersAtMyClubs,
   removeConnection,
+  reportPlayer,
   requestConnection,
   respondToConnection,
   searchPlayers,
@@ -75,6 +76,10 @@ export function useRequestConnection() {
 
 export function useRemoveConnection() {
   return useMutation({ mutationFn: removeConnection, onSettled: refreshPlayers });
+}
+
+export function useReportPlayer() {
+  return useMutation({ mutationFn: reportPlayer });
 }
 
 export function useRespondToConnection() {

@@ -81,6 +81,11 @@ const SERVER_MESSAGES: Record<string, ServerKey> = {
   "Pick between 1 and 5 stars": "pickStars",
   "Pick up to 5 tags for a club": "maxClubTags",
   "Keep your comment under 500 characters": "commentTooLong",
+  "You can't report yourself": "cantReportYourself",
+  "Pick a reason from the list": "pickReason",
+  "Say whether you played with this player": "sayIfPlayed",
+  "Keep your comment under 300 characters": "reportCommentTooLong",
+  "You've sent a lot of reports today. Try again tomorrow.": "tooManyReports",
 };
 const SIGNED_OUT_MESSAGES = new Set(["Sign in first", "Not signed in"]);
 

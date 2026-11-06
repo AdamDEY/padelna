@@ -6,7 +6,7 @@ import {
   ChevronUp,
   Flag,
 } from "lucide-react-native";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import type GorhomBottomSheet from "@gorhom/bottom-sheet";
@@ -19,6 +19,7 @@ import {
 import { ConnectButton } from "@/components/connect-button";
 import { Icon } from "@/components/icon";
 import { PlayerAvatar } from "@/components/player-avatar";
+import { ReportPlayerSheet } from "@/components/report-player-sheet";
 import { mockPlayerStats } from "@/data/mock";
 import type { PlayerTagCount } from "@/data/player-tags";
 import { useFreshPlayer, usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
@@ -67,6 +68,7 @@ export function PlayerSheet({
 }: PlayerSheetProps) {
   const sheet = useRef<GorhomBottomSheet>(null);
   const [isFull, setIsFull] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
   const [previewHeight, setPreviewHeight] = useState<number>();
   const { data: details } = usePlayerDetails(listed?.id);
   // Memoised: useFreshPlayer compares snapshots by identity
@@ -86,58 +88,68 @@ export function PlayerSheet({
   }
 
   return (
-    <BottomSheet isOpen={isOpen} onOpenChange={handleOpenChange}>
-      <BottomSheet.Portal>
-        <BottomSheet.Overlay />
-        <BottomSheet.Content
-          ref={sheet}
-          snapPoints={[
-            previewHeight
-              ? previewHeight + HANDLE_HEIGHT
-              : PREVIEW_FALLBACK_HEIGHT,
-            FULL_HEIGHT,
-          ]}
-          enableDynamicSizing={false}
-          enableOverDrag={false}
-          onChange={(index: number) => setIsFull(index === FULL_INDEX)}
-          contentContainerClassName="h-full p-0"
-          handleIndicatorClassName="h-[5px] w-10 bg-line-input"
-          // The sheet's own footer sits on its real bottom edge, like Create match's Publish button
-          footerComponent={
-            isFull && player
-              ? (props: BottomSheetFooterProps) => (
-                  <BottomSheetFooter {...props}>
-                    <FullProfileActions player={player} />
-                  </BottomSheetFooter>
-                )
-              : undefined
-          }
-        >
-          {player ? (
-            isFull ? (
-              <FullProfile
-                player={player}
-                details={details}
-                onCollapse={() => {
-                  setIsFull(false);
-                  sheet.current?.snapToIndex(0);
-                }}
-              />
-            ) : (
-              <Preview
-                player={player}
-                details={details}
-                onHeight={setPreviewHeight}
-                onExpand={() => {
-                  setIsFull(true);
-                  sheet.current?.snapToIndex(FULL_INDEX);
-                }}
-              />
-            )
-          ) : null}
-        </BottomSheet.Content>
-      </BottomSheet.Portal>
-    </BottomSheet>
+    <Fragment>
+      <BottomSheet isOpen={isOpen} onOpenChange={handleOpenChange}>
+        <BottomSheet.Portal>
+          <BottomSheet.Overlay />
+          <BottomSheet.Content
+            ref={sheet}
+            snapPoints={[
+              previewHeight
+                ? previewHeight + HANDLE_HEIGHT
+                : PREVIEW_FALLBACK_HEIGHT,
+              FULL_HEIGHT,
+            ]}
+            enableDynamicSizing={false}
+            enableOverDrag={false}
+            onChange={(index: number) => setIsFull(index === FULL_INDEX)}
+            contentContainerClassName="h-full p-0"
+            handleIndicatorClassName="h-[5px] w-10 bg-line-input"
+            // The sheet's own footer sits on its real bottom edge, like Create match's Publish button
+            footerComponent={
+              isFull && player
+                ? (props: BottomSheetFooterProps) => (
+                    <BottomSheetFooter {...props}>
+                      <FullProfileActions player={player} />
+                    </BottomSheetFooter>
+                  )
+                : undefined
+            }
+          >
+            {player ? (
+              isFull ? (
+                <FullProfile
+                  player={player}
+                  details={details}
+                  onReport={() => setIsReporting(true)}
+                  onCollapse={() => {
+                    setIsFull(false);
+                    sheet.current?.snapToIndex(0);
+                  }}
+                />
+              ) : (
+                <Preview
+                  player={player}
+                  details={details}
+                  onHeight={setPreviewHeight}
+                  onExpand={() => {
+                    setIsFull(true);
+                    sheet.current?.snapToIndex(FULL_INDEX);
+                  }}
+                />
+              )
+            ) : null}
+          </BottomSheet.Content>
+        </BottomSheet.Portal>
+      </BottomSheet>
+      <ReportPlayerSheet
+        player={player}
+        lastPlayedTogetherAt={details?.lastPlayedTogetherAt}
+      playedTogether={(details?.playedTogether ?? 0) > 0}
+        isOpen={isReporting}
+        onOpenChange={setIsReporting}
+      />
+    </Fragment>
   );
 }
 
@@ -224,7 +236,8 @@ function Preview({ player, details, onHeight, onExpand }: PreviewProps) {
     >
       <Header player={player} details={details}>
         <Text className="font-normal text-[13px] text-muted">
-          <Strong>{mutual}</Strong> {t("playerSheet.mutualFriends", { count: mutual })}
+          <Strong>{mutual}</Strong>{" "}
+          {t("playerSheet.mutualFriends", { count: mutual })}
         </Text>
       </Header>
 
@@ -270,7 +283,9 @@ function Preview({ player, details, onHeight, onExpand }: PreviewProps) {
           onPress={onExpand}
           className="h-[52px] flex-1 rounded-2xl"
         >
-          <Button.Label className="text-[16px]">{t("playerSheet.fullProfile")}</Button.Label>
+          <Button.Label className="text-[16px]">
+            {t("playerSheet.fullProfile")}
+          </Button.Label>
           <Icon as={ChevronUp} size={16} color="primary-dark" />
         </Button>
       </View>
@@ -293,7 +308,9 @@ function PlayedTogether({ details }: { details?: PlayerDetails }) {
       <Text className="flex-1 font-normal text-[14px] text-ink-2">
         {t("playerSheet.playedTogether")} <Strong>{times}</Strong>
         {details.lastPlayedTogetherAt
-          ? t("playerSheet.lastOn", { date: formatMatchDay(details.lastPlayedTogetherAt) })
+          ? t("playerSheet.lastOn", {
+              date: formatMatchDay(details.lastPlayedTogetherAt),
+            })
           : ""}
       </Text>
     </View>
@@ -304,11 +321,16 @@ type FullProfileProps = {
   player: PlayerSuggestion;
   details?: PlayerDetails;
   onCollapse: () => void;
+  onReport: () => void;
 };
 
-function FullProfile({ player, details, onCollapse }: FullProfileProps) {
+function FullProfile({
+  player,
+  details,
+  onCollapse,
+  onReport,
+}: FullProfileProps) {
   const { t } = useTranslation();
-  const { toast } = useToast();
   const stats: PlayerStats = mockPlayerStats;
   const { data: tags = [] } = usePlayerTags(player.id);
   const winRate = Math.round((stats.won / stats.matches) * 100);
@@ -329,8 +351,11 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
         <Header player={player} details={details}>
           <Text className="font-normal text-[13px] text-muted">
             {details ? <Strong>{details.friendCount}</Strong> : null}
-            {details ? ` ${t("playerSheet.friendsWord", { count: details.friendCount })}` : ""}
-            <Strong>{player.mutualFriendCount ?? 0}</Strong> {t("playerSheet.mutualShort")}
+            {details
+              ? ` ${t("playerSheet.friendsWord", { count: details.friendCount })}`
+              : ""}
+            <Strong>{player.mutualFriendCount ?? 0}</Strong>{" "}
+            {t("playerSheet.mutualShort")}
           </Text>
         </Header>
         {details?.bio ? (
@@ -353,7 +378,11 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
               label: t("playerSheet.played"),
               tone: "text-foreground",
             },
-            { value: String(stats.won), label: t("playerSheet.won"), tone: "text-accent" },
+            {
+              value: String(stats.won),
+              label: t("playerSheet.won"),
+              tone: "text-accent",
+            },
             {
               value: String(stats.lost),
               label: t("playerSheet.lost"),
@@ -384,14 +413,22 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
               </Text>
               {details.lastPlayedTogetherAt ? (
                 <Text className="font-normal text-[12px] text-muted">
-                  {t("playerSheet.lastPlayed", { date: formatMatchDay(details.lastPlayedTogetherAt) })}
+                  {t("playerSheet.lastPlayed", {
+                    date: formatMatchDay(details.lastPlayedTogetherAt),
+                  })}
                 </Text>
               ) : null}
             </View>
             <View className="flex-row gap-2">
               {[
-                { label: t("playerSheet.asPartners"), record: stats.asPartners },
-                { label: t("playerSheet.asOpponents"), record: stats.asOpponents },
+                {
+                  label: t("playerSheet.asPartners"),
+                  record: stats.asPartners,
+                },
+                {
+                  label: t("playerSheet.asOpponents"),
+                  record: stats.asOpponents,
+                },
               ].map(({ label, record }) => (
                 <View
                   key={label}
@@ -401,7 +438,10 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
                     {label}
                   </Text>
                   <Text className="font-black text-[15px] text-foreground">
-                    {t("playerSheet.record", { won: record.won, lost: record.lost })}
+                    {t("playerSheet.record", {
+                      won: record.won,
+                      lost: record.lost,
+                    })}
                   </Text>
                 </View>
               ))}
@@ -442,10 +482,7 @@ function FullProfile({ player, details, onCollapse }: FullProfileProps) {
 
         <Button
           variant="outline"
-          onPress={() =>
-            // Nothing is sent yet; reports will reach the team once the API exists
-            toast.show({ label: t("playerSheet.reportSoon") })
-          }
+          onPress={onReport}
           className="h-12 rounded-2xl border-attention-outline bg-surface"
         >
           <Icon as={Flag} size={15} color="attention-action" />
@@ -483,7 +520,9 @@ function FullProfileActions({ player }: { player: PlayerSuggestion }) {
         }
         className="h-[52px] flex-1 rounded-2xl"
       >
-        <Button.Label className="text-[16px]">{t("playerSheet.invite")}</Button.Label>
+        <Button.Label className="text-[16px]">
+          {t("playerSheet.invite")}
+        </Button.Label>
       </Button>
     </View>
   );
