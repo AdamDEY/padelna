@@ -27,10 +27,12 @@ export function ClubReviewCard({ review }: { review: ClubReview }) {
         <View className="flex-1">
           <Text className="font-bold text-[14px] text-foreground">{shortNameOf(review.author)}</Text>
           <Text className="font-normal text-[12px] text-muted">
-            {t("clubReviews.playedCourt", {
-              court: translateCourt(review.courtName),
-              when: playedAgo(review.postedAt),
-            })}
+            {review.courtName
+              ? t("clubReviews.playedCourt", {
+                  court: translateCourt(review.courtName),
+                  when: playedAgo(review.postedAt),
+                })
+              : playedAgo(review.postedAt)}
           </Text>
         </View>
         <View
@@ -42,7 +44,9 @@ export function ClubReviewCard({ review }: { review: ClubReview }) {
           <Text className="font-bold text-[13px] text-foreground">{review.rating.toFixed(1)}</Text>
         </View>
       </View>
-      <Text className="font-normal text-[14px] leading-5 text-ink-2">{review.text}</Text>
+      {review.text ? (
+        <Text className="font-normal text-[14px] leading-5 text-ink-2">{review.text}</Text>
+      ) : null}
     </View>
   );
 }

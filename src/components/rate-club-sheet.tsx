@@ -19,45 +19,48 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { translateCourt, translateLabel } from "@/i18n";
 import { StarRating } from "@/components/star-rating";
-import { clubReviewTagOptions } from "@/data/club-review-tags";
+import { clubAspects, courtAspects } from "@/data/club-review-aspects";
+import { clubReviewTagOptions, MAX_CLUB_REVIEW_TAGS } from "@/data/club-review-tags";
+import { useSubmitClubReview } from "@/hooks/useClubReviews";
+import { errorMessage } from "@/lib/error-message";
 import { formatMatchDay } from "@/lib/format-date";
-import type { ClubCard } from "@/types/club";
-
-const courtAspects = ["Court surface", "Glass & walls", "Lighting"];
-const clubAspects = ["Rackets & balls", "Changing rooms", "Staff & welcome"];
+import type { ClubCard, ReviewScores } from "@/types/club";
 
 // Room the pinned Submit button takes, so the last field can scroll above it
 const FOOTER_SPACE = 104;
 
 type RateClubSheetProps = {
-  club: Pick<ClubCard, "name" | "courtCount">;
+  club: Pick<ClubCard, "id" | "name" | "courts">;
   /** Your latest match at this club, to pre-fill the court and date */
-  lastMatchHere?: { courtName?: string; playedAt: Date };
+  lastMatchHere?: { courtId?: string; playedAt: Date };
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-/** "How was the club?" bottom sheet: court picker, star ratings, tags, comment, Submit. */
+/**
+ * "How was the club?" bottom sheet (design canvas "Rate the club"): court picker, star ratings, tags,
+ * comment, Submit. Sending again replaces your earlier review of the club.
+ */
 export function RateClubSheet({ club, lastMatchHere, isOpen, onOpenChange }: RateClubSheetProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { toast } = useToast();
 
-  const courts = Array.from({ length: club.courtCount }, (_, i) => `Court ${i + 1}`);
+  const submitReview = useSubmitClubReview();
 
-  const [court, setCourt] = useState(lastMatchHere?.courtName ?? null);
-  const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [courtId, setCourtId] = useState(lastMatchHere?.courtId ?? null);
+  const [scores, setScores] = useState<ReviewScores>({});
   const [tags, setTags] = useState<Set<string>>(() => new Set());
   const [comment, setComment] = useState("");
 
-  const hasRating = Object.values(ratings).some((value) => value > 0);
+  const hasRating = Object.values(scores).some((value) => value > 0);
   const scrollRef = useRef<BottomSheetScrollViewMethods>(null);
 
   // Closing clears the form, so the next review starts fresh
   function handleOpenChange(open: boolean) {
     if (!open) {
-      setCourt(lastMatchHere?.courtName ?? null);
-      setRatings({});
+      setCourtId(lastMatchHere?.courtId ?? null);
+      setScores({});
       setTags(new Set());
       setComment("");
       scrollRef.current?.scrollTo({ y: 0, animated: false });
@@ -65,8 +68,20 @@ export function RateClubSheet({ club, lastMatchHere, isOpen, onOpenChange }: Rat
     onOpenChange(open);
   }
 
-  function submit() {
-    // Nothing is saved yet; the API will take the court, ratings, tags and comment
+  async function submit() {
+    try {
+      await submitReview.mutateAsync({
+        clubId: club.id,
+        courtId: courtId ?? undefined,
+        // Stars cleared back to 0 count as not rated
+        scores: Object.fromEntries(Object.entries(scores).filter(([, value]) => value > 0)),
+        tags: [...tags],
+        comment,
+      });
+    } catch (error) {
+      toast.show({ variant: "danger", label: t("rateClub.failed"), description: errorMessage(error) });
+      return;
+    }
     toast.show({
       variant: "success",
       label: t("rateClub.thanks"),
@@ -75,15 +90,15 @@ export function RateClubSheet({ club, lastMatchHere, isOpen, onOpenChange }: Rat
     handleOpenChange(false);
   }
 
-  function setRating(aspect: string, value: number) {
-    setRatings((current) => ({ ...current, [aspect]: value }));
+  function setRating(aspect: keyof ReviewScores, value: number) {
+    setScores((current) => ({ ...current, [aspect]: value }));
   }
 
   function toggleTag(label: string) {
     setTags((current) => {
       const next = new Set(current);
       if (next.has(label)) next.delete(label);
-      else next.add(label);
+      else if (next.size < MAX_CLUB_REVIEW_TAGS) next.add(label);
       return next;
     });
   }
@@ -112,7 +127,7 @@ export function RateClubSheet({ club, lastMatchHere, isOpen, onOpenChange }: Rat
                 className="bg-background px-5 pt-3"
                 style={{ paddingBottom: Math.max(insets.bottom, 34) }}
               >
-                <Button size="lg" isDisabled={!hasRating} onPress={submit}>
+                <Button size="lg" isDisabled={!hasRating || submitReview.isPending} onPress={submit}>
                   {t("rateClub.submit")}
                 </Button>
               </View>
@@ -144,20 +159,21 @@ export function RateClubSheet({ club, lastMatchHere, isOpen, onOpenChange }: Rat
                 <Text className="font-bold text-[12px] uppercase tracking-[0.6px] text-muted">
                   {t("rateClub.court")}
                 </Text>
-                {lastMatchHere?.courtName ? (
+                {lastMatchHere?.courtId ? (
                   <Text className="font-normal text-[12px] text-muted">{t("rateClub.fromMatch")}</Text>
                 ) : null}
               </View>
               <View accessibilityRole="radiogroup" className="flex-row gap-1.5">
-                {courts.map((name, index) => {
-                  const selected = name === court;
+                {club.courts.map((court) => {
+                  const selected = court.id === courtId;
                   return (
                     <Pressable
-                      key={name}
-                      onPress={() => setCourt(name)}
+                      key={court.id}
+                      // Tapping the chosen court again clears it
+                      onPress={() => setCourtId(selected ? null : court.id)}
                       accessibilityRole="radio"
                       accessibilityState={{ checked: selected }}
-                      accessibilityLabel={translateCourt(name)}
+                      accessibilityLabel={translateCourt(`Court ${court.number}`)}
                       hitSlop={{ top: 4, bottom: 4 }}
                       className={cn(
                         "h-9 flex-1 items-center justify-center rounded-xl",
@@ -170,24 +186,29 @@ export function RateClubSheet({ club, lastMatchHere, isOpen, onOpenChange }: Rat
                           selected ? "font-bold text-background" : "font-semibold text-foreground",
                         )}
                       >
-                        C{index + 1}
+                        C{court.number}
                       </Text>
                     </Pressable>
                   );
                 })}
               </View>
-              <RatingCard aspects={courtAspects} ratings={ratings} onChange={setRating} />
+              <RatingCard aspects={courtAspects} scores={scores} onChange={setRating} />
             </View>
 
             <View className="gap-2">
               <Text className="font-bold text-[12px] uppercase tracking-[0.6px] text-muted">
                 {t("rateClub.theClub")}
               </Text>
-              <RatingCard aspects={clubAspects} ratings={ratings} onChange={setRating} />
+              <RatingCard aspects={clubAspects} scores={scores} onChange={setRating} />
             </View>
 
             <View className="gap-2">
-              <Text className="font-bold text-[14px] text-foreground">{t("rateClub.stand")}</Text>
+              <View className="flex-row items-baseline justify-between">
+                <Text className="font-bold text-[14px] text-foreground">{t("rateClub.stand")}</Text>
+                <Text className="font-normal text-[12px] text-muted">
+                  {t("rateClub.standHint", { count: MAX_CLUB_REVIEW_TAGS })}
+                </Text>
+              </View>
               <View className="flex-row flex-wrap gap-1.5">
                 {clubReviewTagOptions.map((tag) => {
                   const selected = tags.has(tag.label);
@@ -265,28 +286,28 @@ function CommentField({
 
 function RatingCard({
   aspects,
-  ratings,
+  scores,
   onChange,
 }: {
-  aspects: string[];
-  ratings: Record<string, number>;
-  onChange: (aspect: string, value: number) => void;
+  aspects: readonly { key: keyof ReviewScores; label: string }[];
+  scores: ReviewScores;
+  onChange: (aspect: keyof ReviewScores, value: number) => void;
 }) {
   return (
     <View className="rounded-[20px] border border-line bg-surface px-3.5 py-0.5">
       {aspects.map((aspect, index) => (
         <View
-          key={aspect}
+          key={aspect.key}
           className={cn(
             "h-11 flex-row items-center justify-between",
             index < aspects.length - 1 && "border-b border-fill",
           )}
         >
-          <Text className="font-bold text-[14px] text-foreground">{translateLabel("aspects", aspect)}</Text>
+          <Text className="font-bold text-[14px] text-foreground">{translateLabel("aspects", aspect.label)}</Text>
           <StarRating
-            label={translateLabel("aspects", aspect)}
-            value={ratings[aspect] ?? 0}
-            onChange={(value) => onChange(aspect, value)}
+            label={translateLabel("aspects", aspect.label)}
+            value={scores[aspect.key] ?? 0}
+            onChange={(value) => onChange(aspect.key, value)}
           />
         </View>
       ))}

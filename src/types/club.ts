@@ -65,19 +65,17 @@ export type ClubCard = Club & {
   isMyClub: boolean;
 };
 
-/** Average ratings for a club, from its player reviews. Not backed by the database yet. */
+/** Average ratings for a club, from its player reviews. */
 export type ClubRatings = {
-  /** Average player rating, out of 5 */
+  /** Average player rating, out of 5; 0 while nobody has reviewed */
   rating: number;
   reviewCount: number;
-  /** Average per aspect, out of 5 */
+  /** Average per aspect that has a rating, out of 5 */
   ratingBreakdown: { label: string; value: number }[];
-  /** What players mention most; negative ones show in orange */
+  /** What players mention most, most first; negative ones show in orange */
   reviewTags: { label: string; count: number; negative?: boolean }[];
-  /** Average court rating (surface, glass, lighting), one per court in order */
-  courtRatings?: number[];
-  /** Newest first */
-  reviews?: ClubReview[];
+  /** Average court rating (surface, glass, lighting) for each court that has one */
+  courtRatings: { number: number; rating: number }[];
 };
 
 /** What a review talks about, for the topic filter on the reviews screen */
@@ -96,16 +94,16 @@ export type ReviewScores = {
 export type ClubReview = {
   id: string;
   author: Player;
-  courtName: string;
+  /** "Court 3"; left out when the player didn't say which court */
+  courtName?: string;
+  isIndoor?: boolean;
   postedAt: Date;
+  /** Average of the scores the player gave */
   rating: number;
+  /** Left empty when the player only gave stars */
   text: string;
-  /** When the reviewed match started, "20:00" */
-  playedTime?: string;
-  /** How many times the author has played at this club */
-  timesPlayedHere?: number;
-  scores?: ReviewScores;
-  topics: ReviewTopic[];
-  helpfulCount: number;
-  clubReplied?: boolean;
+  /** How many full matches the author has played here */
+  timesPlayedHere: number;
+  scores: ReviewScores;
+  tags: string[];
 };

@@ -1,9 +1,12 @@
-import { cn, PressableFeedback } from "heroui-native";
+import { cn } from "heroui-native";
 import { t } from "i18next";
+import { Star } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import { translateCourt } from "@/i18n";
+import { translateCourt, translateLabel } from "@/i18n";
+import { isNegativeClubTag } from "@/data/club-review-tags";
+import { Icon } from "@/components/icon";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { daysUntil, formatTimeAgo } from "@/lib/format-date";
 import type { ClubReview, ReviewScores } from "@/types/club";
@@ -33,29 +36,18 @@ function reviewedAgo(date: Date) {
 
 type ClubReviewDetailCardProps = {
   review: ClubReview;
-  /** Whether the court was indoor, shown next to the court name */
-  isIndoor?: boolean;
-  markedHelpful: boolean;
-  onToggleHelpful: () => void;
 };
 
-/** A full review: who, how often they play here, per-aspect scores, text and Helpful. */
-export function ClubReviewDetailCard({
-  review,
-  isIndoor,
-  markedHelpful,
-  onToggleHelpful,
-}: ClubReviewDetailCardProps) {
+/** A full review: who, how often they play here, per-aspect scores, tags and text. */
+export function ClubReviewDetailCard({ review }: ClubReviewDetailCardProps) {
   const { t } = useTranslation();
   const details = [
-    translateCourt(review.courtName),
-    isIndoor === undefined ? null : t(isIndoor ? "clubReviews.indoor" : "clubReviews.outdoor"),
-    review.playedTime,
+    review.courtName ? translateCourt(review.courtName) : null,
+    review.isIndoor === undefined ? null : t(review.isIndoor ? "clubReviews.indoor" : "clubReviews.outdoor"),
     reviewedAgo(review.postedAt),
   ]
     .filter(Boolean)
     .join(" · ");
-  const helpfulCount = review.helpfulCount + (markedHelpful ? 1 : 0);
 
   return (
     <View className="gap-2.5 rounded-[20px] border border-line bg-surface p-3.5">
@@ -64,7 +56,7 @@ export function ClubReviewDetailCard({
         <View className="min-w-0 flex-1">
           <Text numberOfLines={1} className="font-bold text-[14px] text-foreground">
             {shortNameOf(review.author)}
-            {review.timesPlayedHere ? (
+            {review.timesPlayedHere > 0 ? (
               <Text className="text-success">
                 {t("clubReviews.playedHere", { count: review.timesPlayedHere })}
               </Text>
@@ -74,42 +66,44 @@ export function ClubReviewDetailCard({
             {details}
           </Text>
         </View>
+        <View
+          accessible
+          accessibilityLabel={t("clubReviews.starsA11y", { rating: review.rating.toFixed(1) })}
+          className="flex-row items-center gap-[3px]"
+        >
+          <Icon as={Star} size={14} color="star" filled />
+          <Text className="font-bold text-[13px] text-foreground">{review.rating.toFixed(1)}</Text>
+        </View>
       </View>
 
-      {review.scores ? (
-        <View className="gap-1.5">
-          <ScoreRow label={translateCourt(review.courtName)} scores={review.scores} items={courtScoreLabels} />
-          <ScoreRow label={t("clubReviews.clubRow")} scores={review.scores} items={clubScoreLabels} />
-        </View>
+      <View className="gap-1.5">
+        <ScoreRow
+          label={review.courtName ? translateCourt(review.courtName) : t("clubReviews.courtRow")}
+          scores={review.scores}
+          items={courtScoreLabels}
+        />
+        <ScoreRow label={t("clubReviews.clubRow")} scores={review.scores} items={clubScoreLabels} />
+      </View>
+
+      {review.text ? (
+        <Text className="font-normal text-[14px] leading-5 text-ink-2">{review.text}</Text>
       ) : null}
 
-      <Text className="font-normal text-[14px] leading-5 text-ink-2">{review.text}</Text>
-
-      <View className="flex-row items-center gap-2">
-        <PressableFeedback
-          onPress={onToggleHelpful}
-          accessibilityRole="button"
-          accessibilityState={{ selected: markedHelpful }}
-          accessibilityLabel={`${t("clubReviews.helpfulA11y", { count: helpfulCount })}${markedHelpful ? t("clubReviews.includingYou") : ""}`}
-          hitSlop={6}
-          className={cn(
-            "h-8 justify-center rounded-[10px] px-2.5",
-            markedHelpful ? "bg-primary-soft" : "bg-fill",
-          )}
-        >
-          <Text
-            className={cn(
-              "font-bold text-[12px]",
-              markedHelpful ? "text-primary-dark" : "text-foreground",
-            )}
-          >
-            {t("clubReviews.helpful", { count: helpfulCount })}
-          </Text>
-        </PressableFeedback>
-        {review.clubReplied ? (
-          <Text className="font-normal text-[12px] text-muted">{t("clubReviews.replied")}</Text>
-        ) : null}
-      </View>
+      {review.tags.length > 0 ? (
+        <View className="flex-row flex-wrap gap-1.5">
+          {review.tags.map((tag) => (
+            <Text
+              key={tag}
+              className={cn(
+                "overflow-hidden rounded-2xl px-2.5 py-1 font-bold text-[12px]",
+                isNegativeClubTag(tag) ? "bg-attention-soft text-attention" : "bg-success-soft text-success",
+              )}
+            >
+              {translateLabel("clubTags", tag)}
+            </Text>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }
