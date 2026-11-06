@@ -74,6 +74,13 @@ const SERVER_MESSAGES: Record<string, ServerKey> = {
   "Pick a club and court from the list": "pickClubAndCourt",
   "You can log a match once it's over": "logAfterMatch",
   "You can only log matches from the last 7 days": "logLastWeek",
+  "This club no longer exists": "clubGone",
+  "Play a match at this club to review it": "playToReview",
+  "That court isn't at this club": "courtNotHere",
+  "Rate at least one thing": "rateOneThing",
+  "Pick between 1 and 5 stars": "pickStars",
+  "Pick up to 5 tags for a club": "maxClubTags",
+  "Keep your comment under 500 characters": "commentTooLong",
 };
 const SIGNED_OUT_MESSAGES = new Set(["Sign in first", "Not signed in"]);
 

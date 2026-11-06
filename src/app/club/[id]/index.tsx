@@ -1,12 +1,14 @@
-import { Button } from "heroui-native";
-import { useLocalSearchParams } from "expo-router";
-import { Clock, Heart } from "lucide-react-native";
+import { Button, cn } from "heroui-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { Clock, Star } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
+import { ClubReviewCard } from "@/components/club-review-card";
+import { ClubReviewsSummary } from "@/components/club-reviews-summary";
 import { CourtHero } from "@/components/court-hero";
-import { IconButton } from "@/components/icon-button";
+import { Icon } from "@/components/icon";
 import { BookingNoticeSheet } from "@/components/booking-notice-sheet";
 import { ClubMatchRow } from "@/components/club-match-row";
 import { CreateMatchSheet } from "@/components/create-match-sheet";
@@ -14,9 +16,12 @@ import { InfoNote } from "@/components/info-note";
 import { LoadError } from "@/components/load-error";
 import { Page } from "@/components/page";
 import { SectionHeader } from "@/components/section-header";
+import { useClubRatings, useClubReviews } from "@/hooks/useClubReviews";
 import { useClubCard } from "@/hooks/useClubs";
+import { useRateClub } from "@/hooks/useRateClub";
 import { useUpcomingOpenMatches } from "@/hooks/useMatches";
 import { translateLabel } from "@/i18n";
+import { MAX_CLUB_REVIEW_TAGS } from "@/data/club-review-tags";
 import { shouldSkipBookingNotice } from "@/lib/booking-notice";
 import { formatDistance, formatPhone, todaysHours } from "@/lib/club";
 import { showDirections } from "@/lib/directions";
@@ -24,14 +29,23 @@ import { errorMessage } from "@/lib/error-message";
 
 // How far the white sheet slides up over the photo
 const SHEET_OVERLAP = 34;
+// Latest reviews shown here; "See all" has the rest
+const RECENT_REVIEWS = 1;
+// The aspects the summary bars show
+const SUMMARY_ASPECTS = ["Court surface", "Changing rooms"];
+// Popular tags shown here
+const SHOWN_TAGS = MAX_CLUB_REVIEW_TAGS;
 
 export default function ClubDetail() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { club, isLoading, error, refetch, isRefetching } = useClubCard(id);
   const openMatchesQuery = useUpcomingOpenMatches();
+  const ratingsQuery = useClubRatings(id);
+  const reviewsQuery = useClubReviews(id);
+  const ratings = ratingsQuery.data;
+  const rateClub = useRateClub(club);
   const openMatches = openMatchesQuery.data;
-  const [isSaved, setIsSaved] = useState(false);
   const [isShowingNotice, setIsShowingNotice] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -92,15 +106,6 @@ export default function ClubDetail() {
         <CourtHero
           tint={club.placeholderTint}
           photoCount={club.photoCount}
-          rightAction={
-            <IconButton
-              icon={Heart}
-              label={isSaved ? t("clubDetail.unsave") : t("clubDetail.save")}
-              filled={isSaved}
-              onPress={() => setIsSaved((saved) => !saved)}
-              className="border-0 bg-white/90"
-            />
-          }
         />
 
         <View
@@ -108,12 +113,32 @@ export default function ClubDetail() {
           style={{ marginTop: -SHEET_OVERLAP }}
         >
           <View className="gap-1.5">
-            <Text
-              accessibilityRole="header"
-              className="font-black text-[26px] tracking-[-0.4px] text-foreground"
-            >
-              {club.name}
-            </Text>
+            <View className="flex-row items-center justify-between gap-3">
+              <Text
+                accessibilityRole="header"
+                className="flex-1 font-black text-[26px] tracking-[-0.4px] text-foreground"
+              >
+                {club.name}
+              </Text>
+              {ratings && ratings.reviewCount > 0 ? (
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityLabel={t("clubDetail.ratedA11y", {
+                    rating: ratings.rating.toFixed(1),
+                    count: ratings.reviewCount,
+                  })}
+                  hitSlop={12}
+                  onPress={() => router.push({ pathname: "/club/[id]/reviews", params: { id: club.id } })}
+                  className="flex-row items-center gap-1"
+                >
+                  <Icon as={Star} size={16} color="star" filled />
+                  <Text className="font-bold text-[15px] text-foreground">
+                    {ratings.rating.toFixed(1)}{" "}
+                    <Text className="font-medium text-muted">({ratings.reviewCount})</Text>
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
             <Text className="font-normal text-[15px] text-muted">
               {[place, club.distanceKm === undefined ? null : formatDistance(club.distanceKm)]
                 .filter(Boolean)
@@ -182,6 +207,62 @@ export default function ClubDetail() {
               </Text>
             ) : null}
           </View>
+
+          <View className="gap-3.5">
+            <SectionHeader
+              size="sm"
+              title={t("clubDetail.playerReviews")}
+              actionLabel={
+                ratings && ratings.reviewCount > 0
+                  ? t("clubDetail.seeAll", { count: ratings.reviewCount })
+                  : undefined
+              }
+              onPressAction={() => router.push({ pathname: "/club/[id]/reviews", params: { id: club.id } })}
+            />
+            {ratingsQuery.error && !ratings ? (
+              <LoadError
+                message={t("clubDetail.reviewsFailed", { message: errorMessage(ratingsQuery.error) })}
+                onRetry={() => {
+                  void ratingsQuery.refetch();
+                  void reviewsQuery.refetch();
+                }}
+                isRetrying={ratingsQuery.isRefetching}
+              />
+            ) : ratings && ratings.reviewCount > 0 ? (
+              <>
+                <ClubReviewsSummary
+                  club={{
+                    ...ratings,
+                    ratingBreakdown: ratings.ratingBreakdown.filter((aspect) =>
+                      SUMMARY_ASPECTS.includes(aspect.label),
+                    ),
+                  }}
+                />
+                <View className="flex-row flex-wrap gap-2">
+                  {ratings.reviewTags.slice(0, SHOWN_TAGS).map((tag) => (
+                    <Text
+                      key={tag.label}
+                      className={cn(
+                        "overflow-hidden rounded-[14px] px-3 py-1.5 font-bold text-[13px]",
+                        tag.negative ? "bg-attention-soft text-attention" : "bg-success-soft text-success",
+                      )}
+                    >
+                      {translateLabel("clubTags", tag.label)} · {tag.count}
+                    </Text>
+                  ))}
+                </View>
+                {(reviewsQuery.data ?? []).slice(0, RECENT_REVIEWS).map((review) => (
+                  <ClubReviewCard key={review.id} review={review} />
+                ))}
+              </>
+            ) : ratings ? (
+              <Text className="font-normal text-[14px] text-muted">{t("clubDetail.noReviews")}</Text>
+            ) : null}
+            <Button variant="outline" onPress={rateClub.start} className="h-12 rounded-[14px] bg-surface">
+              <Icon as={Star} size={18} color="primary" />
+              <Button.Label className="text-[15px]">{t("clubDetail.rate")}</Button.Label>
+            </Button>
+          </View>
         </View>
       </Page.Body>
 
@@ -211,6 +292,7 @@ export default function ClubDetail() {
           setIsCreating(true);
         }}
       />
+      {rateClub.sheet}
       <CreateMatchSheet isOpen={isCreating} onOpenChange={setIsCreating} initialClubName={club.name} />
     </Page>
   );

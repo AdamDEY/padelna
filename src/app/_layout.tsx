@@ -87,6 +87,7 @@ export default function RootLayout() {
               <Stack.Screen name="friends" />
               <Stack.Screen name="clubs" />
               <Stack.Screen name="club/[id]/index" />
+              <Stack.Screen name="club/[id]/reviews" />
               <Stack.Screen name="match/[id]/index" />
               <Stack.Screen name="match/[id]/rate" />
               <Stack.Screen name="match/[id]/chat" />
