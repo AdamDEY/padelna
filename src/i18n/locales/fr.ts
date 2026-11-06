@@ -604,7 +604,9 @@ export const fr: Messages = {
     setA11y: "{{name}}, set {{number}}",
     needGames: "Ajoute les jeux gagnés par chaque équipe dans chaque set.",
     impossible:
-      "Ce score n’est pas possible. Un set se termine à 6–4 ou plus, 7–5 ou 7–6, et un troisième set n’est joué qu’à un set partout.",
+      "Ce score n’est pas possible. Un set se termine à 6–4 ou plus, 7–5 ou 7–6. Un troisième set n’est joué qu’à un set partout, et peut être un super tie-break à 10.",
+    badSet: "Le set {{number}} ne peut finir que de 6–0 à 6–4, 7–5 ou 7–6.",
+    badThirdSet: "Le set 3 peut finir comme un set normal, ou en super tie-break : 10–8 ou plus, ou deux points d’écart après 10.",
     confirmNote: "Un joueur de l’autre équipe confirme le score.",
     saveChanges: "Enregistrer les modifications",
     sendReal: "Envoyer le vrai score",
