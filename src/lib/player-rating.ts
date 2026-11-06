@@ -30,8 +30,9 @@ export function ratingClosesAt(score: MatchScore) {
     : score.expiresAt;
 }
 
-/** Players you can rate in a match: your partner and opponents who are on the app */
+/** Players you can rate in a match: your partner and opponents who are on the app. Friendly matches aren't rated. */
 export function playersToRate(match: MatchDetails, myId: string) {
+  if (match.kind !== "competitive") return [];
   const myTeam = teamOf(match, myId);
   return (match.seats ?? [])
     .map((player, index) => ({ player, team: index < 2 ? 1 : 2 }))
@@ -42,9 +43,10 @@ export function playersToRate(match: MatchDetails, myId: string) {
     .map(({ player, team }) => ({ player, isPartner: team === myTeam }));
 }
 
-/** Whether you can still rate this match: there's a live score and you haven't rated yet */
+/** Whether you can still rate this match: it's competitive, there's a live score and you haven't rated yet */
 export function isRatingOpen(match: MatchDetails, myId: string, now = new Date()) {
   const { score } = match;
+  if (match.kind !== "competitive") return false;
   if (!score || score.status === "expired") return false;
   if (teamOf(match, myId) === undefined) return false;
   if (match.ratedBy?.includes(myId)) return false;

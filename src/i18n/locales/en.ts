@@ -61,6 +61,7 @@ export const en = {
       scoreExpiredCantRate: "This score wasn’t confirmed in time, so the match can’t be rated.",
       matchAtThatTime: "You already have a match at that time.",
       alreadyRated: "You already rated this match.",
+      friendlyNotRated: "Friendly matches aren’t rated.",
       scoreAfterMatch: "You can add the score once the match is over.",
       rateOnlyMatchPlayers: "You can only rate players from this match.",
       rateAfterScore: "You can rate the players once the score is added.",

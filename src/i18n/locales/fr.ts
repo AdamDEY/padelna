@@ -64,6 +64,7 @@ export const fr: Messages = {
       scoreExpiredCantRate: "Ce score n’a pas été confirmé à temps, donc le match ne peut pas être noté.",
       matchAtThatTime: "Tu as déjà un match à cette heure-là.",
       alreadyRated: "Tu as déjà noté ce match.",
+      friendlyNotRated: "Les matchs amicaux ne sont pas notés.",
       scoreAfterMatch: "Tu pourras ajouter le score une fois le match terminé.",
       rateOnlyMatchPlayers: "Tu ne peux noter que les joueurs de ce match.",
       rateAfterScore: "Tu pourras noter les joueurs une fois le score ajouté.",
