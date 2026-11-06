@@ -19,10 +19,12 @@ import { Pressable, Text, View } from "react-native";
 import ReanimatedSwipeable, {
   type SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
+import Animated from "react-native-reanimated";
 
 import { Icon } from "@/components/icon";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { daysUntil, formatMatchDateTime, formatTimeAgo, formatWeekday } from "@/lib/format-date";
+import { closeGap, slideOutLeft } from "@/lib/motion";
 import type { AppNotification, NotificationKind } from "@/types/notification";
 
 // Width of the Delete button a swipe to the left reveals (44 px target plus room for the label)
@@ -79,10 +81,12 @@ type NotificationRowProps = {
   onDelete?: () => void;
   /** Called as the row's Delete button opens, so the screen can close the one opened before */
   onSwipeOpen?: (swipeable: SwipeableMethods) => void;
+  /** Set while this notification is being deleted, so only that row slides out (not rows a filter hides) */
+  isRemoving?: boolean;
 };
 
 /** One notification (design canvas "Notifications"): avatar or icon badge, sentence, time and unread dot. */
-export function NotificationRow({ notification, onPress, onAccept, onIgnore, onDelete, onSwipeOpen }: NotificationRowProps) {
+export function NotificationRow({ notification, onPress, onAccept, onIgnore, onDelete, onSwipeOpen, isRemoving }: NotificationRowProps) {
   const swipeable = useRef<SwipeableMethods>(null);
   const { t } = useTranslation();
   const { kind, player, startsAt, clubName, count, isRead } = notification;
@@ -146,29 +150,31 @@ export function NotificationRow({ notification, onPress, onAccept, onIgnore, onD
   if (!onDelete) return row;
 
   return (
-    <ReanimatedSwipeable
-      ref={swipeable}
-      onSwipeableWillOpen={() => swipeable.current && onSwipeOpen?.(swipeable.current)}
-      friction={2}
-      rightThreshold={DELETE_ACTION_WIDTH / 2}
-      overshootRight={false}
-      renderRightActions={(_, __, actions) => (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("notifications.delete")}
-          onPress={() => {
-            actions.close();
-            onDelete();
-          }}
-          className="items-center justify-center gap-1 bg-attention-soft"
-          style={{ width: DELETE_ACTION_WIDTH }}
-        >
-          <Icon as={Trash2} size={20} color="attention" />
-          <Text className="font-bold text-[13px] text-attention">{t("notifications.delete")}</Text>
-        </Pressable>
-      )}
-    >
-      {row}
-    </ReanimatedSwipeable>
+    <Animated.View exiting={isRemoving ? slideOutLeft : undefined} layout={closeGap}>
+      <ReanimatedSwipeable
+        ref={swipeable}
+        onSwipeableWillOpen={() => swipeable.current && onSwipeOpen?.(swipeable.current)}
+        friction={2}
+        rightThreshold={DELETE_ACTION_WIDTH / 2}
+        overshootRight={false}
+        renderRightActions={(_, __, actions) => (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("notifications.delete")}
+            onPress={() => {
+              actions.close();
+              onDelete();
+            }}
+            className="items-center justify-center gap-1 bg-attention-soft"
+            style={{ width: DELETE_ACTION_WIDTH }}
+          >
+            <Icon as={Trash2} size={20} color="attention" />
+            <Text className="font-bold text-[13px] text-attention">{t("notifications.delete")}</Text>
+          </Pressable>
+        )}
+      >
+        {row}
+      </ReanimatedSwipeable>
+    </Animated.View>
   );
 }

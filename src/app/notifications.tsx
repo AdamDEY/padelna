@@ -36,6 +36,8 @@ export default function Notifications() {
   const [filter, setFilter] = useState<Filter>("all");
   // The row whose Delete button is showing; only one stays open
   const openSwipe = useRef<SwipeableMethods>(null);
+  // The notification being deleted; only that row slides out
+  const [removingId, setRemovingId] = useState<string>();
   const { data, error, refetch, isRefetching, hasNextPage, fetchNextPage, isFetchingNextPage } = useNotifications(
     filter === "all" ? undefined : filter,
   );
@@ -85,9 +87,11 @@ export default function Notifications() {
   }
 
   function remove(notification: AppNotification) {
+    setRemovingId(notification.id);
     deleteOne.mutate(notification, {
       onError: (err) =>
         toast.show({ variant: "danger", label: t("notifications.deleteFailed"), description: errorMessage(err) }),
+      onSettled: () => setRemovingId(undefined),
     });
   }
 
@@ -180,6 +184,7 @@ export default function Notifications() {
           onLoadMore={() => fetchNextPage()}
           answerableIds={answerableIds}
           onAnswer={answer}
+          removingId={removingId}
         />
       </Page.Body>
     </Page>
@@ -197,13 +202,14 @@ type ListProps = {
   isLoadingMore: boolean;
   onLoadMore: () => void;
   answerableIds: Set<string>;
+  removingId?: string;
   onOpen: (notification: AppNotification) => void;
   onDelete: (notification: AppNotification) => void;
   onSwipeOpen: (swipeable: SwipeableMethods) => void;
   onAnswer: (notification: AppNotification, accepted: boolean) => void;
 };
 
-function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore, isLoadingMore, onLoadMore, answerableIds, onOpen, onDelete, onSwipeOpen, onAnswer }: ListProps) {
+function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore, isLoadingMore, onLoadMore, answerableIds, removingId, onOpen, onDelete, onSwipeOpen, onAnswer }: ListProps) {
   const { t } = useTranslation();
   const { bleed } = usePageMargins();
 
@@ -244,11 +250,11 @@ function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore
     <View className={bleed}>
       {fresh.length > 0 ? <SectionLabel>{t("notifications.new")}</SectionLabel> : null}
       {fresh.map((n) => (
-        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onDelete={onDelete} onSwipeOpen={onSwipeOpen} onAnswer={onAnswer} />
+        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} isRemoving={n.id === removingId} onOpen={onOpen} onDelete={onDelete} onSwipeOpen={onSwipeOpen} onAnswer={onAnswer} />
       ))}
       {earlier.length > 0 ? <SectionLabel>{t("notifications.earlier")}</SectionLabel> : null}
       {earlier.map((n) => (
-        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} onOpen={onOpen} onDelete={onDelete} onSwipeOpen={onSwipeOpen} onAnswer={onAnswer} />
+        <Row key={n.id} notification={n} answerable={answerableIds.has(n.id)} isRemoving={n.id === removingId} onOpen={onOpen} onDelete={onDelete} onSwipeOpen={onSwipeOpen} onAnswer={onAnswer} />
       ))}
       {hasMore ? (
         <View className="items-center py-4">
@@ -264,19 +270,21 @@ function List({ isLoading, failure, onRetry, isRetrying, fresh, earlier, hasMore
 type RowProps = {
   notification: AppNotification;
   answerable: boolean;
+  isRemoving: boolean;
   onOpen: (notification: AppNotification) => void;
   onDelete: (notification: AppNotification) => void;
   onSwipeOpen: (swipeable: SwipeableMethods) => void;
   onAnswer: (notification: AppNotification, accepted: boolean) => void;
 };
 
-function Row({ notification, answerable, onOpen, onDelete, onSwipeOpen, onAnswer }: RowProps) {
+function Row({ notification, answerable, isRemoving, onOpen, onDelete, onSwipeOpen, onAnswer }: RowProps) {
   return (
     <NotificationRow
       notification={notification}
       onPress={() => onOpen(notification)}
       onDelete={() => onDelete(notification)}
       onSwipeOpen={onSwipeOpen}
+      isRemoving={isRemoving}
       onAccept={answerable ? () => onAnswer(notification, true) : undefined}
       onIgnore={answerable ? () => onAnswer(notification, false) : undefined}
     />

@@ -1,9 +1,11 @@
-import { Button } from "heroui-native";
+import { Button, cn } from "heroui-native";
 import { t } from "i18next";
 import { Pressable, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
 
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { formatDayMonth } from "@/lib/format-date";
+import { closeGap, slideOutLeft } from "@/lib/motion";
 import type { Friend } from "@/types/player";
 
 type FriendRowProps = {
@@ -11,17 +13,29 @@ type FriendRowProps = {
   onPress: () => void;
   onRemove: () => void;
   isBusy?: boolean;
+  /** A line above the row, for every row but the first in the list */
+  showDivider?: boolean;
+  /** Set while this friend is being removed, so only that row slides out (not rows a search hides) */
+  isRemoving?: boolean;
 };
 
-/** One friend in My friends: avatar, name with level, matches together and a Remove button. */
-export function FriendRow({ friend, onPress, onRemove, isBusy }: FriendRowProps) {
+/**
+ * One friend in My friends: avatar, name with level, matches together and a Remove button.
+ * A removed friend slides off to the left and the rows below glide up.
+ */
+export function FriendRow({ friend, onPress, onRemove, isBusy, showDivider, isRemoving }: FriendRowProps) {
   const together =
     friend.matchesTogether > 0 && friend.lastPlayedAt
       ? t("friends.matchesTogether", { count: friend.matchesTogether, date: formatDayMonth(friend.lastPlayedAt) })
       : t("friends.notPlayedYet");
 
   return (
-    <View className="flex-row items-center gap-3 py-2.5">
+    // The divider is part of the row so it leaves with it
+    <Animated.View
+      exiting={isRemoving ? slideOutLeft : undefined}
+      layout={closeGap}
+      className={cn("flex-row items-center gap-3 py-2.5", showDivider && "border-t border-fill")}
+    >
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
@@ -56,6 +70,6 @@ export function FriendRow({ friend, onPress, onRemove, isBusy }: FriendRowProps)
       >
         <Button.Label className="text-[13px] text-attention-action">{t("friends.remove")}</Button.Label>
       </Button>
-    </View>
+    </Animated.View>
   );
 }

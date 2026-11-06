@@ -1,7 +1,7 @@
 import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { Button, SearchField, useToast } from "heroui-native";
-import { Fragment, useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -49,6 +49,8 @@ export default function Friends() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("played");
   const [isReviewing, setIsReviewing] = useState(false);
+  // The friend being removed; only that row slides out
+  const [removingId, setRemovingId] = useState<string>();
   const [viewed, setViewed] = useState<Friend>();
   const [isViewing, setIsViewing] = useState(false);
 
@@ -115,12 +117,15 @@ export default function Friends() {
       {
         text: t("connect.remove"),
         style: "destructive",
-        onPress: () =>
+        onPress: () => {
+          setRemovingId(friend.id);
           removeConnection.mutate(friend.id, {
             onSuccess: () => toast.show({ label: t("connect.removed", { name: friend.firstName }) }),
             onError: (err) =>
               toast.show({ variant: "danger", label: t("connect.failed"), description: errorMessage(err) }),
-          }),
+            onSettled: () => setRemovingId(undefined),
+          });
+        },
       },
     ]);
   }
@@ -226,15 +231,15 @@ export default function Friends() {
               ) : (
                 <View className="rounded-[20px] border border-line bg-surface px-3.5">
                   {shown.map((friend, index) => (
-                    <Fragment key={friend.id}>
-                      {index > 0 ? <View className="h-px bg-fill" /> : null}
-                      <FriendRow
-                        friend={friend}
-                        onPress={() => open(friend)}
-                        onRemove={() => confirmRemove(friend)}
-                        isBusy={removeConnection.isPending}
-                      />
-                    </Fragment>
+                    <FriendRow
+                      key={friend.id}
+                      friend={friend}
+                      onPress={() => open(friend)}
+                      onRemove={() => confirmRemove(friend)}
+                      isBusy={removeConnection.isPending}
+                      showDivider={index > 0}
+                      isRemoving={friend.id === removingId}
+                    />
                   ))}
                 </View>
               )}

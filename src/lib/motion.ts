@@ -1,5 +1,12 @@
 import { I18nManager } from "react-native";
-import { FadeInLeft, FadeInRight, ReduceMotion, ZoomIn } from "react-native-reanimated";
+import {
+  FadeInLeft,
+  FadeInRight,
+  LinearTransition,
+  ReduceMotion,
+  SlideOutLeft,
+  ZoomIn,
+} from "react-native-reanimated";
 
 // One place for animation timing so the app moves the same everywhere.
 // Animate transform and opacity only, keep it short, never loop.
@@ -15,3 +22,9 @@ export function stepEntering(direction: "forward" | "back") {
 
 /** A small element appearing because of something the player just did (a seat filled, a score confirmed) */
 export const popIn = ZoomIn.springify().damping(13).stiffness(240).reduceMotion(ReduceMotion.System);
+
+/** A row deleted with a swipe to the left keeps going off the screen that way */
+export const slideOutLeft = SlideOutLeft.duration(STEP_DURATION);
+
+/** The rows below a removed one glide up instead of snapping */
+export const closeGap = LinearTransition.duration(STEP_DURATION);
