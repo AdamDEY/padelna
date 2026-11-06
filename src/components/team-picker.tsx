@@ -43,6 +43,10 @@ type TeamPickerProps = {
   onPlayerPress?: (player: Player) => void;
   /** Your seat shows "You" with a ring */
   myId?: string;
+  /** Open seats read "Tag player", for lining up a match that was already played */
+  isTagging?: boolean;
+  /** White team cards with a border, for the grey page instead of a white sheet */
+  onBackground?: boolean;
 };
 
 /**
@@ -58,6 +62,8 @@ export function TeamPicker({
   preferredSide,
   onPlayerPress,
   myId,
+  isTagging = false,
+  onBackground = false,
 }: TeamPickerProps) {
   const { t } = useTranslation();
   // Seats already filled when the screen opens stay still; one that fills afterwards pops in
@@ -83,7 +89,11 @@ export function TeamPicker({
             <View
               className={cn(
                 "flex-1 items-center gap-2 rounded-[18px] border-2 px-1 pb-3 pt-2.5",
-                isSelectedTeam ? "border-accent bg-primary-soft" : "border-transparent bg-background",
+                isSelectedTeam
+                  ? "border-accent bg-primary-soft"
+                  : onBackground
+                    ? "border border-line bg-surface"
+                    : "border-transparent bg-background",
               )}
             >
               <Text
@@ -128,6 +138,7 @@ export function TeamPicker({
                       team={teamIndex === 0 ? "A" : "B"}
                       sideLabel={sideLabel}
                       isYourSide={preferredSide === side}
+                      isTagging={isTagging}
                       onPress={onSelectSeat ? () => onSelectSeat(seat) : undefined}
                     />
                   );
@@ -220,14 +231,18 @@ function OpenSeat({
   team,
   sideLabel,
   isYourSide,
+  isTagging,
   onPress,
 }: {
   team: string;
   sideLabel: string;
   isYourSide: boolean;
+  isTagging: boolean;
   onPress?: () => void;
 }) {
   const { t } = useTranslation();
+  const label = isTagging ? t("team.tagPlayer") : onPress ? t("team.tapToJoin") : t("team.open");
+  const a11yKey = isTagging ? "team.tagSpot" : onPress ? "team.takeSpot" : "team.openSpot";
 
   return (
     <View className="w-[70px] items-center gap-[3px]">
@@ -236,7 +251,7 @@ function OpenSeat({
           onPress={onPress}
           isDisabled={!onPress}
           accessibilityRole="button"
-          accessibilityLabel={t(onPress ? "team.takeSpot" : "team.openSpot", { side: sideLabel.toLowerCase(), team })}
+          accessibilityLabel={t(a11yKey, { side: sideLabel.toLowerCase(), team })}
           className="items-center justify-center rounded-full border-2 border-dashed border-accent bg-surface"
           style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
         >
@@ -248,7 +263,9 @@ function OpenSeat({
           </Text>
         ) : null}
       </View>
-      <Text className="font-bold text-[13px] text-accent">{onPress ? t("team.tapToJoin") : t("team.open")}</Text>
+      <Text numberOfLines={1} className="font-bold text-[13px] text-accent">
+        {label}
+      </Text>
       <Text className="font-normal text-[11px] text-muted">{sideLabel}</Text>
     </View>
   );

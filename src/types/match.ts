@@ -114,6 +114,8 @@ export type MatchDetails = {
   levelMin?: number;
   levelMax?: number;
   kind: "friendly" | "competitive";
+  /** Database matches only: played outside the app and logged afterwards by its host */
+  isLogged?: boolean;
   audience?: "Men" | "Women" | "Mixed";
   /** In seat order: the first two play together, the last two together */
   players: Player[];

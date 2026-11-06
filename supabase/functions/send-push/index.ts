@@ -35,6 +35,7 @@ type Kind =
   | "match_cancelled"
   | "score_to_confirm"
   | "rate_players"
+  | "match_logged"
   | "connection_request"
   | "connection_accepted";
 
@@ -62,6 +63,10 @@ const texts: Record<Language, Record<Kind, (p: Params) => Text>> = {
       title: "How did they play?",
       body: `${p.name} added the score for ${p.when}. Rate the other players.`,
     }),
+    match_logged: (p) => ({
+      title: `${p.name} logged a match with you`,
+      body: `${p.when}. Check the score and confirm it.`,
+    }),
     connection_request: (p) => ({ title: `${p.name} wants to connect`, body: "Open Players to accept." }),
     connection_accepted: (p) => ({ title: `${p.name} accepted your request`, body: "You’re now connected." }),
   },
@@ -81,6 +86,10 @@ const texts: Record<Language, Record<Kind, (p: Params) => Text>> = {
     rate_players: (p) => ({
       title: "Comment ont-ils joué ?",
       body: `${p.name} a ajouté le score du ${p.when}. Note les autres joueurs.`,
+    }),
+    match_logged: (p) => ({
+      title: `${p.name} a enregistré un match avec toi`,
+      body: `${p.when}. Vérifie le score et confirme-le.`,
     }),
     connection_request: (p) => ({ title: `${p.name} veut se connecter`, body: "Ouvre Joueurs pour accepter." }),
     connection_accepted: (p) => ({ title: `${p.name} a accepté ta demande`, body: "Vous êtes connectés." }),

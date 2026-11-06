@@ -12,6 +12,7 @@ export type NotificationKind =
   | "match_cancelled"
   | "score_to_confirm"
   | "rate_players"
+  | "match_logged"
   | "connection_request"
   | "connection_accepted";
 

@@ -7,6 +7,7 @@ import { ActionSheetIOS, Alert, Linking, Platform, Text, View } from "react-nati
 
 import { EditMatchSheet } from "@/components/edit-match-sheet";
 import { Icon } from "@/components/icon";
+import { LogMatchConfirmSheet } from "@/components/log-match-confirm-sheet";
 import { MatchBookingSheet } from "@/components/match-booking-sheet";
 import { MatchScoreCard } from "@/components/match-score-card";
 import { Page } from "@/components/page";
@@ -31,6 +32,8 @@ import type { LucideIcon } from "lucide-react-native";
 
 // The countdown shows minutes at its finest, so refresh it once a minute
 const COUNTDOWN_REFRESH_MS = 60_000;
+// The logged-match sheet waits for the screen to finish sliding in, or it doesn't show
+const LOGGED_PROMPT_DELAY_MS = 500;
 // How long after the match the host can add its score (same as the database)
 const SCORE_SAVE_WINDOW_MS = 7 * 86_400_000;
 
@@ -85,6 +88,14 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const canEdit = isPending && score.submittedBy === myId;
   const isTooLateToAdd = now.getTime() >= endsAt.getTime() + SCORE_SAVE_WINDOW_MS;
   const canAdd = isOver && isHost && !score && match.isFull !== false && !isTooLateToAdd;
+  // Someone logged this match with you: the first time you open it, ask you to check the score
+  const [isLoggedPromptOpen, setIsLoggedPromptOpen] = useState(false);
+  const shouldPrompt = !!match.isLogged && canConfirm;
+  useEffect(() => {
+    if (!shouldPrompt) return;
+    const timer = setTimeout(() => setIsLoggedPromptOpen(true), LOGGED_PROMPT_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [shouldPrompt]);
   const canRate = account !== undefined && isRatingOpen(match, myId, now) && playersToRate(match, myId).length > 0;
   const place = match.isCourtBooked
     ? [match.clubName, match.courtName].filter(Boolean).join(" · ")
@@ -441,6 +452,23 @@ export function MyMatch({ match, role }: MyMatchProps) {
           isOpen={scoreSheet !== undefined}
           onOpenChange={(open) => !open && setScoreSheet(undefined)}
           onSaved={scoreSheet === "edit" ? undefined : rateAfterScore}
+        />
+      ) : null}
+      {match.isLogged && score && canConfirm ? (
+        <LogMatchConfirmSheet
+          match={{ ...match, score }}
+          myId={myId}
+          isOpen={isLoggedPromptOpen}
+          onOpenChange={setIsLoggedPromptOpen}
+          isConfirming={confirmScore.isPending}
+          onConfirm={() => {
+            setIsLoggedPromptOpen(false);
+            confirm();
+          }}
+          onCorrect={() => {
+            setIsLoggedPromptOpen(false);
+            setScoreSheet("correct");
+          }}
         />
       ) : null}
       {isHost ? (
