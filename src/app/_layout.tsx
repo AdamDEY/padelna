@@ -90,6 +90,7 @@ export default function RootLayout() {
               <Stack.Screen name="match/[id]/index" />
               <Stack.Screen name="match/[id]/rate" />
               <Stack.Screen name="match/[id]/chat" />
+              <Stack.Screen name="log-match" />
               <Stack.Screen name="design-check" />
             </Stack.Protected>
             <Stack.Protected guard={isSignedIn}>

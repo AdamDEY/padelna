@@ -17,6 +17,7 @@ import {
   fetchOpenMatches,
   joinMatch,
   leaveMatch,
+  logMatch,
   setMatchCourt,
   submitRatings,
   submitScore,
@@ -112,6 +113,13 @@ export function useCreateMatch() {
   return useMutation({
     mutationFn: createMatch,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: myMatchesKey }),
+  });
+}
+
+export function useLogMatch() {
+  return useMutation({
+    mutationFn: logMatch,
+    onSuccess: (matchId) => refreshMatches(matchId),
   });
 }
 

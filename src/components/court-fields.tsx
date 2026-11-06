@@ -11,7 +11,8 @@ type CourtFieldsProps = {
   /** Clubs that can host matches, with their active courts */
   clubs: ReturnType<typeof useBookableClubs>;
   isBooked: boolean;
-  onBookedChange: (isBooked: boolean) => void;
+  /** Leave out to skip the "Is the court booked?" question, e.g. for a match already played */
+  onBookedChange?: (isBooked: boolean) => void;
   club?: DropdownOption;
   onClubChange: (club: DropdownOption | undefined) => void;
   court?: DropdownOption;
@@ -40,16 +41,18 @@ export function CourtFields({
 
   return (
     <>
-      <SheetField label={t("createMatch.courtBooked")}>
-        <SegmentedControl
-          value={isBooked ? "yes" : "no"}
-          onChange={(value) => onBookedChange(value === "yes")}
-          options={[
-            { value: "yes", label: t("createMatch.yesBooked"), icon: Check },
-            { value: "no", label: t("createMatch.notYet") },
-          ]}
-        />
-      </SheetField>
+      {onBookedChange ? (
+        <SheetField label={t("createMatch.courtBooked")}>
+          <SegmentedControl
+            value={isBooked ? "yes" : "no"}
+            onChange={(value) => onBookedChange(value === "yes")}
+            options={[
+              { value: "yes", label: t("createMatch.yesBooked"), icon: Check },
+              { value: "no", label: t("createMatch.notYet") },
+            ]}
+          />
+        </SheetField>
+      ) : null}
 
       {isBooked ? (
         <View className="flex-row gap-2.5">

@@ -36,7 +36,7 @@ const OVERLAP_ERROR_CODE = "23P01";
 
 const MATCH_SELECT = `
   id, host_id, starts_at, duration_minutes, level_min, level_max, kind,
-  players_needed, price, note, status,
+  players_needed, price, note, status, origin,
   court:courts(id, number, club:clubs(id, name)),
   match_players(seat, player_id),
   score:match_scores(team1_games, team2_games, status, submitted_by, submitted_team, expires_at, confirmed_at, photo_path),
@@ -55,6 +55,7 @@ type MatchRow = {
   price: number | null;
   note: string;
   status: "open" | "cancelled";
+  origin: "app" | "logged";
   court: { id: string; number: number; club: { id: string; name: string } } | null;
   match_players: { seat: number; player_id: string }[];
   // One-to-one, so PostgREST embeds an object (or null), not a list
@@ -119,6 +120,41 @@ export async function createMatch(match: NewMatch) {
     throw error;
   }
   return data.id as string;
+}
+
+export type LoggedMatch = {
+  courtId: string;
+  startsAt: Date;
+  kind: "friendly" | "competitive";
+  /** Plays on your team (seat 2) */
+  partnerId: string;
+  /** The other team (seats 3 and 4) */
+  opponentIds: [string, string];
+  /** [your team, their team] per set */
+  sets: SetScore[];
+};
+
+/**
+ * Logs a match played outside the app, with you as its host, and returns its id. The score
+ * waits for a player from the other team to confirm it, like any other.
+ */
+export async function logMatch(match: LoggedMatch) {
+  const { data, error } = await supabase.rpc("log_match", {
+    p_court_id: match.courtId,
+    p_starts_at: match.startsAt.toISOString(),
+    p_kind: match.kind,
+    p_partner_id: match.partnerId,
+    p_opponent_ids: match.opponentIds,
+    p_team1_games: match.sets.map((set) => set[0]),
+    p_team2_games: match.sets.map((set) => set[1]),
+  });
+  if (error) {
+    if (error.code === OVERLAP_ERROR_CODE) {
+      throw new Error(t("errors.hostOverlap"));
+    }
+    throw error;
+  }
+  return data as string;
 }
 
 export type MatchChanges = {
@@ -593,6 +629,7 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     levelMin: row.level_min,
     levelMax: row.level_max,
     kind: row.kind,
+    isLogged: row.origin === "logged",
     players: seats.filter((player): player is Player => player !== undefined),
     seats,
     capacity: CAPACITY,

@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { BottomSheet, cn, PressableFeedback, Spinner, useToast } from "heroui-native";
 import * as ImagePicker from "expo-image-picker";
 import { CalendarDays, ChevronRight, Plus } from "lucide-react-native";
@@ -26,7 +27,7 @@ type ShareMatchSheetProps = {
 
 /**
  * "Share a match" menu from the Community + button: finish a recent match you hosted
- * (add its score, or a team photo to a score) or log one played elsewhere (coming later).
+ * (add its score, or a team photo to a score) or log one played elsewhere.
  */
 export function ShareMatchSheet({ isOpen, onOpenChange }: ShareMatchSheetProps) {
   const { t } = useTranslation();
@@ -66,10 +67,9 @@ export function ShareMatchSheet({ isOpen, onOpenChange }: ShareMatchSheetProps) 
     }
   }
 
-  // The "log a match played elsewhere" screen isn't built yet
-  function comingSoon(label: string) {
+  function logMatch() {
     onOpenChange(false);
-    toast.show({ label, description: t("myMatch.comingSoon") });
+    router.push("/log-match");
   }
 
   return (
@@ -122,7 +122,7 @@ export function ShareMatchSheet({ isOpen, onOpenChange }: ShareMatchSheetProps) 
             <View className="h-px bg-line" />
 
             <PressableFeedback
-              onPress={() => comingSoon(t("shareMatch.logging"))}
+              onPress={logMatch}
               accessibilityRole="button"
               accessibilityHint={t("shareMatch.logElsewhereText")}
             >

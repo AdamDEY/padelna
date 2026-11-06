@@ -67,6 +67,10 @@ const SERVER_MESSAGES: Record<string, ServerKey> = {
   "This court isn't available. Pick another one.": "courtUnavailable",
   "Players have joined, so the time, level and type can't change": "playersJoinedLocked",
   "Pick a time that hasn't passed": "pickFutureTime",
+  "Tag 3 different players": "tagThreePlayers",
+  "Pick a club and court from the list": "pickClubAndCourt",
+  "You can log a match once it's over": "logAfterMatch",
+  "You can only log matches from the last 7 days": "logLastWeek",
 };
 const SIGNED_OUT_MESSAGES = new Set(["Sign in first", "Not signed in"]);
 

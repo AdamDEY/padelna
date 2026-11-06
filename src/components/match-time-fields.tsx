@@ -20,6 +20,8 @@ type MatchTimeFieldsProps = {
   maximumDate: Date;
   /** Shows the "That time has passed" line under the fields */
   isInPast?: boolean;
+  /** Another line to show under the fields instead */
+  error?: string;
 };
 
 /**
@@ -27,7 +29,14 @@ type MatchTimeFieldsProps = {
  * and a half-hour dropdown that shows when the 90 minutes end. For sheets that use
  * `<BottomSheet.Portal disableFullWindowOverlay>`, or the iOS picker renders blank.
  */
-export function MatchTimeFields({ startsAt, onChange, minimumDate, maximumDate, isInPast }: MatchTimeFieldsProps) {
+export function MatchTimeFields({
+  startsAt,
+  onChange,
+  minimumDate,
+  maximumDate,
+  isInPast,
+  error,
+}: MatchTimeFieldsProps) {
   const { t } = useTranslation();
   const accent = useCSSVariable("--color-accent") as string;
   const endsAt = new Date(startsAt.getTime() + MATCH_MINUTES * 60_000);
@@ -60,9 +69,9 @@ export function MatchTimeFields({ startsAt, onChange, minimumDate, maximumDate, 
         </SheetField>
       </View>
 
-      {isInPast ? (
+      {error || isInPast ? (
         <Text accessibilityRole="alert" className="-mt-1 font-semibold text-[13px] text-danger">
-          {t("createMatch.timePassed")}. {t("createMatch.pickLater")}
+          {error ?? `${t("createMatch.timePassed")}. ${t("createMatch.pickLater")}`}
         </Text>
       ) : null}
     </>
