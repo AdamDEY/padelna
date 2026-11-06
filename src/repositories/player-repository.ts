@@ -2,6 +2,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { t } from "i18next";
 
 import type { PlayerTag, PlayerTagCount } from "@/data/player-tags";
+import type { ReportReason } from "@/data/report-reasons";
 import { supabase } from "@/lib/supabase";
 import type { ConnectionState, DiscoverPlayer, Friend, PlayerDetails, PlayerSuggestion } from "@/types/player";
 
@@ -194,4 +195,25 @@ export function subscribeToConnectionChanges(onChange: () => void) {
     clearTimeout(retryTimer);
     if (channel) supabase.removeChannel(channel);
   };
+}
+
+/** Reports a player to the team. The player never learns who sent it. */
+export async function reportPlayer({
+  playerId,
+  reason,
+  playedTogether,
+  comment,
+}: {
+  playerId: string;
+  reason: ReportReason;
+  playedTogether: boolean;
+  comment: string;
+}) {
+  const { error } = await supabase.rpc("report_player", {
+    p_player_id: playerId,
+    p_reason: reason,
+    p_played_together: playedTogether,
+    p_comment: comment.trim(),
+  });
+  if (error) throw error;
 }
