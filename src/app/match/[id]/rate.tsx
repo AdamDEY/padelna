@@ -9,7 +9,9 @@ import { Icon } from "@/components/icon";
 import { InfoNote } from "@/components/info-note";
 import { Page } from "@/components/page";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
+import { PlayerTagPicker } from "@/components/player-tag-picker";
 import { RatingScale } from "@/components/rating-scale";
+import type { PlayerTag } from "@/data/player-tags";
 import { useMatch, useSubmitRatings } from "@/hooks/useMatches";
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { formatMatchDay } from "@/lib/format-date";
@@ -32,6 +34,7 @@ export default function RatePlayers() {
   const { data: account } = useMyAccount();
   const submitRatings = useSubmitRatings();
   const [ratings, setRatings] = useState<Record<string, RatingValue>>({});
+  const [tags, setTags] = useState<Record<string, PlayerTag[]>>({});
   const [isPartnerOpen, setIsPartnerOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   // Kept after a successful send so the screen doesn't flip to "You rated this match" on its way out
@@ -106,7 +109,11 @@ export default function RatePlayers() {
     try {
       await submitRatings.mutateAsync({
         matchId: id,
-        ratings: Object.entries(ratings).map(([playerId, rating]) => ({ playerId, rating })),
+        ratings: Object.entries(ratings).map(([playerId, rating]) => ({
+          playerId,
+          rating,
+          tags: tags[playerId] ?? [],
+        })),
       });
     } catch (error) {
       toast.show({ variant: "danger", label: t("rating.failed"), description: errorMessage(error) });
@@ -135,6 +142,8 @@ export default function RatePlayers() {
             role="opponent"
             value={ratings[player.id]}
             onChange={(value) => rate(player, value)}
+            tags={tags[player.id] ?? []}
+            onTagsChange={(value) => setTags((current) => ({ ...current, [player.id]: value }))}
             error={submitted && ratings[player.id] === undefined}
           />
         ))}
@@ -146,6 +155,8 @@ export default function RatePlayers() {
               role="partner"
               value={ratings[partner.id]}
               onChange={(value) => rate(partner, value)}
+              tags={tags[partner.id] ?? []}
+              onTagsChange={(value) => setTags((current) => ({ ...current, [partner.id]: value }))}
             />
           ) : (
             <PressableFeedback
@@ -182,12 +193,14 @@ type PlayerRatingCardProps = {
   role: "opponent" | "partner";
   value?: RatingValue;
   onChange: (value: RatingValue) => void;
+  tags: PlayerTag[];
+  onTagsChange: (value: PlayerTag[]) => void;
   /** Shown after Submit when this player still has no rating */
   error?: boolean;
 };
 
-/** One player with the five-point scale under them. */
-function PlayerRatingCard({ player, role, value, onChange, error }: PlayerRatingCardProps) {
+/** One player with the five-point scale under them, then what stood out. */
+function PlayerRatingCard({ player, role, value, onChange, tags, onTagsChange, error }: PlayerRatingCardProps) {
   const { t } = useTranslation();
   const level = player.level?.toFixed(1);
   const meta =
@@ -223,6 +236,7 @@ function PlayerRatingCard({ player, role, value, onChange, error }: PlayerRating
           {t("rating.pickError", { name: player.firstName })}
         </Text>
       ) : null}
+      <PlayerTagPicker value={tags} onChange={onTagsChange} name={player.firstName} />
     </View>
   );
 }

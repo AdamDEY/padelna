@@ -1,3 +1,4 @@
+import type { PlayerTag } from "@/data/player-tags";
 import { teamOf } from "@/lib/padel-score";
 import type { MatchDetails, MatchScore } from "@/types/match";
 import type { Player } from "@/types/player";
@@ -9,7 +10,7 @@ const GUEST_ID_PREFIX = "guest-";
 /** How another player played compared to their profile level: -2 well below ... +2 well above */
 export type RatingValue = -2 | -1 | 0 | 1 | 2;
 
-export type PlayerRating = { playerId: string; rating: RatingValue };
+export type PlayerRating = { playerId: string; rating: RatingValue; tags: PlayerTag[] };
 
 /** Lowest to highest, the order the scale shows them in */
 export const RATING_VALUES: RatingValue[] = [-2, -1, 0, 1, 2];

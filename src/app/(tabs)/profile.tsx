@@ -12,12 +12,11 @@ import { NewPlayerCards } from "@/components/new-player-cards";
 import { LevelChart } from "@/components/level-chart";
 import { Page } from "@/components/page";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
-import { translateLabel } from "@/i18n";
 import { ProfileHero } from "@/components/profile-hero";
 import { WinRateBars } from "@/components/win-rate-bars";
 import { useMatchHistory, useMyPastMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
-import { usePlayerDetails } from "@/hooks/usePlayers";
+import { usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
 import { stopPushNotifications } from "@/hooks/usePushNotifications";
 import { queryClient } from "@/lib/query-client";
 import { signOut } from "@/repositories/auth-repository";
@@ -31,6 +30,7 @@ export default function Profile() {
   const { data: history } = useMatchHistory();
   // The profile's own friend count is mock, so ask for the real one
   const friendCount = usePlayerDetails(profile?.player.id).data?.friendCount ?? 0;
+  const { data: tags = [] } = usePlayerTags(profile?.player.id);
 
   const insets = useSafeAreaInsets();
   // White status bar text while the blue header is behind it; dark once it scrolls away
@@ -122,8 +122,6 @@ export default function Profile() {
           ? toast.show({ label: t("profile.historyLockedTitle"), description: t("profile.historyLockedText") })
           : router.push("/match-history"),
     },
-    // The design leaves Reviews out until the first one arrives
-    ...(noStats ? [] : [{ label: t("profile.reviews"), value: String(profile.reviewCount) }]),
     {
       label: t("profile.friends"),
       // The real count, from your connections; the profile's own number is still mock
@@ -215,16 +213,20 @@ export default function Profile() {
             <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
               {t("playerSheet.whatPlayersSay")}
             </Text>
-            <View className="flex-row flex-wrap gap-2">
-              {profile.reputationTags.map((tag) => (
-                <Text
-                  key={tag.label}
-                  className="overflow-hidden rounded-[14px] bg-primary-soft px-3 py-[7px] font-bold text-[13px] text-primary-dark"
-                >
-                  {translateLabel("tags", tag.label)} · {tag.count}
-                </Text>
-              ))}
-            </View>
+            {tags.length > 0 ? (
+              <View className="flex-row flex-wrap gap-2">
+                {tags.map((item) => (
+                  <Text
+                    key={item.tag}
+                    className="overflow-hidden rounded-[14px] bg-primary-soft px-3 py-[7px] font-bold text-[13px] text-primary-dark"
+                  >
+                    {t(`playerTags.${item.tag}`)} · {item.count}
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <Text className="font-normal text-[14px] leading-[20px] text-muted">{t("profile.tagsEmpty")}</Text>
+            )}
           </Card>
           </Fragment>
         ) : null}

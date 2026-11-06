@@ -16,7 +16,6 @@ export type PlayerProfile = {
   /** What it would take to reach the next level: about this many more wins against players of this level or better */
   nextLevelHint: { wins: number; opponentLevel: number };
   matchesPlayed: number;
-  reviewCount: number;
   winRate: number;
   /** "W3" = three wins in a row, "L2" = two losses */
   streak: string;
@@ -25,6 +24,4 @@ export type PlayerProfile = {
   levelHistory: { month: string; level: number }[];
   winRates: { title: string; stats: WinRateStat[] }[];
   bestPartners: { player: Player; matches: number; wins: number }[];
-  /** What other players say about you most */
-  reputationTags: { label: string; count: number }[];
 };

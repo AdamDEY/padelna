@@ -385,8 +385,7 @@ function SettingsForm({ account }: { account: MyAccount }) {
           t("settings.lossMatches", {
             matches: t("profile.matchesCount", { count: myProfile.matchesPlayed }),
           }),
-          t("settings.lossReviews", {
-            reviews: t("profile.reviewsCount", { count: myProfile.reviewCount }),
+          t("settings.lossFriends", {
             friends: t("profile.friendsCount", { count: myProfile.friendCount }),
           }),
           t("settings.lossChats"),

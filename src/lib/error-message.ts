@@ -54,6 +54,8 @@ const SERVER_MESSAGES: Record<string, ServerKey> = {
   "You already have a match at that time": "matchAtThatTime",
   "You already rated this match": "alreadyRated",
   "Friendly matches aren't rated": "friendlyNotRated",
+  "Pick tags from the list": "tagsFromList",
+  "Pick up to 5 tags for each player": "maxTags",
   "You can add the score once the match is over": "scoreAfterMatch",
   "You can only rate players from this match": "rateOnlyMatchPlayers",
   "You can rate the players once the score is added": "rateAfterScore",
