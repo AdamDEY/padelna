@@ -601,7 +601,9 @@ export const en = {
     setA11y: "{{name}}, set {{number}}",
     needGames: "Add the games each team won in every set.",
     impossible:
-      "That score isn’t possible. A set ends 6–4 or better, 7–5 or 7–6, and a third set is only played at one set all.",
+      "That score isn’t possible. A set ends 6–4 or better, 7–5 or 7–6. A third set is only played at one set all, and can be a super tie-break to 10.",
+    badSet: "Set {{number}} can only end 6–0 to 6–4, 7–5 or 7–6.",
+    badThirdSet: "Set 3 can end like any set, or as a super tie-break: 10–8 or better, or two clear after 10.",
     confirmNote: "One player from the other team confirms the score.",
     saveChanges: "Save changes",
     sendReal: "Send the real score",
