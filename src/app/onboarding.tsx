@@ -74,10 +74,16 @@ export default function Onboarding() {
     else router.back();
   }
 
+  // Setup sits under onboarding in the stack; clear it so Home has nothing to swipe back to
+  function finish() {
+    if (router.canDismiss()) router.dismissAll();
+    // Nothing is saved yet; the API will remember that onboarding is done
+    router.replace("/");
+  }
+
   function next() {
     if (index < LAST_PAGE) goTo(index + 1);
-    // Nothing is saved yet; the API will remember that onboarding is done
-    else router.replace("/");
+    else finish();
   }
 
   // Android's back button steps back through the pages before leaving
