@@ -18,12 +18,14 @@ import { OpenMatchesEmptyCard } from "@/components/open-matches-empty-card";
 import { Page } from "@/components/page";
 import { ScoreReminder } from "@/components/score-reminder";
 import { SectionHeader } from "@/components/section-header";
+import { TournamentCard } from "@/components/tournament-card";
 import { myLevel } from "@/data/mock";
 import { myMatchesKey, openMatchesKey, useHomeOpenMatches, useMyUpcomingMatches } from "@/hooks/useMatches";
 import { useNearbyClubs } from "@/hooks/useClubs";
 import { notificationsKey, useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { connectionRequestsKey, useConnectionRequests } from "@/hooks/usePlayers";
 import { myProfileKey, useMyProfile } from "@/hooks/useMyProfile";
+import { upcomingTournamentsKey, useUpcomingTournaments } from "@/hooks/useTournaments";
 import { errorMessage } from "@/lib/error-message";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
 import { queryClient } from "@/lib/query-client";
@@ -31,13 +33,16 @@ import { queryClient } from "@/lib/query-client";
 // Width that shows about 1.5 cards on a phone (design.md)
 const OPEN_MATCH_CARD_WIDTH = 248;
 
+// Wide enough for a name and details, narrow enough that the next card peeks in
+const TOURNAMENT_CARD_WIDTH = 330;
+
 // Room under the last section so the floating Create match button never covers it
 const FLOATING_BUTTON_SPACE = 72;
 
 // Pull to refresh reloads everything Home shows that comes from Supabase
 function refreshHome() {
   return Promise.all(
-    [myProfileKey, myMatchesKey, openMatchesKey, connectionRequestsKey, notificationsKey].map((queryKey) =>
+    [myProfileKey, myMatchesKey, openMatchesKey, connectionRequestsKey, notificationsKey, upcomingTournamentsKey].map((queryKey) =>
       queryClient.refetchQueries({ queryKey }),
     ),
   );
@@ -57,6 +62,7 @@ export default function Home() {
 
   const openMatchesQuery = useHomeOpenMatches();
   const openMatches = openMatchesQuery.data;
+  const tournaments = useUpcomingTournaments().data ?? [];
   const nearby = useNearbyClubs();
   const { clubs: nearbyClubs, hasDistances } = nearby;
   // Open matches that suit your level, soonest first
@@ -85,6 +91,16 @@ export default function Home() {
       <Page.Body onRefresh={refreshHome}>
         {requests.length > 0 ? (
           <ConnectionRequestsBanner requesters={requests} onReview={() => setIsReviewing(true)} />
+        ) : null}
+
+        {tournaments.length === 1 ? (
+          <TournamentCard tournament={tournaments[0]} />
+        ) : tournaments.length > 1 ? (
+          <Page.Carousel itemWidth={TOURNAMENT_CARD_WIDTH}>
+            {tournaments.map((tournament) => (
+              <TournamentCard key={tournament.id} tournament={tournament} width={TOURNAMENT_CARD_WIDTH} />
+            ))}
+          </Page.Carousel>
         ) : null}
 
         {nextMatch ? (

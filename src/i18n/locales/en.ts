@@ -164,6 +164,11 @@ export const en = {
       details: "Details",
       a11y: "Your next match, {{countdown}}, {{dateTime}}, {{place}}. Open details",
     },
+    tournament: {
+      title: "Tournament available",
+      a11y: "Tournament available: {{name}}, {{details}}",
+      category: { men: "Men", women: "Women", mixed: "Mixed" },
+    },
     openMatch: {
       join: "Join",
     },
