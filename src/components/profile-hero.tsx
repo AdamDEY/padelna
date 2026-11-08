@@ -99,6 +99,11 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlaye
               style: t(`playStyle.${profile.playStyle}`),
             })}
           </Text>
+          {profile.gender && profile.age !== undefined ? (
+            <Text numberOfLines={1} className="font-normal text-[13px] text-primary-tint-text">
+              {t("profile.genderAge", { gender: t(`setup.${profile.gender}`), age: profile.age })}
+            </Text>
+          ) : null}
         </View>
         <HeroIconButton label={t("profile.editA11y")} onPress={onPressSettings} />
       </View>

@@ -7,6 +7,9 @@ export type WinRateStat = { label: string; winRate: number };
 export type PlayerProfile = {
   player: Player;
   city: string;
+  /** Only known for the signed-in player so far */
+  gender?: "male" | "female";
+  age?: number;
   /** Preferred side of the court */
   side: Side;
   playStyle: PlayStyle;
