@@ -1,20 +1,27 @@
 import { FieldError, Input, Label, TextArea, TextField } from "heroui-native";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
+import { BirthdayField } from "@/components/birthday-field";
 import { Dropdown } from "@/components/dropdown";
 import { Page } from "@/components/page";
 import { PhotoPicker } from "@/components/photo-picker";
 import { cities } from "@/data/mock";
+import { latestBirthday, MIN_AGE } from "@/lib/age";
 import { isLocalPhone } from "@/lib/validation";
 
 const BIO_MAX_LENGTH = 150;
 const cityOptions = cities.map((city) => ({ value: city, label: city }));
 
+export type Gender = "male" | "female";
+
 export type AboutValues = {
   photoUri?: string;
   firstName: string;
   lastName: string;
+  gender: Gender | undefined;
+  birthday: Date | undefined;
   /** The 8 digits after +216 */
   phone: string;
   city: string;
@@ -24,13 +31,29 @@ export type AboutValues = {
 export const initialAboutValues: AboutValues = {
   firstName: "",
   lastName: "",
+  gender: undefined,
+  birthday: undefined,
   phone: "",
   city: cities[0],
   bio: "",
 };
 
+function genderOptions(t: TFunction) {
+  return [
+    { value: "male" as const, label: t("setup.male") },
+    { value: "female" as const, label: t("setup.female") },
+  ];
+}
+
 export function isAboutComplete(values: AboutValues) {
-  return values.firstName.trim() !== "" && values.lastName.trim() !== "" && isLocalPhone(values.phone);
+  return (
+    values.firstName.trim() !== "" &&
+    values.lastName.trim() !== "" &&
+    values.gender !== undefined &&
+    values.birthday !== undefined &&
+    values.birthday <= latestBirthday() &&
+    isLocalPhone(values.phone)
+  );
 }
 
 type SetupAboutStepProps = {
@@ -40,7 +63,7 @@ type SetupAboutStepProps = {
   showErrors: boolean;
 };
 
-/** Profile setup step 1, "Tell us about you": photo, name, phone, city and bio. */
+/** Profile setup step 1, "Tell us about you": photo, name, gender, birthday, phone, city and bio. */
 export function SetupAboutStep({ values, onChange, showErrors }: SetupAboutStepProps) {
   const { t } = useTranslation();
 
@@ -77,6 +100,37 @@ export function SetupAboutStep({ values, onChange, showErrors }: SetupAboutStepP
           />
           <FieldError>{t("settings.lastNameError")}</FieldError>
         </TextField>
+      </View>
+
+      <View className="gap-1.5">
+        <View className="flex-row gap-3">
+          <View className="flex-1 gap-1.5">
+            <Text className="font-semibold text-[14px] text-foreground">{t("setup.gender")}</Text>
+            <Dropdown
+              label={t("setup.gender")}
+              placeholder={t("setup.genderPlaceholder")}
+              options={genderOptions(t)}
+              value={genderOptions(t).find((option) => option.value === values.gender)}
+              onChange={(option) => option && set("gender", option.value as Gender)}
+            />
+          </View>
+          <View className="flex-1 gap-1.5">
+            <Text className="font-semibold text-[14px] text-foreground">{t("setup.birthday")}</Text>
+            <BirthdayField
+              value={values.birthday}
+              onChange={(birthday) => set("birthday", birthday)}
+              placeholder={t("setup.birthdayPlaceholder")}
+              accessibilityLabel={t("setup.birthday")}
+              isInvalid={showErrors && !values.birthday}
+            />
+          </View>
+        </View>
+        {showErrors && values.gender === undefined ? (
+          <Text className="text-[13px] text-danger">{t("setup.genderError")}</Text>
+        ) : null}
+        {showErrors && !values.birthday ? (
+          <Text className="text-[13px] text-danger">{t("setup.birthdayError", { age: MIN_AGE })}</Text>
+        ) : null}
       </View>
 
       <TextField isInvalid={showErrors && !isLocalPhone(values.phone)}>
