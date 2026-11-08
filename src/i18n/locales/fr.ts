@@ -167,6 +167,11 @@ export const fr: Messages = {
       details: "Détails",
       a11y: "Ton prochain match, {{countdown}}, {{dateTime}}, {{place}}. Ouvrir les détails",
     },
+    tournament: {
+      title: "Tournoi disponible",
+      a11y: "Tournoi disponible : {{name}}, {{details}}",
+      category: { men: "Hommes", women: "Femmes", mixed: "Mixte" },
+    },
     openMatch: {
       join: "Rejoindre",
     },
