@@ -1034,6 +1034,7 @@ export const fr: Messages = {
     friendsCount_one: "{{count}} ami",
     friendsCount_other: "{{count}} amis",
     heroLine: "{{city}} · {{side}} · {{style}}",
+    genderAge: "{{gender}} · {{age}} ans",
   },
   settings: {
     title: "Modifier le profil",

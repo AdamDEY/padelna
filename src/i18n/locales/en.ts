@@ -1033,6 +1033,7 @@ export const en = {
     friendsCount_one: "{{count}} friend",
     friendsCount_other: "{{count}} friends",
     heroLine: "{{city}} · {{side}} · {{style}}",
+    genderAge: "{{gender}} · {{age}} years old",
   },
   settings: {
     title: "Edit profile",

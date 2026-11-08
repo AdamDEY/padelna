@@ -11,6 +11,10 @@ export type MyAccount = {
   hand: "right" | "left";
   side: "left" | "right" | "both";
   playStyle: "aggressive" | "balanced" | "defensive" | "tactical";
+  /** Missing for players who set up before gender and birthday were asked */
+  gender: "male" | "female" | undefined;
+  /** "YYYY-MM-DD" */
+  birthDate: string | undefined;
   level: number | undefined;
   avatarUrl: string | undefined;
 };

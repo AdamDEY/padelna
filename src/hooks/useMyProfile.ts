@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { myProfile as mockProfile } from "@/data/mock";
+import { ageFromBirthDate } from "@/lib/age";
 import { fetchMyAccount } from "@/repositories/profile-repository";
 import type { MyAccount } from "@/types/account";
 import type { PlayerProfile } from "@/types/profile";
@@ -20,6 +21,8 @@ function toPlayerProfile(account: MyAccount): PlayerProfile {
       avatarUrl: account.avatarUrl,
     },
     city: account.city,
+    gender: account.gender,
+    age: account.birthDate ? ageFromBirthDate(account.birthDate) : undefined,
     side: account.side,
     playStyle: account.playStyle,
     level: account.level ?? mockProfile.level,
