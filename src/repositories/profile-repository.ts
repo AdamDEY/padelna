@@ -2,6 +2,7 @@ import { t } from "i18next";
 
 import type { AboutValues } from "@/components/setup-about-step";
 import type { GameValues } from "@/components/setup-game-step";
+import { toDateOnly } from "@/lib/age";
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
 import type { MyAccount } from "@/types/account";
@@ -78,6 +79,8 @@ export async function saveProfile(userId: string, about: AboutValues, game: Game
     id: userId,
     first_name: about.firstName.trim(),
     last_name: about.lastName.trim(),
+    gender: about.gender,
+    birth_date: about.birthday ? toDateOnly(about.birthday) : undefined,
     phone: about.phone.replace(/\s/g, ""),
     city: about.city,
     bio: about.bio.trim(),

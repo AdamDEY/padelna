@@ -16,7 +16,8 @@ const RADIUS = 21;
 
 type SegmentedControlProps<T extends string> = {
   options: { value: T; label: string; icon?: LucideIcon }[];
-  value: T;
+  /** `undefined` shows no selection (a required choice nobody has made yet) */
+  value: T | undefined;
   onChange: (value: T) => void;
   /** Smaller labels, for four short options in a row */
   size?: "md" | "sm";
@@ -58,7 +59,7 @@ export function SegmentedControl<T extends string>({
       className="flex-row bg-track"
       style={{ padding: TRACK_PADDING, gap: GAP, borderRadius: RADIUS }}
     >
-      {optionWidth > 0 ? (
+      {optionWidth > 0 && value !== undefined ? (
         <Animated.View
           pointerEvents="none"
           className="absolute bg-segment"

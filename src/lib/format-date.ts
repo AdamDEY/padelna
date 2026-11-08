@@ -126,3 +126,8 @@ export function formatTimeAgo(date: Date, now = new Date()) {
   if (daysUntil(date, now) === -1) return t("time.yesterday");
   return formatMatchDay(date);
 }
+
+/** "15 March 2000" */
+export function formatBirthday(date: Date) {
+  return new Intl.DateTimeFormat(dateLocale(), { day: "numeric", month: "long", year: "numeric" }).format(date);
+}
