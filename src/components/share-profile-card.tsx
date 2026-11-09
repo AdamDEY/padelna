@@ -57,8 +57,9 @@ export function ShareProfileCard({ profile }: { profile: ShareProfile }) {
           <Text numberOfLines={1} className="font-black text-[22px] tracking-[-0.3px] text-foreground">
             {profile.name}
           </Text>
-          {/* There are no usernames yet, so the player's code is their handle */}
-          <Text className="font-bold text-[15px] text-muted">@{profile.code}</Text>
+          <Text className="font-bold text-[15px] tracking-[1px] text-muted">
+            {t("shareProfile.codeLabel", { code: profile.code })}
+          </Text>
         </View>
         <QrCode
           logo

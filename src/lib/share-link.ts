@@ -1,5 +1,6 @@
-// A player's code is 10 lowercase hex characters (`new_share_code()` in the database)
-const CODE_PATTERN = "[0-9a-f]{10}";
+// A player's code is 6 capital letters and digits, like 4XZ123 (`new_share_code()` in the database).
+// The first 10-character hex codes are read too, and case never matters.
+const CODE_PATTERN = "[a-z0-9]{6,10}";
 // What the QR and the copied link hold. The https form is read too, so the day the web link
 // exists, codes already shared keep working.
 const LINK_PREFIX = "padelna://u/";
@@ -12,5 +13,5 @@ export function shareLinkFor(code: string) {
 
 /** The share code inside a scanned or opened link, or undefined when it isn't a Padelna code. */
 export function codeFromLink(text: string) {
-  return LINK_PATTERN.exec(text.trim())?.[1].toLowerCase();
+  return LINK_PATTERN.exec(text.trim())?.[1].toUpperCase();
 }

@@ -1053,6 +1053,7 @@ export const fr: Messages = {
     tabScan: "Scanner un code",
     level: "Niveau {{level}}",
     coachVerified: "Vérifié par un coach",
+    codeLabel: "Code {{code}}",
     scanToConnect: "Scanne pour te connecter sur Padelna",
     qrA11y: "QR code du profil de {{name}}",
     share: "Partager",

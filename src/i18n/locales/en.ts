@@ -1049,6 +1049,7 @@ export const en = {
     tabScan: "Scan a code",
     level: "Level {{level}}",
     coachVerified: "Coach-verified",
+    codeLabel: "Code {{code}}",
     scanToConnect: "Scan to connect on Padelna",
     qrA11y: "QR code of {{name}}’s profile",
     share: "Share",
