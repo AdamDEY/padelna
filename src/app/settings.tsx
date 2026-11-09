@@ -467,6 +467,11 @@ function NotificationRows() {
             isSelected={settings.connections}
             onSelectedChange={(on) => setKind("connections", on)}
           />
+          <SettingsSwitchRow
+            label={t("settings.notifyTournaments")}
+            isSelected={settings.tournaments}
+            onSelectedChange={(on) => setKind("tournaments", on)}
+          />
         </>
       ) : null}
     </>

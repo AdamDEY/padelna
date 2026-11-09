@@ -11,7 +11,7 @@ type NotificationRow = {
   kind: NotificationKind;
   created_at: string;
   read_at: string | null;
-  params: { count?: number };
+  params: { count?: number; tournament?: string };
   url: string;
   match_id: string | null;
   actor_id: string | null;
@@ -42,6 +42,7 @@ function toNotification(row: NotificationRow): AppNotification {
     startsAt: row.starts_at ? new Date(row.starts_at) : undefined,
     clubName: row.club_name ?? undefined,
     count: row.params.count,
+    tournamentName: row.params.tournament,
   };
 }
 

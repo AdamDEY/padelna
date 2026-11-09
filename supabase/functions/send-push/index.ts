@@ -20,7 +20,7 @@ type ClaimedPush = {
   token: string;
   language: Language;
   kind: Kind;
-  params: { name?: string; when?: string; body?: string };
+  params: { name?: string; when?: string; body?: string; tournament?: string };
   url: string;
 };
 
@@ -37,12 +37,21 @@ type Kind =
   | "rate_players"
   | "match_logged"
   | "connection_request"
-  | "connection_accepted";
+  | "connection_accepted"
+  | "tournament_invite"
+  | "tournament_invite_accepted"
+  | "tournament_invite_declined"
+  | "tournament_invite_cancelled"
+  | "tournament_invite_expired"
+  | "tournament_partner_left"
+  | "tournament_promoted"
+  | "tournament_added"
+  | "tournament_removed";
 
 type Ticket = { status: "ok"; id: string } | { status: "error"; message: string; details?: { error?: string } };
 
 type Text = { title: string; body: string };
-type Params = { name: string; when: string; body: string };
+type Params = { name: string; when: string; body: string; tournament: string };
 
 // Same tone as the app: short, warm and direct
 const texts: Record<Language, Record<Kind, (p: Params) => Text>> = {
@@ -69,6 +78,15 @@ const texts: Record<Language, Record<Kind, (p: Params) => Text>> = {
     }),
     connection_request: (p) => ({ title: `${p.name} wants to connect`, body: "Open Players to accept." }),
     connection_accepted: (p) => ({ title: `${p.name} accepted your request`, body: "You’re now connected." }),
+    tournament_invite: (p) => ({ title: `${p.name} invited you to a tournament`, body: `${p.tournament}. Answer within 24 hours.` }),
+    tournament_invite_accepted: (p) => ({ title: `${p.name} accepted your invite`, body: p.tournament }),
+    tournament_invite_declined: (p) => ({ title: `${p.name} declined your invite`, body: `${p.tournament}. Pick another partner.` }),
+    tournament_invite_cancelled: (p) => ({ title: `${p.name} cancelled the invite`, body: p.tournament }),
+    tournament_invite_expired: (p) => ({ title: "Your invite expired", body: `${p.name} didn’t answer in time for ${p.tournament}. Pick another partner to join.` }),
+    tournament_partner_left: (p) => ({ title: `${p.name} left the tournament`, body: `${p.tournament}. Your team is out; pick a new partner to join again.` }),
+    tournament_promoted: (p) => ({ title: "A spot opened up!", body: `You’re in ${p.tournament}.` }),
+    tournament_added: (p) => ({ title: "You’re in a tournament", body: `The organiser added you to ${p.tournament}.` }),
+    tournament_removed: (p) => ({ title: "Removed from a tournament", body: `The organiser removed your team from ${p.tournament}.` }),
   },
   fr: {
     chat_message: (p) => ({ title: `${p.name} · ${p.when}`, body: p.body }),
@@ -93,6 +111,15 @@ const texts: Record<Language, Record<Kind, (p: Params) => Text>> = {
     }),
     connection_request: (p) => ({ title: `${p.name} veut se connecter`, body: "Ouvre Joueurs pour accepter." }),
     connection_accepted: (p) => ({ title: `${p.name} a accepté ta demande`, body: "Vous êtes connectés." }),
+    tournament_invite: (p) => ({ title: `${p.name} t’invite à un tournoi`, body: `${p.tournament}. Réponds sous 24 heures.` }),
+    tournament_invite_accepted: (p) => ({ title: `${p.name} a accepté ton invitation`, body: p.tournament }),
+    tournament_invite_declined: (p) => ({ title: `${p.name} a refusé ton invitation`, body: `${p.tournament}. Choisis un autre partenaire.` }),
+    tournament_invite_cancelled: (p) => ({ title: `${p.name} a annulé l’invitation`, body: p.tournament }),
+    tournament_invite_expired: (p) => ({ title: "Ton invitation a expiré", body: `${p.name} n’a pas répondu à temps pour ${p.tournament}. Choisis un autre partenaire pour t’inscrire.` }),
+    tournament_partner_left: (p) => ({ title: `${p.name} a quitté le tournoi`, body: `${p.tournament}. Ton équipe n’est plus inscrite ; choisis un autre partenaire pour revenir.` }),
+    tournament_promoted: (p) => ({ title: "Une place s’est libérée !", body: `Tu joues ${p.tournament}.` }),
+    tournament_added: (p) => ({ title: "Tu es inscrit à un tournoi", body: `L’organisateur t’a ajouté à ${p.tournament}.` }),
+    tournament_removed: (p) => ({ title: "Retiré d’un tournoi", body: `L’organisateur a retiré ton équipe de ${p.tournament}.` }),
   },
 };
 
@@ -120,6 +147,7 @@ function toMessage(push: ClaimedPush) {
     name: push.params.name || (language === "fr" ? "Un joueur" : "A player"),
     when: formatWhen(push.params.when, language),
     body: push.params.body ?? "",
+    tournament: push.params.tournament ?? "",
   });
   return {
     to: push.token,

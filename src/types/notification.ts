@@ -14,7 +14,16 @@ export type NotificationKind =
   | "rate_players"
   | "match_logged"
   | "connection_request"
-  | "connection_accepted";
+  | "connection_accepted"
+  | "tournament_invite"
+  | "tournament_invite_accepted"
+  | "tournament_invite_declined"
+  | "tournament_invite_cancelled"
+  | "tournament_invite_expired"
+  | "tournament_partner_left"
+  | "tournament_promoted"
+  | "tournament_added"
+  | "tournament_removed";
 
 /** Which filter tab a notification belongs to */
 export type NotificationGroup = "matches" | "friends";
@@ -34,4 +43,6 @@ export type AppNotification = {
   clubName?: string;
   /** Messages waiting, for chat_message */
   count?: number;
+  /** For the tournament_* kinds */
+  tournamentName?: string;
 };

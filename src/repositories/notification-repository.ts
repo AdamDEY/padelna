@@ -13,11 +13,13 @@ export type NotificationSettings = {
   scores: boolean;
   /** Connection requests and accepted requests */
   connections: boolean;
+  /** Invites and changes to your team in a tournament */
+  tournaments: boolean;
 };
 
-const ALL_ON: NotificationSettings = { chat: true, matchUpdates: true, scores: true, connections: true };
+const ALL_ON: NotificationSettings = { chat: true, matchUpdates: true, scores: true, connections: true, tournaments: true };
 
-type SettingsRow = { chat: boolean; match_updates: boolean; scores: boolean; connections: boolean };
+type SettingsRow = { chat: boolean; match_updates: boolean; scores: boolean; connections: boolean; tournaments: boolean };
 
 /** Saves this phone's push token for the signed-in player, with the app's language for the push text. */
 export async function registerPushToken(token: string, platform: "ios" | "android", language: string) {
@@ -38,12 +40,12 @@ export async function unregisterPushToken(token: string) {
 export async function fetchNotificationSettings(): Promise<NotificationSettings> {
   const { data, error } = await supabase
     .from("notification_settings")
-    .select("chat, match_updates, scores, connections")
+    .select("chat, match_updates, scores, connections, tournaments")
     .maybeSingle();
   if (error) throw error;
   if (!data) return ALL_ON;
   const row = data as SettingsRow;
-  return { chat: row.chat, matchUpdates: row.match_updates, scores: row.scores, connections: row.connections };
+  return { chat: row.chat, matchUpdates: row.match_updates, scores: row.scores, connections: row.connections, tournaments: row.tournaments };
 }
 
 export async function saveNotificationSettings(settings: NotificationSettings) {
@@ -56,6 +58,7 @@ export async function saveNotificationSettings(settings: NotificationSettings) {
     match_updates: settings.matchUpdates,
     scores: settings.scores,
     connections: settings.connections,
+    tournaments: settings.tournaments,
   });
   if (error) throw error;
 }
