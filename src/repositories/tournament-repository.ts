@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type {
+  AmericanoScoreMode,
   LiveEntry,
   LiveMatch,
   LiveTournament,
@@ -267,6 +268,10 @@ type LiveJson = {
     category: TournamentCategory;
     starts_at: string | null;
     group_count: number | null;
+    /** Missing before migration 20261109210000 */
+    entry_mode?: TournamentEntryMode | null;
+    score_mode?: AmericanoScoreMode | null;
+    rounds?: number | null;
     club_id: string | null;
     club_name: string | null;
     organiser_name: string | null;
@@ -299,6 +304,10 @@ type LiveJson = {
     submitted_super_tiebreak: [number, number] | null;
     submitted_by_me: boolean;
     my_side: 1 | 2 | null;
+    side1_players?: string[] | null;
+    side2_players?: string[] | null;
+    winner_side?: 1 | 2 | null;
+    scored_by_me?: boolean | null;
   }[];
 };
 
@@ -321,6 +330,9 @@ export async function fetchTournamentLive(id: string): Promise<LiveTournament | 
     category: tournament.category,
     startsAt: toDate(tournament.starts_at),
     groupCount: tournament.group_count ?? undefined,
+    entryMode: tournament.entry_mode ?? undefined,
+    scoreMode: tournament.score_mode ?? undefined,
+    rounds: tournament.rounds ?? undefined,
     clubId: tournament.club_id ?? undefined,
     clubName: tournament.club_name ?? undefined,
     organiserName: tournament.organiser_name ?? undefined,
@@ -346,13 +358,18 @@ export async function fetchTournamentLive(id: string): Promise<LiveTournament | 
         label: match.label ?? undefined,
         entry1Id: match.entry1_id ?? undefined,
         entry2Id: match.entry2_id ?? undefined,
-        score: match.winner_entry_id ? toScore(match.sets, match.super_tiebreak) : undefined,
+        // A group or knockout score counts once it has a winner; an Americano one once it has a winning side
+        score: match.winner_entry_id || match.winner_side ? toScore(match.sets ?? [], match.super_tiebreak) : undefined,
         winnerEntryId: match.winner_entry_id ?? undefined,
         nextMatchId: match.next_match_id ?? undefined,
         nextSlot: match.next_slot ?? undefined,
         submitted: toScore(match.submitted_sets, match.submitted_super_tiebreak),
         submittedByMe: match.submitted_by_me,
         mySide: match.my_side ?? undefined,
+        side1Players: match.side1_players ?? undefined,
+        side2Players: match.side2_players ?? undefined,
+        winnerSide: match.winner_side ?? undefined,
+        scoredByMe: match.scored_by_me ?? false,
       }),
     ),
   };
@@ -361,6 +378,23 @@ export async function fetchTournamentLive(id: string): Promise<LiveTournament | 
 /** Sends a match score for the organiser to confirm, written from side 1 of the match. */
 export async function submitTournamentScore(matchId: string, score: TournamentScore) {
   const { error } = await supabase.rpc("submit_tournament_score", {
+    p_match_id: matchId,
+    p_sets: score.sets,
+    p_super_tiebreak: score.superTiebreak ?? null,
+  });
+  if (error) throw error;
+}
+
+/** Joins an individual Americano alone; on a full one, the waitlist. */
+export async function joinTournamentSolo(tournamentId: string): Promise<TournamentEntryStatus> {
+  const { data, error } = await supabase.rpc("join_tournament_solo", { p_tournament_id: tournamentId });
+  if (error) throw error;
+  return data as TournamentEntryStatus;
+}
+
+/** An Americano score, from side 1: it counts right away. */
+export async function submitAmericanoScore(matchId: string, score: TournamentScore) {
+  const { error } = await supabase.rpc("submit_americano_score", {
     p_match_id: matchId,
     p_sets: score.sets,
     p_super_tiebreak: score.superTiebreak ?? null,

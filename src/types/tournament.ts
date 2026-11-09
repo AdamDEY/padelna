@@ -124,7 +124,16 @@ export type LiveMatch = {
   submittedByMe: boolean;
   /** Which side the signed-in player is on, if they play this match */
   mySide?: 1 | 2;
+  /** Individual Americano: the two players (entry ids) on each side, and the side that won */
+  side1Players?: string[];
+  side2Players?: string[];
+  winnerSide?: 1 | 2;
+  /** Individual Americano: I entered the score that's there now */
+  scoredByMe: boolean;
 };
+
+/** How an Americano match is scored: one set to 4 games, or a super tie-break to 10 */
+export type AmericanoScoreMode = "set4" | "supertiebreak";
 
 /** A live or finished tournament, as the live screens show it. */
 export type LiveTournament = {
@@ -135,6 +144,10 @@ export type LiveTournament = {
   category: TournamentCategory;
   startsAt?: Date;
   groupCount?: number;
+  entryMode?: TournamentEntryMode;
+  scoreMode?: AmericanoScoreMode;
+  /** Americano: how many rounds were drawn */
+  rounds?: number;
   clubId?: string;
   clubName?: string;
   organiserName?: string;
