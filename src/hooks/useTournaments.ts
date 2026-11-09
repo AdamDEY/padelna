@@ -9,7 +9,9 @@ import {
   joinTournament,
   joinTournamentPartnerList,
   leaveTournament,
+  joinTournamentSolo,
   respondToTournamentInvite,
+  submitAmericanoScore,
   submitTournamentScore,
 } from "@/repositories/tournament-repository";
 import type { TournamentScore } from "@/types/tournament";
@@ -95,5 +97,15 @@ export function useTournamentLive(id: string | undefined) {
 export function useSubmitTournamentScore() {
   return useRefreshAfter(({ matchId, score }: { matchId: string; score: TournamentScore }) =>
     submitTournamentScore(matchId, score),
+  );
+}
+
+export function useJoinTournamentSolo() {
+  return useRefreshAfter(joinTournamentSolo);
+}
+
+export function useSubmitAmericanoScore() {
+  return useRefreshAfter(({ matchId, score }: { matchId: string; score: TournamentScore }) =>
+    submitAmericanoScore(matchId, score),
   );
 }

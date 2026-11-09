@@ -28,8 +28,15 @@ import { PlayerAvatar } from "@/components/player-avatar";
 import { TournamentDetailRow } from "@/components/tournament-detail-row";
 import { TournamentJoinSheet } from "@/components/tournament-join-sheet";
 import { TournamentLiveView } from "@/components/tournament-live-view";
+import { AmericanoLiveView } from "@/components/americano-live-view";
 import { TournamentTeamRow } from "@/components/tournament-team-row";
-import { tournamentsKey, useLeaveTournament, useRespondToTournamentInvite, useTournament } from "@/hooks/useTournaments";
+import {
+  tournamentsKey,
+  useJoinTournamentSolo,
+  useLeaveTournament,
+  useRespondToTournamentInvite,
+  useTournament,
+} from "@/hooks/useTournaments";
 import { errorMessage } from "@/lib/error-message";
 import { formatMatchDateTime, formatMatchDay, formatTime } from "@/lib/format-date";
 import { queryClient } from "@/lib/query-client";
@@ -95,8 +102,11 @@ export default function TournamentDetailScreen() {
     );
   }
 
-  // Once it starts, the screen follows the groups, matches and bracket instead
-  if (tournament.status !== "setup") return <TournamentLiveView id={tournament.id} />;
+  // Once it starts, the screen follows the rounds instead: groups and bracket, or the Americano leaderboard
+  if (tournament.status !== "setup") {
+    if (tournament.format === "groups") return <TournamentLiveView id={tournament.id} />;
+    if (isSolo(tournament)) return <AmericanoLiveView id={tournament.id} />;
+  }
 
   return <TournamentScreen tournament={tournament} />;
 }
@@ -106,6 +116,7 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
   const { toast } = useToast();
   const respond = useRespondToTournamentInvite();
   const leave = useLeaveTournament();
+  const joinSolo = useJoinTournamentSolo();
   const [isJoining, setIsJoining] = useState(false);
   const [showAllTeams, setShowAllTeams] = useState(false);
   const insets = useSafeAreaInsets();
@@ -139,7 +150,9 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
   const isClosed = isBeforeStart && !registrationOpen && tournament.format === "groups" && capacity !== undefined;
   const canJoin = registrationOpen && !myEntry && myFit === "ok";
   // On the partner list you can still pick a partner and swap to a pair
-  const canPickPartner = canJoin || (registrationOpen && myEntry?.status === "looking");
+  // An individual Americano is joined alone: no partner to pick
+  const solo = isSolo(tournament);
+  const canPickPartner = !solo && (canJoin || (registrationOpen && myEntry?.status === "looking"));
 
   // A friend still waiting on a partner isn't playing yet
   const friends = teams
@@ -192,13 +205,29 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
     );
   }
 
+  function joinAlone() {
+    joinSolo.mutate(tournament.id, {
+      onSuccess: (status) =>
+        toast.show({
+          variant: "success",
+          label: status === "waitlist" ? t("tournaments.mine.waitlistTitle") : t("tournaments.mine.inTitle"),
+        }),
+      onError: (error) => toast.show({ variant: "danger", label: t("tournaments.detail.joinFailed"), description: errorMessage(error) }),
+    });
+  }
+
   function confirmLeave() {
     if (!myEntry) return;
     const isInvite = myEntry.status === "invited" || myEntry.status === "waitlist_invited";
     const isList = myEntry.status === "looking";
     const key = isList ? "leaveList" : isInvite ? "cancelInvite" : "leave";
-    // A waitlist invite holds no spot, so nothing opens up when it ends
-    const text = myEntry.status === "waitlist_invited" ? t("tournaments.mine.cancelWaitlistInviteText") : t(`tournaments.mine.${key}Text`);
+    // A waitlist invite holds no spot, so nothing opens up when it ends; alone, there's no team to drop out
+    const text =
+      myEntry.status === "waitlist_invited"
+        ? t("tournaments.mine.cancelWaitlistInviteText")
+        : solo && key === "leave"
+          ? t("tournaments.mine.leaveSoloText")
+          : t(`tournaments.mine.${key}Text`);
     Alert.alert(t(`tournaments.mine.${key}Title`), text, [
       { text: t("tournaments.mine.keep"), style: "cancel" },
       {
@@ -324,7 +353,7 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
           <MyEntryNote tournament={tournament} />
 
           {/* Whether you can join; once you're in, MyEntryNote says where you stand */}
-          {!myEntry && tournament.format === "americano" ? (
+          {!myEntry && tournament.format === "americano" && !solo ? (
             <InfoNote icon={Info} title={t("tournaments.detail.americanoSoon")}>
               {t("tournaments.detail.americanoSoonText")}
             </InfoNote>
@@ -371,7 +400,7 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
                 <TournamentDetailRow
                   icon={Wallet}
                   label={t("tournaments.detail.fee")}
-                  value={t("tournaments.detail.feePerTeam", { fee: formatFee(entryFee) })}
+                  value={t(solo ? "tournaments.detail.feePerPlayer" : "tournaments.detail.feePerTeam", { fee: formatFee(entryFee) })}
                   note={t("tournaments.detail.feeNote")}
                 />
               ) : null}
@@ -472,7 +501,7 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
                 {t("tournaments.mine.accept")}
               </Button>
             </>
-          ) : canPickPartner ? (
+          ) : canPickPartner || (solo && canJoin) ? (
             myEntry ? (
               <>
                 <Button size="lg" onPress={() => setIsJoining(true)}>
@@ -486,12 +515,12 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
               <>
                 {entryFee !== undefined ? (
                   <View className="min-w-[86px]">
-                    <Text className="font-semibold text-[12px] text-muted">{t("tournaments.detail.perTeam")}</Text>
+                    <Text className="font-semibold text-[12px] text-muted">{t(solo ? "tournaments.detail.perPlayer" : "tournaments.detail.perTeam")}</Text>
                     <Text className="font-black text-[17px] text-foreground">{t("tournaments.detail.feeValue", { fee: formatFee(entryFee) })}</Text>
                   </View>
                 ) : null}
-                <Button size="lg" className="flex-1" onPress={() => setIsJoining(true)}>
-                  {isFull ? t("tournaments.detail.joinWaitlist") : t("tournaments.detail.joinWithPartner")}
+                <Button size="lg" className="flex-1" isDisabled={joinSolo.isPending} onPress={solo ? joinAlone : () => setIsJoining(true)}>
+                  {isFull ? t("tournaments.detail.joinWaitlist") : solo ? t("tournaments.detail.joinAlone") : t("tournaments.detail.joinWithPartner")}
                 </Button>
               </>
             )
@@ -512,6 +541,11 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
   );
 }
 
+/** An individual Americano: players join alone and partners change every round */
+function isSolo(tournament: Pick<Tournament, "format" | "entryMode">) {
+  return tournament.format === "americano" && tournament.entryMode === "individual";
+}
+
 /** Where you stand in this tournament. No artboard: the app's usual notes. */
 function MyEntryNote({ tournament }: { tournament: Tournament }) {
   const { t } = useTranslation();
@@ -519,6 +553,18 @@ function MyEntryNote({ tournament }: { tournament: Tournament }) {
   if (!myEntry) return null;
 
   const name = myEntry.partner?.firstName ?? t("notifications.someone");
+  // Alone in an individual Americano: partners change every round, so nobody to name
+  if (isSolo(tournament) && (myEntry.status === "confirmed" || myEntry.status === "waitlist")) {
+    return myEntry.status === "confirmed" ? (
+      <InfoNote icon={Check} title={t("tournaments.mine.inTitle")}>
+        {`${t("tournaments.mine.soloInText")}${entryFee !== undefined ? ` ${t("tournaments.join.payAtDesk", { fee: formatFee(entryFee) })}` : ""}`}
+      </InfoNote>
+    ) : (
+      <InfoNote icon={Clock} tone="warning" title={t("tournaments.mine.waitlistTitle")}>
+        {t("tournaments.mine.soloWaitlistText")}
+      </InfoNote>
+    );
+  }
   const expiry = myEntry.inviteExpiresAt ? formatMatchDateTime(myEntry.inviteExpiresAt) : "";
   const pay = entryFee !== undefined ? ` ${t("tournaments.join.payAtDesk", { fee: formatFee(entryFee) })}` : "";
 

@@ -20,6 +20,7 @@ import { ScoreReminder } from "@/components/score-reminder";
 import { SectionHeader } from "@/components/section-header";
 import { TournamentCard } from "@/components/tournament-card";
 import { TournamentLiveCard } from "@/components/tournament-live-card";
+import { AmericanoLiveCard } from "@/components/americano-live-card";
 import { myLevel } from "@/data/mock";
 import { myMatchesKey, openMatchesKey, useHomeOpenMatches, useMyUpcomingMatches } from "@/hooks/useMatches";
 import { useNearbyClubs } from "@/hooks/useClubs";
@@ -97,7 +98,12 @@ export default function Home() {
           <ConnectionRequestsBanner requesters={requests} onReview={() => setIsReviewing(true)} />
         ) : null}
 
-        {myLiveTournament ? (
+        {myLiveTournament?.format === "americano" ? (
+          <AmericanoLiveCard
+            tournamentId={myLiveTournament.id}
+            onPress={() => router.push({ pathname: "/tournament/[id]", params: { id: myLiveTournament.id } })}
+          />
+        ) : myLiveTournament ? (
           <TournamentLiveCard
             tournamentId={myLiveTournament.id}
             myId={profile?.player?.id}
