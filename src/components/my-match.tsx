@@ -14,9 +14,11 @@ import { Page } from "@/components/page";
 import { PlayerSheet } from "@/components/player-sheet";
 import { SaveScoreSheet } from "@/components/save-score-sheet";
 import { SettingsRow, SettingsSection } from "@/components/settings-section";
-import { TeamPicker } from "@/components/team-picker";
+import { TagPlayerSheet } from "@/components/tag-player-sheet";
+import { seatInfo, TeamPicker } from "@/components/team-picker";
 import { useClubs } from "@/hooks/useClubs";
 import { useMatchChatUnreadCount } from "@/hooks/useMatchChat";
+import { useCancelMatchInvite, useInvitePlayer } from "@/hooks/useMatchInvites";
 import { useCancelMatch, useConfirmScore, useLeaveMatch } from "@/hooks/useMatches";
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { InfoNote } from "@/components/info-note";
@@ -25,8 +27,8 @@ import { addToCalendar, googleCalendarUrl, outlookCalendarUrl, type CalendarEven
 import { formatMatchDay, formatStartsIn } from "@/lib/format-date";
 import { teamOf } from "@/lib/padel-score";
 import { isRatingOpen, playersToRate } from "@/lib/player-rating";
-import type { MatchDetails } from "@/types/match";
-import type { Player } from "@/types/player";
+import type { MatchDetails, MatchInvite } from "@/types/match";
+import type { Player, PlayerSuggestion } from "@/types/player";
 import { errorMessage } from "@/lib/error-message";
 import type { LucideIcon } from "lucide-react-native";
 
@@ -58,6 +60,8 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const cancelMatch = useCancelMatch();
   const leaveMatch = useLeaveMatch();
   const confirmScore = useConfirmScore();
+  const invitePlayer = useInvitePlayer();
+  const cancelInvite = useCancelMatchInvite();
   const { data: account } = useMyAccount();
   const { data: clubs = [] } = useClubs();
   const { data: unreadMessages = 0 } = useMatchChatUnreadCount(match.id);
@@ -65,6 +69,8 @@ export function MyMatch({ match, role }: MyMatchProps) {
   const [now, setNow] = useState(() => new Date());
   const [scoreSheet, setScoreSheet] = useState<"add" | "correct" | "edit">();
   const [hostSheet, setHostSheet] = useState<"edit" | "booking">();
+  // The open seat the host is inviting someone to; the sheet is open while it's set
+  const [inviteSeat, setInviteSeat] = useState<number>();
   const [viewedPlayer, setViewedPlayer] = useState<Player>();
   const [isViewingPlayer, setIsViewingPlayer] = useState(false);
 
@@ -80,6 +86,12 @@ export function MyMatch({ match, role }: MyMatchProps) {
   // One entry per seat, open ones undefined
   const seats = Array.from({ length: match.capacity }, (_, index) => (match.seats ?? match.players)[index]);
   const myId = account?.id ?? "";
+  const invites = match.invites ?? [];
+  // A seat nobody holds: the host can invite someone to it (not the host's guests' seats)
+  const openSeats = seats.flatMap((player, index) =>
+    player === undefined && !invites.some((invite) => invite.seat === index + 1) ? [index + 1] : [],
+  );
+  const canInvite = isHost && !isOver && !match.score;
   const score = match.score;
   const myTeam = teamOf(match, myId);
   const isPending = score?.status === "pending";
@@ -109,6 +121,58 @@ export function MyMatch({ match, role }: MyMatchProps) {
   ]
     .filter(Boolean)
     .join(" · ");
+
+  function inviteToSeat(seat: number) {
+    setInviteSeat(seat);
+  }
+
+  function invitePlayerToFirstSeat() {
+    if (openSeats.length === 0) {
+      toast.show({ label: t("myMatch.noOpenSpot"), description: t("myMatch.noOpenSpotText") });
+      return;
+    }
+    inviteToSeat(openSeats[0]);
+  }
+
+  function sendInvite(player: PlayerSuggestion) {
+    if (inviteSeat === undefined) return;
+    invitePlayer.mutate(
+      { matchId: match.id, seat: inviteSeat, playerId: player.id },
+      {
+        onSuccess: () =>
+          toast.show({
+            variant: "success",
+            label: t("myMatch.inviteSent"),
+            description: t("myMatch.inviteSentText", { name: player.firstName }),
+          }),
+        onError: (error) =>
+          toast.show({ variant: "danger", label: t("myMatch.inviteFailed"), description: errorMessage(error) }),
+      },
+    );
+  }
+
+  function confirmTakeBack(invite: MatchInvite) {
+    Alert.alert(t("myMatch.takeBackTitle"), t("myMatch.takeBackText", { name: invite.player.firstName }), [
+      { text: t("myMatch.keepInvite"), style: "cancel" },
+      {
+        text: t("myMatch.takeBack"),
+        style: "destructive",
+        onPress: () =>
+          cancelInvite.mutate(
+            { inviteId: invite.id, matchId: match.id },
+            {
+              onSuccess: () => toast.show({ label: t("myMatch.takenBack") }),
+              onError: (error) =>
+                toast.show({
+                  variant: "danger",
+                  label: t("myMatch.takeBackFailed"),
+                  description: errorMessage(error),
+                }),
+            },
+          ),
+      },
+    ]);
+  }
 
   // These need chat support, or the player-management API
   function comingSoon(label: string) {
@@ -367,6 +431,10 @@ export function MyMatch({ match, role }: MyMatchProps) {
                 setIsViewingPlayer(true);
               }}
               myId={account?.id}
+              invites={invites}
+              onInvitePress={canInvite ? confirmTakeBack : undefined}
+              isInviting={canInvite}
+              onSelectSeat={canInvite ? inviteToSeat : undefined}
             />
           </View>
         )}
@@ -390,7 +458,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
           <SettingsRow
             label={t("myMatch.managePlayers")}
             value={t("myMatch.managePlayersValue")}
-            onPress={() => comingSoon(t("myMatch.managingPlayers"))}
+            onPress={invitePlayerToFirstSeat}
           />
         </SettingsSection>
         ) : null}
@@ -473,6 +541,25 @@ export function MyMatch({ match, role }: MyMatchProps) {
       ) : null}
       {isHost ? (
         <>
+          <TagPlayerSheet
+            isOpen={inviteSeat !== undefined}
+            onOpenChange={(open) => !open && setInviteSeat(undefined)}
+            seat={inviteSeat ?? 2}
+            takenIds={[...match.players, ...invites.map((invite) => invite.player)].map((player) => player.id)}
+            onTag={sendInvite}
+            copy={{
+              title: t("myMatch.invitePlayerTitle"),
+              description:
+                inviteSeat !== undefined
+                  ? `${t("myMatch.invitePlayerSpot", {
+                      team: seatInfo(inviteSeat).team,
+                      side: t(seatInfo(inviteSeat).side === "left" ? "side.left" : "side.right").toLowerCase(),
+                    })}. ${t("myMatch.invitePlayerText")}`
+                  : t("myMatch.invitePlayerText"),
+              action: (name) => t("myMatch.inviteButton", { name }),
+              taken: t("myMatch.alreadyIn"),
+            }}
+          />
           <EditMatchSheet
             match={match}
             isOpen={hostSheet === "edit"}

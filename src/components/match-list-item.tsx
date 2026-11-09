@@ -23,7 +23,7 @@ export function MatchListItem({ match, fit, onPress, onAskToJoin }: MatchListIte
   const { t } = useTranslation();
   const time = formatTime(match.startsAt);
   const playable = isPlayableFit(fit);
-  const spotsLeft = Math.max(match.capacity - match.players.length, 0);
+  const spotsLeft = Math.max(match.capacity - match.players.length - (match.heldSeats ?? 0), 0);
   const spotsLabel = t("match.spots", { count: spotsLeft });
   const priceLabel = match.price !== undefined ? `${match.price} TND` : undefined;
   const tintIndices = stackTintIndices(match.players);

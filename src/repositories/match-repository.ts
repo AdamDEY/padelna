@@ -8,6 +8,7 @@ import { guestId, isRatingOpen, playersToRate, ratingClosesAt, type PlayerRating
 import type {
   MatchAudience,
   MatchDetails,
+  MatchInvite,
   MatchScore,
   OpenMatch,
   PastMatch,
@@ -41,7 +42,8 @@ const MATCH_SELECT = `
   court:courts(id, number, club:clubs(id, name)),
   match_players(seat, player_id),
   score:match_scores(team1_games, team2_games, status, submitted_by, submitted_team, expires_at, confirmed_at, photo_path),
-  ratings:player_ratings(rater_id)
+  ratings:player_ratings(rater_id),
+  invites:match_invites(id, seat, invitee_id, status)
 `;
 
 type MatchRow = {
@@ -64,6 +66,8 @@ type MatchRow = {
   score: ScoreRow | null;
   // Only the ratings you gave are readable, one row per player you rated
   ratings: { rater_id: string }[];
+  // Every invitation ever sent for this match; only the pending ones matter
+  invites: { id: string; seat: number; invitee_id: string; status: "pending" | "accepted" | "declined" | "cancelled" }[];
 };
 
 type ScoreRow = {
@@ -251,7 +255,8 @@ export async function fetchOpenMatches(from: Date, to: Date): Promise<OpenMatch[
 
   return rows
     .map((row) => toMatchDetails(row, cards))
-    .filter((match) => match.players.length < match.capacity)
+    // Seats held for invited players can't be taken, so a match with none left isn't open
+    .filter((match) => match.players.length + (match.invites?.length ?? 0) < match.capacity)
     .map((match) => ({
       id: match.id,
       startsAt: match.startsAt,
@@ -262,6 +267,7 @@ export async function fetchOpenMatches(from: Date, to: Date): Promise<OpenMatch[
       levelMax: match.levelMax ?? 7,
       players: match.players,
       capacity: match.capacity,
+      heldSeats: match.invites?.length ?? 0,
       price: match.price,
       isCourtBooked: match.isCourtBooked,
       courtName: match.courtName,
@@ -291,6 +297,11 @@ export function subscribeToMatchChanges(onChange: (matchId?: string) => void) {
         onChange(row.id ?? old.id);
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "match_players" }, (change) => {
+        const row = (change.new as { match_id?: string }) ?? {};
+        const old = (change.old as { match_id?: string }) ?? {};
+        onChange(row.match_id ?? old.match_id);
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "match_invites" }, (change) => {
         const row = (change.new as { match_id?: string }) ?? {};
         const old = (change.old as { match_id?: string }) ?? {};
         onChange(row.match_id ?? old.match_id);
@@ -594,7 +605,14 @@ export async function fetchMyUpcomingMatches(): Promise<UpcomingMatch[]> {
 
 /** What other players may see about the players in these matches (no phone or private details). */
 async function fetchPlayerCards(rows: MatchRow[]) {
-  const ids = [...new Set(rows.flatMap((row) => row.match_players.map((seat) => seat.player_id)))];
+  const ids = [
+    ...new Set(
+      rows.flatMap((row) => [
+        ...row.match_players.map((seat) => seat.player_id),
+        ...pendingInvites(row).map((invite) => invite.invitee_id),
+      ]),
+    ),
+  ];
   if (ids.length === 0) return new Map<string, Player>();
 
   const { data, error } = await supabase.rpc("get_player_cards", { player_ids: ids });
@@ -614,7 +632,15 @@ async function fetchPlayerCards(rows: MatchRow[]) {
   );
 }
 
+function pendingInvites(row: MatchRow) {
+  return row.invites.filter((invite) => invite.status === "pending");
+}
+
 function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails {
+  const invites = pendingInvites(row).flatMap((invite): MatchInvite[] => {
+    const player = cards.get(invite.invitee_id);
+    return player ? [{ id: invite.id, seat: invite.seat, player }] : [];
+  });
   // The host takes seat 1 and brings guests (who aren't on the app) for the seats after it;
   // the last players_needed seats are open to other players
   const guestSeats = CAPACITY - row.players_needed;
@@ -648,7 +674,8 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     price: row.price ?? undefined,
     host: cards.get(row.host_id),
     note: row.note || undefined,
-    hasJoinedPlayers: row.match_players.some((seat) => seat.player_id !== row.host_id),
+    hasJoinedPlayers: row.match_players.some((seat) => seat.player_id !== row.host_id) || invites.length > 0,
+    invites,
     // The host and their guests, plus one row per player who joined
     isFull: row.match_players.length === row.players_needed + 1,
     score: row.score ? toMatchScore(row.score) : undefined,

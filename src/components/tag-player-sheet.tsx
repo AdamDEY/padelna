@@ -27,13 +27,22 @@ type TagPlayerSheetProps = {
   /** Players already in the other seats, who can't be tagged twice */
   takenIds: string[];
   onTag: (player: PlayerSuggestion) => void;
+  /** Wording for other uses of the sheet (e.g. inviting to an open match); tagging by default */
+  copy?: {
+    title: string;
+    description: string;
+    /** The confirm button once someone is picked */
+    action: (name: string) => string;
+    /** Why a player in `takenIds` can't be picked */
+    taken: string;
+  };
 };
 
 /**
  * "Tag a player" for a match played elsewhere (design: LogMatchTag): people you played with
  * and your friends, or anyone on Padelna by search. Opponents are asked to confirm the score.
  */
-export function TagPlayerSheet({ isOpen, onOpenChange, seat, current, takenIds, onTag }: TagPlayerSheetProps) {
+export function TagPlayerSheet({ isOpen, onOpenChange, seat, current, takenIds, onTag, copy }: TagPlayerSheetProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<PlayerSuggestion | undefined>(current);
@@ -96,10 +105,10 @@ export function TagPlayerSheet({ isOpen, onOpenChange, seat, current, takenIds, 
           <View className="flex-row items-start justify-between gap-3">
             <View className="flex-1 gap-0.5">
               <BottomSheet.Title className="font-black text-[20px] text-foreground">
-                {isOpponent ? t("logMatch.tagOpponent") : t("logMatch.tagPartner")}
+                {copy?.title ?? (isOpponent ? t("logMatch.tagOpponent") : t("logMatch.tagPartner"))}
               </BottomSheet.Title>
               <BottomSheet.Description className="font-normal text-[13px] text-muted">
-                {isOpponent ? t("logMatch.opponentText") : t("logMatch.partnerText")}
+                {copy?.description ?? (isOpponent ? t("logMatch.opponentText") : t("logMatch.partnerText"))}
               </BottomSheet.Description>
             </View>
             <BottomSheet.Close className="size-9 rounded-full bg-background" />
@@ -136,6 +145,7 @@ export function TagPlayerSheet({ isOpen, onOpenChange, seat, current, takenIds, 
                       player={player}
                       isPicked={picked?.id === player.id}
                       isTaken={takenIds.includes(player.id)}
+                      takenLabel={copy?.taken}
                       onPress={() => pick(player)}
                     />
                   ))}
@@ -145,7 +155,9 @@ export function TagPlayerSheet({ isOpen, onOpenChange, seat, current, takenIds, 
           )}
 
           <Button size="lg" isDisabled={!picked} onPress={tag} className="mt-1">
-            {picked ? t("logMatch.tagName", { name: shortNameOf(picked) }) : t("logMatch.pickSomeone")}
+            {picked
+              ? (copy?.action ?? ((name: string) => t("logMatch.tagName", { name })))(shortNameOf(picked))
+              : t("logMatch.pickSomeone")}
           </Button>
         </BottomSheet.Content>
       </BottomSheet.Portal>
@@ -182,13 +194,16 @@ type PlayerRowProps = {
   isPicked: boolean;
   /** Already in another seat */
   isTaken: boolean;
+  /** What the row says for a taken player; "already tagged" by default */
+  takenLabel?: string;
   onPress: () => void;
 };
 
 /** A player to tag: avatar, name, level and club or city, with a radio circle that ticks. */
-function PlayerRow({ player, isPicked, isTaken, onPress }: PlayerRowProps) {
+function PlayerRow({ player, isPicked, isTaken, takenLabel, onPress }: PlayerRowProps) {
   const { t } = useTranslation();
   const detail = [player.level?.toFixed(1), player.clubName ?? player.city].filter(Boolean).join(" · ");
+  const taken = takenLabel ?? t("logMatch.alreadyTagged");
 
   return (
     <Pressable
@@ -196,7 +211,7 @@ function PlayerRow({ player, isPicked, isTaken, onPress }: PlayerRowProps) {
       disabled={isTaken}
       accessibilityRole="radio"
       accessibilityState={{ selected: isPicked, disabled: isTaken }}
-      accessibilityLabel={[shortNameOf(player), detail, isTaken ? t("logMatch.alreadyTagged") : null]
+      accessibilityLabel={[shortNameOf(player), detail, isTaken ? taken : null]
         .filter(Boolean)
         .join(", ")}
     >
@@ -214,7 +229,7 @@ function PlayerRow({ player, isPicked, isTaken, onPress }: PlayerRowProps) {
             {shortNameOf(player)}
           </Text>
           <Text numberOfLines={1} className="font-normal text-[12px] text-muted">
-            {isTaken ? t("logMatch.alreadyTagged") : detail}
+            {isTaken ? taken : detail}
           </Text>
         </View>
         {/* The tick is always there and only changes colour: an icon mounted after the

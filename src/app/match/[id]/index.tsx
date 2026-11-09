@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { t } from "i18next";
 import { Button, cn, Spinner, useToast } from "heroui-native";
-import { Check, Clock, MapPin, MessageSquare, Share2 } from "lucide-react-native";
+import { Check, Clock, MapPin, MessageSquare, Share2, UserPlus } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Share, Text, View } from "react-native";
@@ -9,6 +9,7 @@ import { Share, Text, View } from "react-native";
 import { CourtHero } from "@/components/court-hero";
 import { Icon } from "@/components/icon";
 import { IconButton } from "@/components/icon-button";
+import { InfoNote } from "@/components/info-note";
 import { MyMatch } from "@/components/my-match";
 import { Page } from "@/components/page";
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -17,6 +18,7 @@ import { seatInfo, TeamPicker } from "@/components/team-picker";
 import { getMatchDetails, me, myLevel } from "@/data/mock";
 import type { Player } from "@/types/player";
 import { useClubs } from "@/hooks/useClubs";
+import { useRespondToMatchInvite } from "@/hooks/useMatchInvites";
 import { useJoinMatch, useMatch } from "@/hooks/useMatches";
 import { celebrate } from "@/lib/celebrate";
 import { askForPushNotifications } from "@/hooks/usePushNotifications";
@@ -52,6 +54,7 @@ export default function MatchDetail() {
   const match = isStored ? stored.data ?? undefined : getMatchDetails(id);
   const { data: clubs = [] } = useClubs();
   const joinStoredMatch = useJoinMatch();
+  const respondToInvite = useRespondToMatchInvite();
   const { toast } = useToast();
   const [hasJoined, setHasJoined] = useState(false);
   const [hasAsked, setHasAsked] = useState(false);
@@ -97,7 +100,10 @@ export default function MatchDetail() {
   const club = clubs.find((item) => item.id === match.clubId || item.name === match.clubName);
   const players = hasJoined ? [...match.players, me] : match.players;
   const isMine = players.some((player) => player.id === me.id);
-  const isFull = players.length >= match.capacity;
+  // Seats held for invited players can't be taken, so they count as full too
+  const invites = isStored ? match.invites ?? [] : [];
+  const myInvite = account ? invites.find((invite) => invite.player.id === account.id) : undefined;
+  const isFull = players.length + invites.length >= match.capacity;
   const levels = players.map((player) => player.level).filter((level) => level !== undefined);
   const averageLevel = levels.length
     ? levels.reduce((sum, level) => sum + level, 0) / levels.length
@@ -120,7 +126,8 @@ export default function MatchDetail() {
   // The database refuses the join too; mock matches have no audience
   const requiredGender = match.audience === "men" ? "male" : match.audience === "women" ? "female" : undefined;
   const fitsGender = !isStored || requiredGender === undefined || account?.gender === requiredGender;
-  const canPick = !isMine && fits && fitsGender && !isFull && !hasStarted;
+  // An invited player answers the invitation instead of picking a seat
+  const canPick = !isMine && !myInvite && fits && fitsGender && !isFull && !hasStarted;
   const picked = selectedSeat !== undefined ? seatInfo(selectedSeat, match.capacity) : undefined;
   const self: Player =
     isStored && account
@@ -172,6 +179,33 @@ export default function MatchDetail() {
       label: t("matchDetail.youAreIn"),
       description: t("matchDetail.joinedText", { title, club: match!.clubName }),
     });
+  }
+
+  function answerInvite(accept: boolean) {
+    if (!myInvite) return;
+    respondToInvite.mutate(
+      { inviteId: myInvite.id, matchId: match!.id, accept },
+      {
+        onSuccess: () => {
+          if (accept) {
+            toast.show({
+              variant: "success",
+              label: t("matchDetail.youAreIn"),
+              description: t("matchDetail.joinedText", {
+                title,
+                club: match!.clubName || t("matchDetail.courtToBook"),
+              }),
+            });
+            celebrate();
+            void askForPushNotifications();
+          } else {
+            toast.show({ label: t("matchInvite.declined"), description: t("matchInvite.declinedText") });
+          }
+        },
+        onError: (error) =>
+          toast.show({ variant: "danger", label: t("matchInvite.answerFailed"), description: errorMessage(error) }),
+      },
+    );
   }
 
   function askToJoin() {
@@ -313,8 +347,14 @@ export default function MatchDetail() {
                 </Text>
               ) : null}
             </View>
+            {myInvite ? (
+              <InfoNote icon={UserPlus} title={t("matchInvite.spotHeld")}>
+                {t("matchInvite.spotHeldText")}
+              </InfoNote>
+            ) : null}
             <TeamPicker
               seats={seats}
+              invites={invites}
               selectedSeat={selectedSeat}
               me={self}
               preferredSide={account?.side}
@@ -330,14 +370,14 @@ export default function MatchDetail() {
               }
               myId={account?.id}
             />
-            {!fitsGender && !isMine ? (
+            {!fitsGender && !isMine && !myInvite ? (
               <View className="flex-row items-center gap-2 rounded-[14px] bg-warning-soft px-3 py-2.5">
                 <Icon as={Clock} size={18} color="warning" />
                 <Text className="flex-1 font-bold text-[14px] text-warning">
                   {t(match.audience === "men" ? "matchDetail.menOnly" : "matchDetail.womenOnly")}
                 </Text>
               </View>
-            ) : fit !== undefined && !isMine ? (
+            ) : fit !== undefined && !isMine && !myInvite ? (
               <View
                 className={cn(
                   "flex-row items-center gap-2 rounded-[14px] px-3 py-2.5",
@@ -366,6 +406,16 @@ export default function MatchDetail() {
         </View>
       </Page.Body>
 
+      {myInvite && !hasStarted ? (
+        <Page.Footer className="gap-1">
+          <Button size="lg" onPress={() => answerInvite(true)} isDisabled={respondToInvite.isPending}>
+            {t("matchInvite.accept")}
+          </Button>
+          <Button variant="ghost" onPress={() => answerInvite(false)} isDisabled={respondToInvite.isPending}>
+            <Button.Label className="text-muted">{t("matchInvite.decline")}</Button.Label>
+          </Button>
+        </Page.Footer>
+      ) : (
       <Page.Footer className="flex-row">
         <Button
           size="lg"
@@ -414,6 +464,7 @@ export default function MatchDetail() {
           </Button>
         )}
       </Page.Footer>
+      )}
       <PlayerSheet
         player={viewedPlayer}
         isOpen={isViewingPlayer}

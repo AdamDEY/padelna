@@ -1,5 +1,5 @@
 import { cn, PressableFeedback } from "heroui-native";
-import { Check, Plus } from "lucide-react-native";
+import { Check, Clock, Plus } from "lucide-react-native";
 import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -8,6 +8,7 @@ import { Icon } from "@/components/icon";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { PopIn } from "@/components/pop-in";
 import { useHasMounted } from "@/hooks/useHasMounted";
+import type { MatchInvite } from "@/types/match";
 import type { Player } from "@/types/player";
 
 const AVATAR_SIZE = 52;
@@ -47,6 +48,12 @@ type TeamPickerProps = {
   isTagging?: boolean;
   /** White team cards with a border, for the grey page instead of a white sheet */
   onBackground?: boolean;
+  /** Players invited to a seat who haven't answered; the seat shows them as "Invited", not open */
+  invites?: MatchInvite[];
+  /** Tapping an invited seat, e.g. so the host can take the invitation back */
+  onInvitePress?: (invite: MatchInvite) => void;
+  /** Open seats read "Invite", for the host adding players to the match */
+  isInviting?: boolean;
 };
 
 /**
@@ -64,6 +71,9 @@ export function TeamPicker({
   myId,
   isTagging = false,
   onBackground = false,
+  invites = [],
+  onInvitePress,
+  isInviting = false,
 }: TeamPickerProps) {
   const { t } = useTranslation();
   // Seats already filled when the screen opens stay still; one that fills afterwards pops in
@@ -132,6 +142,19 @@ export function TeamPicker({
                       />
                     );
                   }
+                  const invite = invites.find((item) => item.seat === seat);
+                  if (invite) {
+                    return (
+                      <InvitedSeat
+                        key={seat}
+                        invite={invite}
+                        sideLabel={sideLabel}
+                        isMine={invite.player.id === myId}
+                        animate={hasMounted}
+                        onPress={onInvitePress ? () => onInvitePress(invite) : undefined}
+                      />
+                    );
+                  }
                   return (
                     <OpenSeat
                       key={seat}
@@ -139,6 +162,7 @@ export function TeamPicker({
                       sideLabel={sideLabel}
                       isYourSide={preferredSide === side}
                       isTagging={isTagging}
+                      isInviting={isInviting}
                       onPress={onSelectSeat ? () => onSelectSeat(seat) : undefined}
                     />
                   );
@@ -227,22 +251,87 @@ function MySeat({
   );
 }
 
+/** A seat held for a player who hasn't answered yet: a faded avatar with a clock, never open. */
+function InvitedSeat({
+  invite,
+  sideLabel,
+  isMine,
+  onPress,
+  animate,
+}: {
+  invite: MatchInvite;
+  sideLabel: string;
+  isMine: boolean;
+  onPress?: () => void;
+  animate: boolean;
+}) {
+  const { t } = useTranslation();
+  const { player } = invite;
+  const name = isMine ? t("team.you") : player.firstName;
+
+  return (
+    <PressableFeedback
+      isDisabled={!onPress}
+      onPress={onPress}
+      accessibilityRole={onPress ? "button" : undefined}
+      accessibilityLabel={`${name}, ${t("team.invitedA11y")}, ${t("team.sideA11y", { side: sideLabel.toLowerCase() })}`}
+      accessibilityHint={onPress ? t("team.invitedHint") : undefined}
+      className="w-[70px] items-center gap-[3px]"
+    >
+      <PopIn animate={animate}>
+        <View className="opacity-60">
+          <PlayerAvatar
+            player={player}
+            size={AVATAR_SIZE - (isMine ? 4 : 0)}
+            ringClassName={isMine ? "border-accent" : undefined}
+          />
+        </View>
+        {/* The clock is a second signal besides the faded avatar and the "Invited" label */}
+        <View className="absolute -bottom-1 -end-1 size-[22px] items-center justify-center rounded-full border-2 border-surface bg-warning-soft">
+          <Icon as={Clock} size={12} color="warning" />
+        </View>
+      </PopIn>
+      <Text
+        numberOfLines={1}
+        className={isMine ? "font-black text-[13px] text-accent" : "font-bold text-[13px] text-foreground"}
+      >
+        {name}
+      </Text>
+      <Text className="font-bold text-[11px] text-warning">{t("team.invited")}</Text>
+    </PressableFeedback>
+  );
+}
+
 function OpenSeat({
   team,
   sideLabel,
   isYourSide,
   isTagging,
+  isInviting,
   onPress,
 }: {
   team: string;
   sideLabel: string;
   isYourSide: boolean;
   isTagging: boolean;
+  isInviting: boolean;
   onPress?: () => void;
 }) {
   const { t } = useTranslation();
-  const label = isTagging ? t("team.tagPlayer") : onPress ? t("team.tapToJoin") : t("team.open");
-  const a11yKey = isTagging ? "team.tagSpot" : onPress ? "team.takeSpot" : "team.openSpot";
+  const label = isTagging
+    ? t("team.tagPlayer")
+    : isInviting && onPress
+      ? t("team.invite")
+      : onPress
+        ? t("team.tapToJoin")
+        : t("team.open");
+  const a11yKey = isTagging
+    ? "team.tagSpot"
+    : isInviting && onPress
+      ? "team.inviteSpot"
+      : onPress
+        ? "team.takeSpot"
+        : "team.openSpot";
 
   return (
     <View className="w-[70px] items-center gap-[3px]">
