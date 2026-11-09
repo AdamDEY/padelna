@@ -23,6 +23,7 @@ export function hasFewSpots(spotsLeft: number) {
 export function forHome<T extends Pick<TournamentSummary, "myStatus" | "registrationOpen">>(tournaments: T[]) {
   const rank = ({ myStatus, registrationOpen }: T) =>
     myStatus === "invited" || myStatus === "waitlist_invited" ? 0 : myStatus ? 1 : registrationOpen ? 2 : 3;
+  // The live card above already shows a tournament I'm playing
   return [...tournaments].sort((a, b) => rank(a) - rank(b));
 }
 

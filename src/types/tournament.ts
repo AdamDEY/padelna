@@ -1,6 +1,8 @@
+import type { SetScore } from "@/lib/padel-score";
 import type { Player } from "@/types/player";
 
 export type TournamentCategory = "men" | "women" | "mixed";
+export type TournamentStatus = "setup" | "live" | "finished";
 export type TournamentFormat = "groups" | "americano";
 /** Same as `settings.entry_mode`; a group stage has no mode and is always pairs */
 export type TournamentEntryMode = "pairs" | "players" | "individual";
@@ -20,6 +22,7 @@ export type TournamentSummary = {
   id: string;
   name: string;
   format: TournamentFormat;
+  status: TournamentStatus;
   category: TournamentCategory;
   entryMode?: TournamentEntryMode;
   startsAt?: Date;
@@ -60,7 +63,6 @@ export type MyTournamentEntry = {
 };
 
 export type TournamentDetail = TournamentSummary & {
-  status: "setup" | "live" | "finished";
   clubId?: string;
   clubCity?: string;
   groupCount?: number;
@@ -87,4 +89,57 @@ export type TournamentDetail = TournamentSummary & {
 export type PartnerCandidate = Player & {
   matchesTogether: number;
   fit: TournamentFit;
+};
+
+/** A tournament score: two sets to 4, then a super tie-break when the sets are one each. */
+export type TournamentScore = { sets: SetScore[]; superTiebreak?: SetScore };
+
+/** A pair in a live tournament; pairs typed by name before player accounts have names only. */
+export type LiveEntry = {
+  id: string;
+  name1: string;
+  name2?: string;
+  groupLabel?: string;
+  position: number;
+  player1?: TournamentPlayer;
+  player2?: TournamentPlayer;
+};
+
+export type LiveMatch = {
+  id: string;
+  stage: "group" | "knockout" | "league";
+  groupLabel?: string;
+  /** Round inside the group, or the knockout round (1 = first) */
+  round: number;
+  label?: string;
+  entry1Id?: string;
+  entry2Id?: string;
+  /** Confirmed by the organiser, from side 1 */
+  score?: TournamentScore;
+  winnerEntryId?: string;
+  nextMatchId?: string;
+  nextSlot?: 1 | 2;
+  /** Sent by a player and waiting for the organiser, from side 1 */
+  submitted?: TournamentScore;
+  submittedByMe: boolean;
+  /** Which side the signed-in player is on, if they play this match */
+  mySide?: 1 | 2;
+};
+
+/** A live or finished tournament, as the live screens show it. */
+export type LiveTournament = {
+  id: string;
+  name: string;
+  format: TournamentFormat;
+  status: TournamentStatus;
+  category: TournamentCategory;
+  startsAt?: Date;
+  groupCount?: number;
+  clubId?: string;
+  clubName?: string;
+  organiserName?: string;
+  notes?: string;
+  myEntryId?: string;
+  entries: LiveEntry[];
+  matches: LiveMatch[];
 };

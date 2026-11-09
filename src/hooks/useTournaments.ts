@@ -4,12 +4,15 @@ import { notificationsKey } from "@/hooks/useNotifications";
 import {
   fetchPartnerCandidates,
   fetchTournament,
+  fetchTournamentLive,
   fetchTournaments,
   joinTournament,
   joinTournamentPartnerList,
   leaveTournament,
   respondToTournamentInvite,
+  submitTournamentScore,
 } from "@/repositories/tournament-repository";
+import type { TournamentScore } from "@/types/tournament";
 
 /** Everything about tournaments: the list, each tournament and its partner candidates */
 export const tournamentsKey = ["tournaments"] as const;
@@ -73,4 +76,24 @@ export function useRespondToTournamentInvite() {
 
 export function useLeaveTournament() {
   return useRefreshAfter(leaveTournament);
+}
+
+// Scores come in through the day; a live tournament checks again this often while it's open
+const LIVE_REFRESH_MS = 30_000;
+
+/** Groups, matches and the bracket of a live tournament. */
+export function useTournamentLive(id: string | undefined) {
+  return useQuery({
+    queryKey: [...tournamentsKey, "live", id],
+    queryFn: () => fetchTournamentLive(id as string),
+    enabled: !!id,
+    staleTime: LIVE_REFRESH_MS,
+    refetchInterval: LIVE_REFRESH_MS,
+  });
+}
+
+export function useSubmitTournamentScore() {
+  return useRefreshAfter(({ matchId, score }: { matchId: string; score: TournamentScore }) =>
+    submitTournamentScore(matchId, score),
+  );
 }
