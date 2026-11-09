@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/repositories/auth-repository";
 import { teamOf, winningTeam, type SetScore } from "@/lib/padel-score";
 import { guestId, isRatingOpen, playersToRate, ratingClosesAt, type PlayerRating } from "@/lib/player-rating";
 import type {
+  MatchAudience,
   MatchDetails,
   MatchScore,
   OpenMatch,
@@ -35,7 +36,7 @@ const RECONNECT_DELAY_MS = 5_000;
 const OVERLAP_ERROR_CODE = "23P01";
 
 const MATCH_SELECT = `
-  id, host_id, starts_at, duration_minutes, level_min, level_max, kind,
+  id, host_id, starts_at, duration_minutes, level_min, level_max, kind, audience,
   players_needed, price, note, status, origin,
   court:courts(id, number, club:clubs(id, name)),
   match_players(seat, player_id),
@@ -51,6 +52,7 @@ type MatchRow = {
   level_min: number;
   level_max: number;
   kind: "friendly" | "competitive";
+  audience: MatchAudience;
   players_needed: number;
   price: number | null;
   note: string;
@@ -91,6 +93,7 @@ export type NewMatch = {
   levelMin: number;
   levelMax: number;
   kind: "friendly" | "competitive";
+  audience: MatchAudience;
   /** How many spots the host still wants to fill (1–3) */
   playersNeeded: number;
 };
@@ -109,6 +112,7 @@ export async function createMatch(match: NewMatch) {
       level_min: match.levelMin,
       level_max: match.levelMax,
       kind: match.kind,
+      audience: match.audience,
       players_needed: match.playersNeeded,
     })
     .select("id")
@@ -162,6 +166,7 @@ export type MatchChanges = {
   levelMin: number;
   levelMax: number;
   kind: "friendly" | "competitive";
+  audience: MatchAudience;
 };
 
 /**
@@ -176,6 +181,7 @@ export async function updateMatch(matchId: string, changes: MatchChanges) {
       level_min: changes.levelMin,
       level_max: changes.levelMax,
       kind: changes.kind,
+      audience: changes.audience,
     })
     .eq("id", matchId)
     // An update the policies refuse changes no row instead of failing; .single() turns that into an error
@@ -262,6 +268,7 @@ export async function fetchOpenMatches(from: Date, to: Date): Promise<OpenMatch[
       host: match.host,
       note: match.note,
       kind: match.kind,
+      audience: match.audience,
     }));
 }
 
@@ -633,6 +640,7 @@ function toMatchDetails(row: MatchRow, cards: Map<string, Player>): MatchDetails
     levelMin: row.level_min,
     levelMax: row.level_max,
     kind: row.kind,
+    audience: row.audience,
     isLogged: row.origin === "logged",
     players: seats.filter((player): player is Player => player !== undefined),
     seats,

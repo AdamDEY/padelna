@@ -1,6 +1,9 @@
 import type { SetScore } from "@/lib/padel-score";
 import type { Player } from "@/types/player";
 
+/** Who can join a match: men only, women only, or anyone */
+export type MatchAudience = "men" | "women" | "mixed";
+
 /** A match you have joined or are hosting */
 export type NextMatch = {
   id: string;
@@ -34,7 +37,7 @@ export type OpenMatch = {
   note?: string;
   kind?: "friendly" | "competitive";
   /** Who the match is for */
-  audience?: "Men" | "Women" | "Mixed";
+  audience?: MatchAudience;
 };
 
 /** A match you are hosting or have joined */
@@ -116,7 +119,7 @@ export type MatchDetails = {
   kind: "friendly" | "competitive";
   /** Database matches only: played outside the app and logged afterwards by its host */
   isLogged?: boolean;
-  audience?: "Men" | "Women" | "Mixed";
+  audience?: MatchAudience;
   /** In seat order: the first two play together, the last two together */
   players: Player[];
   capacity: number;

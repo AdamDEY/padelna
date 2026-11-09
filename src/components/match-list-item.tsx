@@ -29,9 +29,11 @@ export function MatchListItem({ match, fit, onPress, onAskToJoin }: MatchListIte
   const tintIndices = stackTintIndices(match.players);
   const fitText = fit === "great" ? t("matchItem.greatFit") : t("matchItem.goodFit");
   const note = playable
-    ? match.isMixed
-      ? t("matchItem.mixed", { fit: fitText })
-      : fitText
+    ? match.audience === "men" || match.audience === "women"
+      ? t(`matchItem.${match.audience}Only`, { fit: fitText })
+      : match.isMixed
+        ? t("matchItem.mixed", { fit: fitText })
+        : fitText
     : t(fit === "above" ? "matchItem.above" : "matchItem.below");
 
   return (
