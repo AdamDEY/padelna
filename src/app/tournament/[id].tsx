@@ -27,6 +27,7 @@ import { Page } from "@/components/page";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { TournamentDetailRow } from "@/components/tournament-detail-row";
 import { TournamentJoinSheet } from "@/components/tournament-join-sheet";
+import { TournamentLiveView } from "@/components/tournament-live-view";
 import { TournamentTeamRow } from "@/components/tournament-team-row";
 import { tournamentsKey, useLeaveTournament, useRespondToTournamentInvite, useTournament } from "@/hooks/useTournaments";
 import { errorMessage } from "@/lib/error-message";
@@ -93,6 +94,9 @@ export default function TournamentDetailScreen() {
       </Page>
     );
   }
+
+  // Once it starts, the screen follows the groups, matches and bracket instead
+  if (tournament.status !== "setup") return <TournamentLiveView id={tournament.id} />;
 
   return <TournamentScreen tournament={tournament} />;
 }

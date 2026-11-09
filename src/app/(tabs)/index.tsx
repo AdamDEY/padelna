@@ -19,6 +19,7 @@ import { Page } from "@/components/page";
 import { ScoreReminder } from "@/components/score-reminder";
 import { SectionHeader } from "@/components/section-header";
 import { TournamentCard } from "@/components/tournament-card";
+import { TournamentLiveCard } from "@/components/tournament-live-card";
 import { myLevel } from "@/data/mock";
 import { myMatchesKey, openMatchesKey, useHomeOpenMatches, useMyUpcomingMatches } from "@/hooks/useMatches";
 import { useNearbyClubs } from "@/hooks/useClubs";
@@ -64,6 +65,8 @@ export default function Home() {
   const openMatchesQuery = useHomeOpenMatches();
   const openMatches = openMatchesQuery.data;
   const tournaments = useTournaments().data ?? [];
+  // A tournament I play in that has started takes the top card
+  const myLiveTournament = tournaments.find((tournament) => tournament.status === "live" && tournament.myStatus === "confirmed");
   const nearby = useNearbyClubs();
   const { clubs: nearbyClubs, hasDistances } = nearby;
   // Open matches that suit your level, soonest first
@@ -92,6 +95,14 @@ export default function Home() {
       <Page.Body onRefresh={refreshHome}>
         {requests.length > 0 ? (
           <ConnectionRequestsBanner requesters={requests} onReview={() => setIsReviewing(true)} />
+        ) : null}
+
+        {myLiveTournament ? (
+          <TournamentLiveCard
+            tournamentId={myLiveTournament.id}
+            myId={profile?.player?.id}
+            onPress={() => router.push({ pathname: "/tournament/[id]", params: { id: myLiveTournament.id } })}
+          />
         ) : null}
 
         {nextMatch ? (

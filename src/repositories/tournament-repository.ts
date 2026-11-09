@@ -1,5 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import type {
+  LiveEntry,
+  LiveMatch,
+  LiveTournament,
   PartnerCandidate,
   TournamentCategory,
   TournamentDetail,
@@ -8,6 +11,8 @@ import type {
   TournamentFit,
   TournamentFormat,
   TournamentPlayer,
+  TournamentScore,
+  TournamentStatus,
   TournamentSummary,
   TournamentTeam,
 } from "@/types/tournament";
@@ -16,6 +21,8 @@ type SummaryRow = {
   id: string;
   name: string;
   format: TournamentFormat;
+  /** Missing before migration 20261109200000 */
+  status?: TournamentStatus;
   category: TournamentCategory;
   entry_mode: TournamentEntryMode | null;
   starts_at: string | null;
@@ -129,7 +136,7 @@ function toTeam(json: TeamJson): TournamentTeam {
   };
 }
 
-/** Tournaments still open for entries, soonest first. */
+/** Live tournaments first, then those still open for entries, soonest first. */
 export async function fetchTournaments(): Promise<TournamentSummary[]> {
   const { data, error } = await supabase.rpc("get_tournaments");
   if (error) throw error;
@@ -137,6 +144,7 @@ export async function fetchTournaments(): Promise<TournamentSummary[]> {
     id: row.id,
     name: row.name,
     format: row.format,
+    status: row.status ?? "setup",
     category: row.category,
     entryMode: row.entry_mode ?? undefined,
     startsAt: toDate(row.starts_at),
@@ -245,5 +253,117 @@ export async function respondToTournamentInvite(entryId: string, accept: boolean
 /** The whole pair drops out. */
 export async function leaveTournament(tournamentId: string) {
   const { error } = await supabase.rpc("leave_tournament", { p_tournament_id: tournamentId });
+  if (error) throw error;
+}
+
+type ScoreJson = [number, number][] | null;
+
+type LiveJson = {
+  tournament: {
+    id: string;
+    name: string;
+    format: TournamentFormat;
+    status: TournamentStatus;
+    category: TournamentCategory;
+    starts_at: string | null;
+    group_count: number | null;
+    club_id: string | null;
+    club_name: string | null;
+    organiser_name: string | null;
+    notes: string | null;
+  };
+  my_entry_id: string | null;
+  entries: {
+    id: string;
+    name1: string;
+    name2: string | null;
+    group_label: string | null;
+    position: number;
+    player1: PlayerJson | null;
+    player2: PlayerJson | null;
+  }[];
+  matches: {
+    id: string;
+    stage: LiveMatch["stage"];
+    group_label: string | null;
+    round: number;
+    label: string | null;
+    entry1_id: string | null;
+    entry2_id: string | null;
+    sets: ScoreJson;
+    super_tiebreak: [number, number] | null;
+    winner_entry_id: string | null;
+    next_match_id: string | null;
+    next_slot: 1 | 2 | null;
+    submitted_sets: ScoreJson;
+    submitted_super_tiebreak: [number, number] | null;
+    submitted_by_me: boolean;
+    my_side: 1 | 2 | null;
+  }[];
+};
+
+function toScore(sets: ScoreJson, superTiebreak: [number, number] | null): TournamentScore | undefined {
+  if (!sets) return undefined;
+  return { sets, superTiebreak: superTiebreak ?? undefined };
+}
+
+/** A live or finished tournament; null before it starts or once it's gone. */
+export async function fetchTournamentLive(id: string): Promise<LiveTournament | null> {
+  const { data, error } = await supabase.rpc("get_tournament_live", { p_id: id });
+  if (error) throw error;
+  if (!data) return null;
+  const { tournament, my_entry_id, entries, matches } = data as LiveJson;
+  return {
+    id: tournament.id,
+    name: tournament.name,
+    format: tournament.format,
+    status: tournament.status,
+    category: tournament.category,
+    startsAt: toDate(tournament.starts_at),
+    groupCount: tournament.group_count ?? undefined,
+    clubId: tournament.club_id ?? undefined,
+    clubName: tournament.club_name ?? undefined,
+    organiserName: tournament.organiser_name ?? undefined,
+    notes: tournament.notes ?? undefined,
+    myEntryId: my_entry_id ?? undefined,
+    entries: entries.map(
+      (entry): LiveEntry => ({
+        id: entry.id,
+        name1: entry.name1,
+        name2: entry.name2 ?? undefined,
+        groupLabel: entry.group_label ?? undefined,
+        position: entry.position,
+        player1: toPlayer(entry.player1),
+        player2: toPlayer(entry.player2),
+      }),
+    ),
+    matches: matches.map(
+      (match): LiveMatch => ({
+        id: match.id,
+        stage: match.stage,
+        groupLabel: match.group_label ?? undefined,
+        round: match.round,
+        label: match.label ?? undefined,
+        entry1Id: match.entry1_id ?? undefined,
+        entry2Id: match.entry2_id ?? undefined,
+        score: match.winner_entry_id ? toScore(match.sets, match.super_tiebreak) : undefined,
+        winnerEntryId: match.winner_entry_id ?? undefined,
+        nextMatchId: match.next_match_id ?? undefined,
+        nextSlot: match.next_slot ?? undefined,
+        submitted: toScore(match.submitted_sets, match.submitted_super_tiebreak),
+        submittedByMe: match.submitted_by_me,
+        mySide: match.my_side ?? undefined,
+      }),
+    ),
+  };
+}
+
+/** Sends a match score for the organiser to confirm, written from side 1 of the match. */
+export async function submitTournamentScore(matchId: string, score: TournamentScore) {
+  const { error } = await supabase.rpc("submit_tournament_score", {
+    p_match_id: matchId,
+    p_sets: score.sets,
+    p_super_tiebreak: score.superTiebreak ?? null,
+  });
   if (error) throw error;
 }

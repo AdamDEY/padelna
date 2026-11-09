@@ -11,6 +11,7 @@ const chipTones = {
   neutral: { bg: "bg-out-of-range", fg: "text-ink-2" },
   few: { bg: "bg-warning-soft", fg: "text-warning" },
   in: { bg: "bg-success-soft", fg: "text-success-soft-foreground" },
+  live: { bg: "bg-danger-soft", fg: "text-danger-soft-foreground" },
 } as const;
 
 type TournamentCardProps = {
@@ -31,9 +32,12 @@ export function TournamentCard({ tournament, onPress }: TournamentCardProps) {
   const when = startsAt ? (format === "groups" ? formatMatchDay(startsAt) : formatMatchDateTime(startsAt)) : undefined;
   const details = [when, clubName].filter(Boolean).join(" · ");
   const unit = t(`tournaments.unit.${entryUnit(tournament)}`);
-  const count = capacity !== undefined ? `${entriesCount}/${capacity}` : String(entriesCount);
+  const isLive = tournament.status === "live";
+  const count = capacity !== undefined && !isLive ? `${entriesCount}/${capacity}` : String(entriesCount);
 
-  const chip = myStatus
+  const chip = isLive
+    ? { label: t("tournaments.live.chip"), tone: chipTones.live }
+    : myStatus
     ? { label: t(`tournaments.myStatus.${myStatus}`), tone: myStatus === "confirmed" ? chipTones.in : chipTones.neutral }
     : spotsLeft === undefined
       ? undefined
