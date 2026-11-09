@@ -117,7 +117,10 @@ export default function MatchDetail() {
       : Array.from({ length: match.capacity }, (_, index) => players[index]);
   // Nobody can join once play has begun (the database refuses too)
   const hasStarted = openedAt >= match.startsAt.getTime();
-  const canPick = !isMine && fits && !isFull && !hasStarted;
+  // The database refuses the join too; mock matches have no audience
+  const requiredGender = match.audience === "men" ? "male" : match.audience === "women" ? "female" : undefined;
+  const fitsGender = !isStored || requiredGender === undefined || account?.gender === requiredGender;
+  const canPick = !isMine && fits && fitsGender && !isFull && !hasStarted;
   const picked = selectedSeat !== undefined ? seatInfo(selectedSeat, match.capacity) : undefined;
   const self: Player =
     isStored && account
@@ -214,7 +217,7 @@ export default function MatchDetail() {
         }
       : null,
     { label: t(match.kind === "competitive" ? "match.kind.competitive" : "match.kind.friendly") },
-    match.audience ? { label: match.audience } : null,
+    match.audience ? { label: t(`match.audience.${match.audience}`) } : null,
   ].filter((tag): tag is { label: string; lime?: boolean } => tag !== null);
 
   return (
@@ -327,7 +330,14 @@ export default function MatchDetail() {
               }
               myId={account?.id}
             />
-            {fit !== undefined && !isMine ? (
+            {!fitsGender && !isMine ? (
+              <View className="flex-row items-center gap-2 rounded-[14px] bg-warning-soft px-3 py-2.5">
+                <Icon as={Clock} size={18} color="warning" />
+                <Text className="flex-1 font-bold text-[14px] text-warning">
+                  {t(match.audience === "men" ? "matchDetail.menOnly" : "matchDetail.womenOnly")}
+                </Text>
+              </View>
+            ) : fit !== undefined && !isMine ? (
               <View
                 className={cn(
                   "flex-row items-center gap-2 rounded-[14px] px-3 py-2.5",
@@ -379,6 +389,7 @@ export default function MatchDetail() {
               isFull ||
               hasStarted ||
               hasAsked ||
+              !fitsGender ||
               joinStoredMatch.isPending ||
               (fits && selectedSeat === undefined)
             }
@@ -389,15 +400,17 @@ export default function MatchDetail() {
               ? t("matchDetail.full")
               : hasStarted
                 ? t("matchDetail.alreadyStarted")
-                : !fits
-                  ? hasAsked
-                    ? t("matchDetail.requestSent")
-                    : t("matchDetail.askToJoin")
-                  : picked
-                    ? t(picked.side === "left" ? "matchDetail.joinLeft" : "matchDetail.joinRight", {
-                        team: picked.team,
-                      })
-                    : t("matchDetail.pickSpot")}
+                : !fitsGender
+                  ? t(match.audience === "men" ? "matchDetail.menOnly" : "matchDetail.womenOnly")
+                  : !fits
+                    ? hasAsked
+                      ? t("matchDetail.requestSent")
+                      : t("matchDetail.askToJoin")
+                    : picked
+                      ? t(picked.side === "left" ? "matchDetail.joinLeft" : "matchDetail.joinRight", {
+                          team: picked.team,
+                        })
+                      : t("matchDetail.pickSpot")}
           </Button>
         )}
       </Page.Footer>

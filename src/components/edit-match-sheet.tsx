@@ -5,6 +5,7 @@ import { View } from "react-native";
 
 import { Dropdown, type DropdownOption } from "@/components/dropdown";
 import { LevelRangeSlider } from "@/components/level-range-slider";
+import { MatchAudienceField } from "@/components/match-audience-field";
 import { MatchKindNote } from "@/components/match-kind-note";
 import { MatchTimeFields } from "@/components/match-time-fields";
 import { SheetField } from "@/components/sheet-field";
@@ -13,7 +14,7 @@ import { useUpdateMatch } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { errorMessage } from "@/lib/error-message";
 import { DAYS_AHEAD } from "@/lib/match-time";
-import type { MatchDetails } from "@/types/match";
+import type { MatchAudience, MatchDetails } from "@/types/match";
 
 type MatchKind = MatchDetails["kind"];
 
@@ -40,9 +41,11 @@ export function EditMatchSheet({ match, isOpen, onOpenChange }: EditMatchSheetPr
   const [pickedStart, setStartsAt] = useState<Date>();
   const [pickedRange, setLevelRange] = useState<[number, number]>();
   const [pickedKind, setKind] = useState<MatchKind>();
+  const [pickedAudience, setAudience] = useState<MatchAudience>();
   const startsAt = pickedStart ?? match.startsAt;
   const levelRange = pickedRange ?? [match.levelMin ?? 1, match.levelMax ?? 7];
   const kind = pickedKind ?? match.kind;
+  const audience = pickedAudience ?? match.audience ?? "mixed";
   const kindOptions: DropdownOption[] = [
     { value: "friendly", label: t("match.kind.friendly") },
     { value: "competitive", label: t("match.kind.competitive") },
@@ -52,7 +55,8 @@ export function EditMatchSheet({ match, isOpen, onOpenChange }: EditMatchSheetPr
     startsAt.getTime() !== match.startsAt.getTime() ||
     levelRange[0] !== match.levelMin ||
     levelRange[1] !== match.levelMax ||
-    kind !== match.kind;
+    kind !== match.kind ||
+    audience !== (match.audience ?? "mixed");
   const isInPast = startsAt.getTime() <= now.getTime();
 
   function handleOpenChange(open: boolean) {
@@ -62,6 +66,7 @@ export function EditMatchSheet({ match, isOpen, onOpenChange }: EditMatchSheetPr
       setStartsAt(undefined);
       setLevelRange(undefined);
       setKind(undefined);
+      setAudience(undefined);
     }
     onOpenChange(open);
   }
@@ -74,7 +79,7 @@ export function EditMatchSheet({ match, isOpen, onOpenChange }: EditMatchSheetPr
     updateMatch.mutate(
       {
         matchId: match.id,
-        changes: { startsAt, levelMin: levelRange[0], levelMax: levelRange[1], kind },
+        changes: { startsAt, levelMin: levelRange[0], levelMax: levelRange[1], kind, audience },
       },
       {
         onSuccess: () => {
@@ -127,6 +132,7 @@ export function EditMatchSheet({ match, isOpen, onOpenChange }: EditMatchSheetPr
               onChange={(option) => option && setKind(option.value as MatchKind)}
             />
           </SheetField>
+          <MatchAudienceField value={audience} onChange={setAudience} gender={profile?.gender} />
           <MatchKindNote kind={kind} />
 
           <Button

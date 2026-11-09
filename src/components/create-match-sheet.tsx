@@ -17,6 +17,7 @@ import { Dropdown, type DropdownOption as Option } from "@/components/dropdown";
 import { Icon } from "@/components/icon";
 import { InfoNote } from "@/components/info-note";
 import { LevelRangeSlider, MAX_LEVEL, MIN_LEVEL } from "@/components/level-range-slider";
+import { MatchAudienceField } from "@/components/match-audience-field";
 import { MatchKindNote } from "@/components/match-kind-note";
 import { MatchTimeFields } from "@/components/match-time-fields";
 import { SheetField } from "@/components/sheet-field";
@@ -29,6 +30,7 @@ import { askForPushNotifications } from "@/hooks/usePushNotifications";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { errorMessage } from "@/lib/error-message";
 import { clockTime, DAYS_AHEAD } from "@/lib/match-time";
+import type { MatchAudience } from "@/types/match";
 
 // Room the pinned Publish button takes, so the last field can scroll above it
 const FOOTER_SPACE = 104;
@@ -114,6 +116,7 @@ export function CreateMatchSheet({
     { value: "friendly", label: t("match.kind.friendly") },
     { value: "competitive", label: t("match.kind.competitive") },
   ];
+  const [audience, setAudience] = useState<MatchAudience>("mixed");
   const [playersNeeded, setPlayersNeeded] = useState(2);
 
   // `now` is when Home opened; publish() checks the real clock again
@@ -131,6 +134,7 @@ export function CreateMatchSheet({
       setStartsAt(undefined);
       setLevelRange(undefined);
       setKind("friendly");
+      setAudience("mixed");
       setPlayersNeeded(2);
     }
     onOpenChange(open);
@@ -156,6 +160,7 @@ export function CreateMatchSheet({
         levelMin: levelRange[0],
         levelMax: levelRange[1],
         kind,
+        audience,
         playersNeeded,
       },
       {
@@ -276,6 +281,8 @@ export function CreateMatchSheet({
                 </View>
               </SheetField>
             </View>
+
+            <MatchAudienceField value={audience} onChange={setAudience} gender={profile?.gender} />
 
             <MatchKindNote kind={kind} />
           </BottomSheetScrollView>

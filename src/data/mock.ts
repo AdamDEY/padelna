@@ -155,7 +155,7 @@ export const openMatches: OpenMatch[] = [
     courtName: "Court 3",
     host: players.karim,
     kind: "friendly",
-    audience: "Men",
+    audience: "men",
     note: "Relaxed game, good vibes. Balls are on me.",
   },
   {
@@ -268,7 +268,7 @@ export function getMatchDetails(id: string): MatchDetails | undefined {
       levelMin: open.levelMin,
       levelMax: open.levelMax,
       kind: open.kind ?? "friendly",
-      audience: open.audience ?? (open.isMixed ? "Mixed" : undefined),
+      audience: open.audience ?? (open.isMixed ? "mixed" : undefined),
       players: open.players,
       capacity: open.capacity,
       price: open.price,
