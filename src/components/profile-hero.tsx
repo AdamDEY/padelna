@@ -1,5 +1,5 @@
 import { Button, cn } from "heroui-native";
-import { SlidersHorizontal } from "lucide-react-native";
+import { QrCode, SlidersHorizontal, type LucideIcon } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,6 +26,8 @@ const sideKeys = {
 type ProfileHeroProps = {
   profile: PlayerProfile;
   onPressSettings?: () => void;
+  /** Opens "Share your profile" with your QR code */
+  onPressShare?: () => void;
   onPressFriends?: () => void;
   /** The player's results; their match count shows even before there are enough to show the rest */
   stats?: ProfileStats;
@@ -38,7 +40,7 @@ type ProfileHeroProps = {
 };
 
 /** Blue profile header: who you are, your level ring with progress, and headline stats. */
-export function ProfileHero({ profile, onPressSettings, onPressFriends, stats, hasPlayed = true, friendCount, isCoachVerified = false }: ProfileHeroProps) {
+export function ProfileHero({ profile, onPressSettings, onPressShare, onPressFriends, stats, hasPlayed = true, friendCount, isCoachVerified = false }: ProfileHeroProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const lime = useCSSVariable("--color-lime") as string;
@@ -104,7 +106,8 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends, stats, h
             </Text>
           ) : null}
         </View>
-        <HeroIconButton label={t("profile.editA11y")} onPress={onPressSettings} />
+        <HeroIconButton icon={QrCode} label={t("shareProfile.open")} onPress={onPressShare} />
+        <HeroIconButton icon={SlidersHorizontal} label={t("profile.editA11y")} onPress={onPressSettings} />
       </View>
 
       <View className="flex-row items-center gap-[18px]">
@@ -202,8 +205,8 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends, stats, h
   );
 }
 
-/** Round translucent settings button for the blue header */
-function HeroIconButton({ label, onPress }: { label: string; onPress?: () => void }) {
+/** Round translucent button for the blue header */
+function HeroIconButton({ icon, label, onPress }: { icon: LucideIcon; label: string; onPress?: () => void }) {
   return (
     <Button
       variant="ghost"
@@ -212,7 +215,7 @@ function HeroIconButton({ label, onPress }: { label: string; onPress?: () => voi
       onPress={onPress}
       className="size-11 rounded-full bg-white/15"
     >
-      <Icon as={SlidersHorizontal} size={20} color="accent-foreground" />
+      <Icon as={icon} size={20} color="accent-foreground" />
     </Button>
   );
 }

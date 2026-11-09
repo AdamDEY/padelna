@@ -5,7 +5,15 @@ import type { PlayerTag, PlayerTagCount } from "@/data/player-tags";
 import type { ReportReason } from "@/data/report-reasons";
 import { supabase } from "@/lib/supabase";
 import type { CoachVerification } from "@/types/coach";
-import type { ConnectionState, DiscoverPlayer, Friend, PlayerDetails, PlayerSuggestion } from "@/types/player";
+import type {
+  ConnectionState,
+  DiscoverPlayer,
+  Friend,
+  Player,
+  PlayerDetails,
+  PlayerSuggestion,
+  ScannedPlayer,
+} from "@/types/player";
 
 // How long to wait before reconnecting after the live connection fails
 const RECONNECT_DELAY_MS = 5_000;
@@ -34,6 +42,16 @@ type DetailsRow = {
   last_played_together_at: string | null;
   connection: ConnectionState;
   mutual_count: number;
+};
+
+type ScannedRow = SuggestionRow & {
+  side: ScannedPlayer["side"];
+  play_style: ScannedPlayer["playStyle"];
+  friend_count: number;
+  matches_played: number;
+  matches_scored: number;
+  wins: number;
+  mutual_friends: { id: string; first_name: string; last_name: string; avatar_url: string | null }[];
 };
 
 type CoachRow = {
@@ -124,6 +142,31 @@ export function fetchConnectionRequests() {
 /** Players whose name, or a club they've played at, matches `query` (2+ characters). */
 export function searchPlayers(query: string) {
   return fetchList("search_players", { p_query: query });
+}
+
+/** The player a share code belongs to, or null when no player has that code. */
+export async function fetchPlayerByCode(code: string): Promise<ScannedPlayer | null> {
+  const { data, error } = await supabase.rpc("get_player_by_code", { p_code: code });
+  if (error) throw error;
+  const row = (data as ScannedRow[])[0];
+  if (!row) return null;
+  return {
+    ...toSuggestion(row),
+    side: row.side,
+    playStyle: row.play_style,
+    friendCount: row.friend_count,
+    matchesPlayed: row.matches_played,
+    matchesScored: row.matches_scored,
+    wins: row.wins,
+    mutualFriends: row.mutual_friends.map(
+      (friend): Player => ({
+        id: friend.id,
+        firstName: friend.first_name,
+        lastName: friend.last_name,
+        avatarUrl: friend.avatar_url ?? undefined,
+      }),
+    ),
+  };
 }
 
 /** How a player plays, their bio, friends, clubs and your history together. */
