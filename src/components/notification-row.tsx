@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Star,
   Trash2,
+  Trophy,
   UserMinus,
   UserPlus,
   type LucideIcon,
@@ -45,6 +46,9 @@ const badges: Partial<Record<NotificationKind, { icon: LucideIcon; bg: string; c
   match_cancelled: { icon: CalendarX, bg: "bg-attention-soft", color: "attention" },
   score_to_confirm: { icon: Star, bg: "bg-attention-soft", color: "attention" },
   rate_players: { icon: Star, bg: "bg-attention-soft", color: "attention" },
+  tournament_promoted: { icon: Trophy, bg: "bg-success-soft", color: "success-soft-foreground" },
+  tournament_added: { icon: Trophy, bg: "bg-success-soft", color: "success-soft-foreground" },
+  tournament_removed: { icon: Trophy, bg: "bg-attention-soft", color: "attention" },
 };
 
 function timeAgo(date: Date) {
@@ -89,7 +93,7 @@ type NotificationRowProps = {
 export function NotificationRow({ notification, onPress, onAccept, onIgnore, onDelete, onSwipeOpen, isRemoving }: NotificationRowProps) {
   const swipeable = useRef<SwipeableMethods>(null);
   const { t } = useTranslation();
-  const { kind, player, startsAt, clubName, count, isRead } = notification;
+  const { kind, player, startsAt, clubName, count, tournamentName, isRead } = notification;
   const badge = badges[kind];
   const text = t(`notifications.kind.${kind}`, {
     name: player ? (player.lastName ? shortNameOf(player) : player.firstName) : t("notifications.someone"),
@@ -98,6 +102,7 @@ export function NotificationRow({ notification, onPress, onAccept, onIgnore, onD
     weekday: startsAt ? formatWeekday(startsAt) : "",
     atClub: clubName ? t("notifications.atClub", { club: clubName }) : "",
     count,
+    tournament: tournamentName ?? "",
   });
   // Buttons only where the screen says the request is still waiting for an answer
   const hasActions = !!onAccept && !!onIgnore;

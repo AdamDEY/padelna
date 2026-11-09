@@ -25,7 +25,8 @@ import { useNearbyClubs } from "@/hooks/useClubs";
 import { notificationsKey, useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { connectionRequestsKey, useConnectionRequests } from "@/hooks/usePlayers";
 import { myProfileKey, useMyProfile } from "@/hooks/useMyProfile";
-import { upcomingTournamentsKey, useUpcomingTournaments } from "@/hooks/useTournaments";
+import { tournamentsKey, useTournaments } from "@/hooks/useTournaments";
+import { forHome } from "@/lib/tournament";
 import { errorMessage } from "@/lib/error-message";
 import { isPlayableFit, levelFit } from "@/lib/level-fit";
 import { queryClient } from "@/lib/query-client";
@@ -33,8 +34,8 @@ import { queryClient } from "@/lib/query-client";
 // Width that shows about 1.5 cards on a phone (design.md)
 const OPEN_MATCH_CARD_WIDTH = 248;
 
-// Wide enough for a name and details, narrow enough that the next card peeks in
-const TOURNAMENT_CARD_WIDTH = 330;
+// Tournaments on Home; "See all" has the rest
+const HOME_TOURNAMENTS = 2;
 
 // Room under the last section so the floating Create match button never covers it
 const FLOATING_BUTTON_SPACE = 72;
@@ -42,7 +43,7 @@ const FLOATING_BUTTON_SPACE = 72;
 // Pull to refresh reloads everything Home shows that comes from Supabase
 function refreshHome() {
   return Promise.all(
-    [myProfileKey, myMatchesKey, openMatchesKey, connectionRequestsKey, notificationsKey, upcomingTournamentsKey].map((queryKey) =>
+    [myProfileKey, myMatchesKey, openMatchesKey, connectionRequestsKey, notificationsKey, tournamentsKey].map((queryKey) =>
       queryClient.refetchQueries({ queryKey }),
     ),
   );
@@ -62,7 +63,7 @@ export default function Home() {
 
   const openMatchesQuery = useHomeOpenMatches();
   const openMatches = openMatchesQuery.data;
-  const tournaments = useUpcomingTournaments().data ?? [];
+  const tournaments = useTournaments().data ?? [];
   const nearby = useNearbyClubs();
   const { clubs: nearbyClubs, hasDistances } = nearby;
   // Open matches that suit your level, soonest first
@@ -93,16 +94,6 @@ export default function Home() {
           <ConnectionRequestsBanner requesters={requests} onReview={() => setIsReviewing(true)} />
         ) : null}
 
-        {tournaments.length === 1 ? (
-          <TournamentCard tournament={tournaments[0]} />
-        ) : tournaments.length > 1 ? (
-          <Page.Carousel itemWidth={TOURNAMENT_CARD_WIDTH}>
-            {tournaments.map((tournament) => (
-              <TournamentCard key={tournament.id} tournament={tournament} width={TOURNAMENT_CARD_WIDTH} />
-            ))}
-          </Page.Carousel>
-        ) : null}
-
         {nextMatch ? (
           <NextMatchCard
             match={nextMatch}
@@ -114,6 +105,23 @@ export default function Home() {
             onRetry={() => upcomingQuery.refetch()}
             isRetrying={upcomingQuery.isRefetching}
           />
+        ) : null}
+
+        {tournaments.length > 0 ? (
+          <View className="gap-2.5">
+            <SectionHeader
+              title={t("home.tournament.title")}
+              actionLabel={t("common.seeAll")}
+              onPressAction={() => router.push("/tournaments")}
+            />
+            {forHome(tournaments).slice(0, HOME_TOURNAMENTS).map((tournament) => (
+              <TournamentCard
+                key={tournament.id}
+                tournament={tournament}
+                onPress={() => router.push({ pathname: "/tournament/[id]", params: { id: tournament.id } })}
+              />
+            ))}
+          </View>
         ) : null}
 
         <View className="gap-3">
