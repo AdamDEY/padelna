@@ -35,6 +35,20 @@ export type Friend = PlayerSuggestion & {
   connectedAt: Date;
 };
 
+/** A player found by scanning their code: their card, how they play and a few numbers */
+export type ScannedPlayer = PlayerSuggestion & {
+  side: "left" | "right" | "both";
+  playStyle: "aggressive" | "balanced" | "defensive" | "tactical";
+  friendCount: number;
+  /** Full matches they've played */
+  matchesPlayed: number;
+  /** Matches with a confirmed score; win rate only means something after a few */
+  matchesScored: number;
+  wins: number;
+  /** Up to two friends you have in common, to name on the sheet */
+  mutualFriends: Player[];
+};
+
 /** What the player preview and full profile show beyond the card */
 export type PlayerDetails = {
   side: "left" | "right" | "both";

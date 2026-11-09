@@ -1,8 +1,8 @@
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { Button, cn, PressableFeedback, Spinner, useToast } from "heroui-native";
 import { ChevronRight, LogOut } from "lucide-react-native";
-import { Fragment, useCallback, useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,6 +14,7 @@ import { LevelChart } from "@/components/level-chart";
 import { Page } from "@/components/page";
 import { PlayerAvatar, shortNameOf } from "@/components/player-avatar";
 import { ProfileHero } from "@/components/profile-hero";
+import { ShareProfileSheet } from "@/components/share-profile-sheet";
 import { WinRateBars } from "@/components/win-rate-bars";
 import { useMatchHistory, useMyPastMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
@@ -36,6 +37,19 @@ export default function Profile() {
   const friendCount = usePlayerDetails(profile?.player.id).data?.friendCount ?? 0;
   const { data: tags = [] } = usePlayerTags(profile?.player.id);
   const { data: coach } = useCoachVerification(profile?.player.id);
+
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  // "Show my code" on the scanner comes back here and opens the sheet again
+  const { share } = useLocalSearchParams<{ share?: string }>();
+  function setShareOpen(open: boolean) {
+    setIsShareOpen(open);
+    if (!open && share) router.setParams({ share: undefined });
+  }
+  // The sheet is drawn above everything, so it must close when another screen opens over this one
+  // (the scanner, or a player's code opened as a link)
+  useFocusEffect(
+    useCallback(() => () => setIsShareOpen(false), []),
+  );
 
   const insets = useSafeAreaInsets();
   // White status bar text while the blue header is behind it; dark once it scrolls away
@@ -149,6 +163,7 @@ export default function Profile() {
             friendCount={friendCount}
             isCoachVerified={Boolean(coach)}
             onPressSettings={() => router.push("/settings")}
+            onPressShare={() => setShareOpen(true)}
           />
         </View>
 
@@ -278,6 +293,15 @@ export default function Profile() {
           </Button>
         </View>
       </Page.Body>
+
+      <ShareProfileSheet
+        isOpen={isShareOpen || share === "1"}
+        onOpenChange={setShareOpen}
+        onScan={() => {
+          setShareOpen(false);
+          router.push("/scan");
+        }}
+      />
     </Page>
   );
 }

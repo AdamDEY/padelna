@@ -41,7 +41,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Padelna uses your photos so you can add a profile picture.",
-          "cameraPermission": false,
+          "cameraPermission": "Padelna uses your camera to scan another player's code.",
           "microphonePermission": false
         }
       ],
@@ -72,7 +72,24 @@
           "writeOnlyAccess": true,
           "writeOnlyCalendarPermission": "Padelna adds your padel matches to your calendar when you ask it to."
         }
-      ]
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Padelna uses your camera to scan another player's code.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "savePhotosPermission": "Padelna saves your profile card to your photos when you ask it to.",
+          "photosPermission": false,
+          "granularPermissions": ["photo"]
+        }
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

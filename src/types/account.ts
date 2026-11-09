@@ -19,4 +19,6 @@ export type MyAccount = {
   /** The exact level behind `level`, which matches move in small steps */
   levelPoints: number | undefined;
   avatarUrl: string | undefined;
+  /** Goes in the QR code and the profile link; never changes */
+  shareCode: string;
 };

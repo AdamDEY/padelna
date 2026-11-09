@@ -8,6 +8,7 @@ import {
   fetchDiscoverPlayers,
   fetchMyFriends,
   fetchMyClubs,
+  fetchPlayerByCode,
   fetchPlayerDetails,
   fetchCoachVerification,
   fetchPlayerTags,
@@ -126,6 +127,20 @@ export function useCoachVerification(playerId: string | undefined) {
     queryKey: [...playersKey, "coach", playerId],
     queryFn: () => fetchCoachVerification(playerId!),
     enabled: playerId !== undefined,
+  });
+}
+
+/** Looks a share code up; the scanner fetches with it before showing the player. */
+export function playerByCodeQuery(code: string) {
+  return { queryKey: [...playersKey, "by-code", code], queryFn: () => fetchPlayerByCode(code) };
+}
+
+/** The player behind a share code; null when no player has it. */
+export function usePlayerByCode(code: string | undefined) {
+  return useQuery({
+    queryKey: [...playersKey, "by-code", code],
+    queryFn: () => fetchPlayerByCode(code!),
+    enabled: code !== undefined,
   });
 }
 
