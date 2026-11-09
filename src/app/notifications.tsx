@@ -18,8 +18,11 @@ import {
   useNotifications,
   useUnreadCounts,
 } from "@/hooks/useNotifications";
+import { useMyMatchInvites, useRespondToMatchInvite } from "@/hooks/useMatchInvites";
 import { useConnectionRequests, useRespondToConnection } from "@/hooks/usePlayers";
+import { celebrate } from "@/lib/celebrate";
 import { errorMessage } from "@/lib/error-message";
+import { formatMatchDateTime } from "@/lib/format-date";
 import type { AppNotification } from "@/types/notification";
 
 type Filter = "all" | "matches" | "friends";
@@ -47,6 +50,8 @@ export default function Notifications() {
   const markAllRead = useMarkAllNotificationsRead();
   const deleteOne = useDeleteNotification();
   const respond = useRespondToConnection();
+  const { data: matchInvites } = useMyMatchInvites();
+  const respondToMatchInvite = useRespondToMatchInvite();
 
   // A request you've already answered (here, on Home or in Players) has nothing left to do
   const items = useMemo(() => {
@@ -62,12 +67,20 @@ export default function Notifications() {
     const seen = new Set<string>();
     const ids = new Set<string>();
     for (const n of items) {
+      if (n.kind === "match_invite") {
+        // Answerable while the database still lists the invitation (not started, not taken back)
+        if (n.matchId && !seen.has(n.matchId) && matchInvites?.some((invite) => invite.matchId === n.matchId)) {
+          seen.add(n.matchId);
+          ids.add(n.id);
+        }
+        continue;
+      }
       if (n.kind !== "connection_request" || !n.player || seen.has(n.player.id)) continue;
       seen.add(n.player.id);
       ids.add(n.id);
     }
     return ids;
-  }, [items]);
+  }, [items, matchInvites]);
 
   // Counted by the database, so they cover notifications that aren't loaded yet
   const unreadCount = (group: Filter) =>
@@ -95,7 +108,38 @@ export default function Notifications() {
     });
   }
 
+  function answerMatchInvite(notification: AppNotification, accepted: boolean) {
+    const invite = matchInvites?.find((item) => item.matchId === notification.matchId);
+    if (!invite) return;
+    respondToMatchInvite.mutate(
+      { inviteId: invite.id, matchId: invite.matchId, accept: accepted },
+      {
+        onSuccess: () => {
+          if (accepted) {
+            toast.show({
+              variant: "success",
+              label: t("matchDetail.youAreIn"),
+              description: t("matchDetail.joinedText", {
+                title: formatMatchDateTime(invite.startsAt),
+                club: invite.clubName ?? t("matchDetail.courtToBook"),
+              }),
+            });
+            celebrate();
+          } else {
+            toast.show({ label: t("matchInvite.declined"), description: t("matchInvite.declinedText") });
+          }
+        },
+        onError: (err) =>
+          toast.show({ variant: "danger", label: t("matchInvite.answerFailed"), description: errorMessage(err) }),
+      },
+    );
+  }
+
   function answer(notification: AppNotification, accepted: boolean) {
+    if (notification.kind === "match_invite") {
+      answerMatchInvite(notification, accepted);
+      return;
+    }
     const { player } = notification;
     if (!player) return;
     respond.mutate(
@@ -278,6 +322,7 @@ type RowProps = {
 };
 
 function Row({ notification, answerable, isRemoving, onOpen, onDelete, onSwipeOpen, onAnswer }: RowProps) {
+  const { t } = useTranslation();
   return (
     <NotificationRow
       notification={notification}
@@ -287,6 +332,8 @@ function Row({ notification, answerable, isRemoving, onOpen, onDelete, onSwipeOp
       isRemoving={isRemoving}
       onAccept={answerable ? () => onAnswer(notification, true) : undefined}
       onIgnore={answerable ? () => onAnswer(notification, false) : undefined}
+      acceptLabel={notification.kind === "match_invite" ? t("matchInvite.acceptShort") : undefined}
+      ignoreLabel={notification.kind === "match_invite" ? t("matchInvite.decline") : undefined}
     />
   );
 }

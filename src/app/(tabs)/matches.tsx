@@ -9,6 +9,7 @@ import { CreateMatchSheet } from "@/components/create-match-sheet";
 import { DateStrip } from "@/components/date-strip";
 import { FilterChip } from "@/components/filter-chip";
 import { InviteFriendSheet } from "@/components/invite-friend-sheet";
+import { MatchInviteCard } from "@/components/match-invite-card";
 import { MatchListItem } from "@/components/match-list-item";
 import { MatchListItemSkeleton } from "@/components/match-list-item-skeleton";
 import { MatchRowSkeleton } from "@/components/match-row-skeleton";
@@ -29,6 +30,7 @@ import {
   useOpenMatches,
   usePendingScores,
 } from "@/hooks/useMatches";
+import { useMyMatchInvites } from "@/hooks/useMatchInvites";
 import { useMyAccount, useMyProfile } from "@/hooks/useMyProfile";
 import { daysUntil, formatMatchDay } from "@/lib/format-date";
 import { compareByFit, isPlayableFit, levelFit } from "@/lib/level-fit";
@@ -227,11 +229,12 @@ function MyMatches({ onFindOpen }: { onFindOpen: () => void }) {
   const { data: account } = useMyAccount();
   const { data: upcomingMatches, error, refetch, isRefetching } = useMyUpcomingMatches();
   const { data: pendingScores = [] } = usePendingScores();
+  const { data: invites = [] } = useMyMatchInvites();
   const { data: pastMatches } = useMyPastMatches();
   const [isCreating, setIsCreating] = useState(false);
   const [inviteTo, setInviteTo] = useState<UpcomingMatch | null>(null);
   // Nothing upcoming and nothing played: one welcome card instead of two empty lists
-  const hasNothing = upcomingMatches?.length === 0 && pastMatches?.length === 0 && pendingScores.length === 0;
+  const hasNothing = upcomingMatches?.length === 0 && pastMatches?.length === 0 && pendingScores.length === 0 && invites.length === 0;
 
   if (hasNothing) {
     return (
@@ -244,6 +247,19 @@ function MyMatches({ onFindOpen }: { onFindOpen: () => void }) {
 
   return (
     <>
+      {invites.length > 0 ? (
+        <View className="gap-2.5">
+          <SectionHeader size="sm" title={t("matchInvite.sectionTitle", { count: invites.length })} />
+          {invites.map((invite) => (
+            <MatchInviteCard
+              key={invite.id}
+              invite={invite}
+              onPress={() => router.push({ pathname: "/match/[id]", params: { id: invite.matchId } })}
+            />
+          ))}
+        </View>
+      ) : null}
+
       {pendingScores.map((review) => (
         <RateResultBanner
           key={review.matchId}

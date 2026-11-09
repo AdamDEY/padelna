@@ -26,6 +26,8 @@ export type OpenMatch = {
   players: Player[];
   /** Padel is played 2 vs 2 */
   capacity: number;
+  /** Seats held for players the host invited, so they aren't open */
+  heldSeats?: number;
   /** Price per player, in TND; left out until the club sets it */
   price?: number;
   isMixed?: boolean;
@@ -106,6 +108,30 @@ export type MatchScore = {
   photoPath?: string;
 };
 
+/** A player the host invited to an open seat, who hasn't answered yet; the seat is held for them */
+export type MatchInvite = {
+  id: string;
+  /** Seat 2–4 (seat 1 is the host's) */
+  seat: number;
+  player: Player;
+};
+
+/** An invitation to someone else's match that is waiting for your answer */
+export type MyMatchInvite = {
+  id: string;
+  matchId: string;
+  seat: number;
+  createdAt: Date;
+  startsAt: Date;
+  /** Missing while the host hasn't booked a court */
+  clubName?: string;
+  courtName?: string;
+  levelMin: number;
+  levelMax: number;
+  kind: "friendly" | "competitive";
+  host: Player;
+};
+
 /** Everything the Match detail screen shows, for open matches and your own */
 export type MatchDetails = {
   id: string;
@@ -130,8 +156,10 @@ export type MatchDetails = {
   clubId?: string;
   /** Database matches only: the booked court, so the host can change it */
   courtId?: string;
-  /** Database matches only: whether anyone besides the host has joined (then only the court can change) */
+  /** Database matches only: whether anyone besides the host has joined or been invited (then only the court can change) */
   hasJoinedPlayers?: boolean;
+  /** Database matches only: invitations nobody has answered yet; those seats are held, not open */
+  invites?: MatchInvite[];
   /**
    * One entry per seat (seats 1–2 are one team, 3–4 the other): a player, a guest
    * of the host, or undefined for an open seat. `players` leaves the open ones out.

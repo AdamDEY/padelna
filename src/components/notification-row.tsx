@@ -81,6 +81,9 @@ type NotificationRowProps = {
   onAccept?: () => void;
   /** Ignore */
   onIgnore?: () => void;
+  /** Wording of the two buttons when it isn't a connection request */
+  acceptLabel?: string;
+  ignoreLabel?: string;
   /** Swiping the row to the left reveals Delete when this is given */
   onDelete?: () => void;
   /** Called as the row's Delete button opens, so the screen can close the one opened before */
@@ -90,7 +93,7 @@ type NotificationRowProps = {
 };
 
 /** One notification (design canvas "Notifications"): avatar or icon badge, sentence, time and unread dot. */
-export function NotificationRow({ notification, onPress, onAccept, onIgnore, onDelete, onSwipeOpen, isRemoving }: NotificationRowProps) {
+export function NotificationRow({ notification, onPress, onAccept, onIgnore, acceptLabel, ignoreLabel, onDelete, onSwipeOpen, isRemoving }: NotificationRowProps) {
   const swipeable = useRef<SwipeableMethods>(null);
   const { t } = useTranslation();
   const { kind, player, startsAt, clubName, count, tournamentName, isRead } = notification;
@@ -137,7 +140,7 @@ export function NotificationRow({ notification, onPress, onAccept, onIgnore, onD
         // Lines up with the text: side padding + avatar + gap
         <View className="-mt-1 flex-row gap-2 pb-3 ps-[76px]">
           <Button size="sm" onPress={onAccept} className="h-[34px] rounded-[11px] px-4">
-            <Button.Label className="font-bold text-[13px]">{t("connections.accept")}</Button.Label>
+            <Button.Label className="font-bold text-[13px]">{acceptLabel ?? t("connections.accept")}</Button.Label>
           </Button>
           <Button
             size="sm"
@@ -145,7 +148,7 @@ export function NotificationRow({ notification, onPress, onAccept, onIgnore, onD
             onPress={onIgnore}
             className="h-[34px] rounded-[11px] border-line-input px-3.5"
           >
-            <Button.Label className="font-bold text-[13px] text-ink-2">{t("notifications.ignore")}</Button.Label>
+            <Button.Label className="font-bold text-[13px] text-ink-2">{ignoreLabel ?? t("notifications.ignore")}</Button.Label>
           </Button>
         </View>
       ) : null}

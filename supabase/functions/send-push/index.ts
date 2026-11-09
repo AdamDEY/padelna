@@ -46,7 +46,10 @@ type Kind =
   | "tournament_partner_left"
   | "tournament_promoted"
   | "tournament_added"
-  | "tournament_removed";
+  | "tournament_removed"
+  | "match_invite"
+  | "match_invite_declined"
+  | "match_invite_cancelled";
 
 type Ticket = { status: "ok"; id: string } | { status: "error"; message: string; details?: { error?: string } };
 
@@ -87,6 +90,9 @@ const texts: Record<Language, Record<Kind, (p: Params) => Text>> = {
     tournament_promoted: (p) => ({ title: "A spot opened up!", body: `You’re in ${p.tournament}.` }),
     tournament_added: (p) => ({ title: "You’re in a tournament", body: `The organiser added you to ${p.tournament}.` }),
     tournament_removed: (p) => ({ title: "Removed from a tournament", body: `The organiser removed your team from ${p.tournament}.` }),
+    match_invite: (p) => ({ title: `${p.name} invited you to play`, body: `${p.when}. Open the match to accept or decline.` }),
+    match_invite_declined: (p) => ({ title: `${p.name} declined your invitation`, body: `${p.when} · the spot is open again` }),
+    match_invite_cancelled: (p) => ({ title: `${p.name} took back the invitation`, body: p.when }),
   },
   fr: {
     chat_message: (p) => ({ title: `${p.name} · ${p.when}`, body: p.body }),
@@ -120,6 +126,9 @@ const texts: Record<Language, Record<Kind, (p: Params) => Text>> = {
     tournament_promoted: (p) => ({ title: "Une place s’est libérée !", body: `Tu joues ${p.tournament}.` }),
     tournament_added: (p) => ({ title: "Tu es inscrit à un tournoi", body: `L’organisateur t’a ajouté à ${p.tournament}.` }),
     tournament_removed: (p) => ({ title: "Retiré d’un tournoi", body: `L’organisateur a retiré ton équipe de ${p.tournament}.` }),
+    match_invite: (p) => ({ title: `${p.name} t’invite à jouer`, body: `${p.when}. Ouvre le match pour accepter ou refuser.` }),
+    match_invite_declined: (p) => ({ title: `${p.name} a refusé ton invitation`, body: `${p.when} · la place est libre` }),
+    match_invite_cancelled: (p) => ({ title: `${p.name} a retiré son invitation`, body: p.when }),
   },
 };
 

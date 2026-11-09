@@ -24,7 +24,7 @@ export function OpenMatchCard({ match, onPress, onJoin, width }: OpenMatchCardPr
   const { t } = useTranslation();
   const when = formatShortMatchDateTime(match.startsAt);
   const where = `${match.clubName} · ${t("time.minutes", { count: match.durationMinutes })}`;
-  const spotsLeft = Math.max(match.capacity - match.players.length, 0);
+  const spotsLeft = Math.max(match.capacity - match.players.length - (match.heldSeats ?? 0), 0);
   const spotsLabel = t("match.spots", { count: spotsLeft });
   const priceLabel = match.price !== undefined ? `${match.price} TND` : undefined;
   const tintIndices = stackTintIndices(match.players);

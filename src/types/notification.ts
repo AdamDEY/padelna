@@ -23,7 +23,10 @@ export type NotificationKind =
   | "tournament_partner_left"
   | "tournament_promoted"
   | "tournament_added"
-  | "tournament_removed";
+  | "tournament_removed"
+  | "match_invite"
+  | "match_invite_declined"
+  | "match_invite_cancelled";
 
 /** Which filter tab a notification belongs to */
 export type NotificationGroup = "matches" | "friends";
