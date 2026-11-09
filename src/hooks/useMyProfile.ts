@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { myProfile as mockProfile } from "@/data/mock";
+import { levelProgress } from "@/lib/profile-stats";
 import { ageFromBirthDate } from "@/lib/age";
 import { fetchMyAccount } from "@/repositories/profile-repository";
 import type { MyAccount } from "@/types/account";
@@ -8,10 +9,10 @@ import type { PlayerProfile } from "@/types/profile";
 
 export const myProfileKey = ["my-profile"] as const;
 
-/** Level is the placeholder 6 until the quiz result exists. Stats, charts, partners and reputation stay mock until their tables exist. */
+/** The player's details; match statistics come from `useMyStats`. */
 function toPlayerProfile(account: MyAccount): PlayerProfile {
+  const level = account.level ?? mockProfile.level;
   return {
-    ...mockProfile,
     player: {
       id: account.id,
       firstName: account.firstName,
@@ -25,7 +26,8 @@ function toPlayerProfile(account: MyAccount): PlayerProfile {
     age: account.birthDate ? ageFromBirthDate(account.birthDate) : undefined,
     side: account.side,
     playStyle: account.playStyle,
-    level: account.level ?? mockProfile.level,
+    level,
+    ...levelProgress(account.levelPoints ?? level),
   };
 }
 
@@ -34,7 +36,7 @@ export function useMyAccount() {
   return useQuery({ queryKey: myProfileKey, queryFn: fetchMyAccount });
 }
 
-/** The signed-in player's profile: real details from Supabase, the rest still mock. */
+/** The signed-in player's profile details from Supabase. */
 export function useMyProfile() {
   return useQuery({ queryKey: myProfileKey, queryFn: fetchMyAccount, select: toPlayerProfile });
 }

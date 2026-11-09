@@ -6,9 +6,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { useCSSVariable } from "uniwind";
 
+import { CoachVerifiedBadge } from "@/components/coach-verified-badge";
 import { Icon } from "@/components/icon";
 import { PlayerAvatar } from "@/components/player-avatar";
-import type { PlayerProfile } from "@/types/profile";
+import type { PlayerProfile, ProfileStats } from "@/types/profile";
 
 const RING_SIZE = 104;
 const RING_STROKE = 9;
@@ -26,44 +27,42 @@ type ProfileHeroProps = {
   profile: PlayerProfile;
   onPressSettings?: () => void;
   onPressFriends?: () => void;
-  /** False until a first match is played: the stats and progress are left out */
+  /** The player's results; their match count shows even before there are enough to show the rest */
+  stats?: ProfileStats;
+  /** False until enough matches have a confirmed score: the stats and progress are left out */
   hasPlayed?: boolean;
   /** Real friend count; the profile's own is still mock */
   friendCount?: number;
+  /** A coach has verified the level shown (the profile's level is then the coach's) */
+  isCoachVerified?: boolean;
 };
 
 /** Blue profile header: who you are, your level ring with progress, and headline stats. */
-export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlayed = true, friendCount }: ProfileHeroProps) {
+export function ProfileHero({ profile, onPressSettings, onPressFriends, stats, hasPlayed = true, friendCount, isCoachVerified = false }: ProfileHeroProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const lime = useCSSVariable("--color-lime") as string;
-  const nextLevel = profile.level + 0.5;
+  const nextLevel = profile.nextLevel;
   const percent = Math.round(profile.progressToNext * 100);
-  // "W3" = three wins in a row, "L2" = two losses
-  const streak = t(profile.streak.startsWith("W") ? "profile.streakWin" : "profile.streakLoss", {
-    count: Number(profile.streak.slice(1)),
-  });
+  const streak = stats?.streak
+    ? t(stats.streak.result === "won" ? "profile.streakWin" : "profile.streakLoss", { count: stats.streak.count })
+    : "–";
   const circumference = 2 * Math.PI * RING_RADIUS;
 
-  const stats = [
-    { value: String(profile.matchesPlayed), label: t("profile.played") },
-    { value: `${profile.winRate}%`, label: t("profile.winRate") },
+  const statList = [
+    { value: String(stats?.matchesPlayed ?? 0), label: t("profile.played") },
+    { value: `${stats?.winRate ?? 0}%`, label: t("profile.winRate") },
     { value: streak, label: t("profile.streak") },
     {
-      value: String(friendCount ?? profile.friendCount),
+      value: String(friendCount ?? 0),
       label: t("profile.friends"),
       onPress: onPressFriends,
     },
   ];
-  // New players have no results yet, so only "Played" and "Friends" carry a number
+  // Until there are enough scored matches only "Played" and "Friends" carry a number
   const shownStats = hasPlayed
-    ? stats
-    : [
-        { ...stats[0], value: "0" },
-        { ...stats[1], value: "–", dim: true },
-        { ...stats[2], value: "–", dim: true },
-        stats[3],
-      ];
+    ? statList
+    : [statList[0], { ...statList[1], value: "–", dim: true }, { ...statList[2], value: "–", dim: true }, statList[3]];
 
   return (
     <View
@@ -146,7 +145,10 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlaye
             <Text className="font-black text-[32px] leading-[34px] text-accent-foreground">
               {profile.level.toFixed(1)}
             </Text>
-            <Text className="font-bold text-[11px] text-primary-tint-text">{t("profile.levelWord")}</Text>
+            <View className="flex-row items-center gap-1">
+              {isCoachVerified ? <CoachVerifiedBadge size={13} color="lime" /> : null}
+              <Text className="font-bold text-[11px] text-primary-tint-text">{t("profile.levelWord")}</Text>
+            </View>
           </View>
         </View>
 
@@ -155,24 +157,25 @@ export function ProfileHero({ profile, onPressSettings, onPressFriends, hasPlaye
             <Text className="font-black text-[16px] text-accent-foreground">
               {t("profile.progress", { percent, next: nextLevel.toFixed(1) })}
             </Text>
-            <Text className="font-normal text-[13px] leading-[18px] text-primary-tint-text">
-              {t("profile.hint", {
-                wins: profile.nextLevelHint.wins,
-                level: profile.nextLevelHint.opponentLevel.toFixed(1),
-              })}
-            </Text>
+            {isCoachVerified ? (
+              <Text className="self-start overflow-hidden rounded-[10px] bg-lime px-2.5 py-1 font-bold text-[12px] text-lime-foreground">
+                {t("coach.verified")}
+              </Text>
+            ) : null}
             <Text className="self-start overflow-hidden rounded-[10px] bg-white/15 px-2.5 py-1 font-bold text-[12px] text-accent-foreground">
-              {t("profile.basedOn", { matches: t("profile.matchesCount", { count: profile.matchesPlayed }) })}
+              {t("profile.basedOn", { matches: t("profile.matchesCount", { count: stats?.matchesScored ?? 0 }) })}
             </Text>
           </View>
         ) : (
           <View className="flex-1 gap-1.5">
             <Text className="self-start overflow-hidden rounded-[10px] bg-lime px-2.5 py-1 font-bold text-[12px] text-lime-foreground">
-              {t("profile.startingLevel")}
+              {isCoachVerified ? t("coach.verified") : t("profile.startingLevel")}
             </Text>
-            <Text className="font-black text-[16px] text-accent-foreground">{t("profile.welcome")}</Text>
+            <Text className="font-black text-[16px] text-accent-foreground">
+              {isCoachVerified ? t("coach.heroTitle") : t("profile.welcome")}
+            </Text>
             <Text className="font-normal text-[13px] leading-[18px] text-primary-tint-text">
-              {t("profile.welcomeHint")}
+              {isCoachVerified ? t("coach.heroHint") : t("profile.welcomeHint")}
             </Text>
           </View>
         )}

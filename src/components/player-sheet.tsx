@@ -17,12 +17,14 @@ import {
 } from "@gorhom/bottom-sheet";
 
 import { ConnectButton } from "@/components/connect-button";
+import { CoachVerifiedBadge } from "@/components/coach-verified-badge";
+import { CoachVerificationCard } from "@/components/coach-verification-card";
 import { Icon } from "@/components/icon";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { ReportPlayerSheet } from "@/components/report-player-sheet";
 import { mockPlayerStats } from "@/data/mock";
 import type { PlayerTagCount } from "@/data/player-tags";
-import { useFreshPlayer, usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
+import { useCoachVerification, useFreshPlayer, usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
 import { formatMatchDay } from "@/lib/format-date";
 import type {
   Player,
@@ -169,6 +171,8 @@ function Header({
   children: ReactNode;
 }) {
   const { t } = useTranslation();
+  const { data: coach } = useCoachVerification(player.id);
+  const level = player.level;
 
   return (
     <View className="flex-row items-center gap-3.5">
@@ -186,14 +190,17 @@ function Header({
         </Text>
         {children}
       </View>
-      {player.level !== undefined ? (
+      {level !== undefined ? (
         <View className="items-center rounded-2xl bg-success-soft px-3 py-2">
           <Text className="font-black text-[24px] leading-[26px] text-success">
-            {player.level.toFixed(1)}
+            {level.toFixed(1)}
           </Text>
-          <Text className="font-bold text-[11px] text-success">
-            {t("profile.levelWord")}
-          </Text>
+          <View className="flex-row items-center gap-1">
+            {coach ? <CoachVerifiedBadge size={12} /> : null}
+            <Text className="font-bold text-[11px] text-success">
+              {t("profile.levelWord")}
+            </Text>
+          </View>
         </View>
       ) : null}
     </View>
@@ -333,6 +340,7 @@ function FullProfile({
   const { t } = useTranslation();
   const stats: PlayerStats = mockPlayerStats;
   const { data: tags = [] } = usePlayerTags(player.id);
+  const { data: coach } = useCoachVerification(player.id);
   const winRate = Math.round((stats.won / stats.matches) * 100);
 
   return (
@@ -404,6 +412,8 @@ function FullProfile({
             </View>
           ))}
         </View>
+
+        {coach ? <CoachVerificationCard coach={coach} /> : null}
 
         {details && details.playedTogether > 0 ? (
           <View className="gap-2 rounded-[20px] border border-line bg-surface px-4 py-3.5">

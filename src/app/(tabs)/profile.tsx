@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CoachVerificationCard } from "@/components/coach-verification-card";
 import { Icon } from "@/components/icon";
 import { NewPlayerCards } from "@/components/new-player-cards";
 import { LevelChart } from "@/components/level-chart";
@@ -16,8 +17,10 @@ import { ProfileHero } from "@/components/profile-hero";
 import { WinRateBars } from "@/components/win-rate-bars";
 import { useMatchHistory, useMyPastMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
-import { usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
+import { useMyStats } from "@/hooks/useMyStats";
+import { useCoachVerification, usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
 import { stopPushNotifications } from "@/hooks/usePushNotifications";
+import { STATS_MIN_MATCHES } from "@/lib/profile-stats";
 import { queryClient } from "@/lib/query-client";
 import { signOut } from "@/repositories/auth-repository";
 import { errorMessage } from "@/lib/error-message";
@@ -28,9 +31,11 @@ export default function Profile() {
   const { data: profile, error, refetch, isRefetching } = useMyProfile();
   const { data: pastMatches } = useMyPastMatches();
   const { data: history } = useMatchHistory();
+  const { data: stats } = useMyStats();
   // The profile's own friend count is mock, so ask for the real one
   const friendCount = usePlayerDetails(profile?.player.id).data?.friendCount ?? 0;
   const { data: tags = [] } = usePlayerTags(profile?.player.id);
+  const { data: coach } = useCoachVerification(profile?.player.id);
 
   const insets = useSafeAreaInsets();
   // White status bar text while the blue header is behind it; dark once it scrolls away
@@ -84,14 +89,14 @@ export default function Profile() {
     );
   }
 
-  const first = profile.levelHistory[0];
-  const latest = profile.levelHistory[profile.levelHistory.length - 1];
+  // Win rates, partners and the level chart only mean something after a few scored matches
+  const hasStats = stats !== undefined && stats.matchesScored >= STATS_MIN_MATCHES;
+  const noStats = stats !== undefined && !hasStats;
+  const levelHistory = stats?.levelHistory ?? [];
+  const first = levelHistory[0];
+  const latest = levelHistory[levelHistory.length - 1];
   const levelChange = latest && first ? latest.level - first.level : 0;
-
-  // The profile's numbers are still mock, so "played" comes from the real past matches.
-  // Win rates, partners and reputation only make sense once one has been played.
-  const hasStats = pastMatches !== undefined && pastMatches.length > 0;
-  const noStats = pastMatches !== undefined && pastMatches.length === 0;
+  const hasNoMatches = pastMatches !== undefined && pastMatches.length === 0;
 
   async function logOut() {
     // Signing out clears the session on the device even if the network call fails
@@ -116,9 +121,9 @@ export default function Profile() {
     {
       label: t("profile.matchHistory"),
       // The history screen counts the real matches; the profile's own number is still mock
-      value: t("profile.matchesCount", { count: noStats ? 0 : (history?.length ?? profile.matchesPlayed) }),
+      value: t("profile.matchesCount", { count: history?.length ?? pastMatches?.length ?? 0 }),
       onPress: () =>
-        noStats
+        hasNoMatches
           ? toast.show({ label: t("profile.historyLockedTitle"), description: t("profile.historyLockedText") })
           : router.push("/match-history"),
     },
@@ -139,15 +144,23 @@ export default function Profile() {
         <View onLayout={(event) => (heroHeight.current = event.nativeEvent.layout.height)}>
           <ProfileHero
             profile={profile}
-            hasPlayed={!noStats}
+            stats={stats}
+            hasPlayed={hasStats}
             friendCount={friendCount}
+            isCoachVerified={Boolean(coach)}
             onPressSettings={() => router.push("/settings")}
           />
         </View>
 
+        {coach ? (
+          <View className="mx-4">
+            <CoachVerificationCard coach={coach} />
+          </View>
+        ) : null}
+
         {noStats ? (
           <NewPlayerCards friendCount={friendCount} levelLabel={profile.level.toFixed(1)} />
-        ) : (
+        ) : hasStats ? (
           <Card>
             <View className="flex-row items-baseline justify-between">
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
@@ -157,24 +170,27 @@ export default function Profile() {
                 <Text className="font-bold text-[13px] text-success">
                   {t("profile.levelUp", {
                     change: levelChange.toFixed(1),
-                    count: profile.levelHistory.length,
+                    count: levelHistory.length,
                   })}
                 </Text>
               ) : null}
             </View>
-            <LevelChart points={profile.levelHistory} />
+            <LevelChart points={levelHistory} />
           </Card>
-        )}
+        ) : null}
 
         {hasStats ? (
           <Fragment>
+          {stats.winRates.length > 0 ? (
           <Card className="gap-3.5">
             <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
               {t("profile.whereYouWin")}
             </Text>
-            <WinRateBars groups={profile.winRates} />
+            <WinRateBars groups={stats.winRates} />
           </Card>
+          ) : null}
 
+          {stats.bestPartners.length > 0 ? (
           <Card>
             <View className="flex-row items-baseline justify-between">
               <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
@@ -182,7 +198,7 @@ export default function Profile() {
               </Text>
               <Text className="font-normal text-[12px] text-muted">{t("profile.winRateTogether")}</Text>
             </View>
-            {profile.bestPartners.map(({ player, matches, wins }) => {
+            {stats.bestPartners.map(({ player, matches, wins }) => {
               const rate = Math.round((wins / matches) * 100);
               return (
                 <PressableFeedback
@@ -208,6 +224,7 @@ export default function Profile() {
               );
             })}
           </Card>
+          ) : null}
 
           <Card className="gap-2.5">
             <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">

@@ -8,11 +8,10 @@ import Svg, { Circle, Line } from "react-native-svg";
 import { useCSSVariable } from "uniwind";
 
 import { Icon } from "@/components/icon";
+import { STATS_MIN_MATCHES } from "@/lib/profile-stats";
 
 // Friends to connect with for the "Connect" step
 const FRIENDS_GOAL = 3;
-// Matches played before "Where you win" has something to show
-const WIN_STATS_AFTER = 5;
 const CHART_HEIGHT = 96;
 
 /** White rounded section card, inset 16 px from the screen edges like the rest of Profile */
@@ -160,7 +159,7 @@ export function NewPlayerCards({ friendCount, levelLabel }: NewPlayerCardsProps)
           <View className="flex-row items-center gap-1 rounded-[10px] bg-fill px-2.5 py-1">
             <Icon as={Lock} size={14} color="muted" />
             <Text className="font-bold text-[12px] text-muted">
-              {t("profile.afterMatches", { count: WIN_STATS_AFTER })}
+              {t("profile.afterMatches", { count: STATS_MIN_MATCHES })}
             </Text>
           </View>
         </View>

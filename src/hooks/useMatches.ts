@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { myProfileKey } from "@/hooks/useMyProfile";
+import { myStatsKey } from "@/hooks/useMyStats";
 import type { SetScore } from "@/lib/padel-score";
 import type { PlayerRating } from "@/lib/player-rating";
 import { queryClient } from "@/lib/query-client";
@@ -49,6 +50,8 @@ export function refreshMatches(matchId?: string) {
   queryClient.invalidateQueries({ queryKey: pendingScoresKey });
   // A confirmed score or new photo shows up in the Community feeds
   queryClient.invalidateQueries({ queryKey: communityFeedKey });
+  // …and in your Profile stats
+  queryClient.invalidateQueries({ queryKey: myStatsKey });
   queryClient.invalidateQueries({ queryKey: matchId ? matchKey(matchId) : ["match"] });
 }
 

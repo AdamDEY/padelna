@@ -7,7 +7,6 @@ import type {
   UpcomingMatch,
 } from "@/types/match";
 import type { Player, PlayerStats } from "@/types/player";
-import type { PlayerProfile } from "@/types/profile";
 
 function inDays(days: number, hours: number, minutes = 0) {
   const date = new Date();
@@ -245,56 +244,11 @@ openMatches.push({
   isCourtBooked: false,
 });
 
-/** The signed-in player's profile */
-export const myProfile: PlayerProfile = {
-  player: me,
-  city: myCity,
-  side: "right",
-  playStyle: "balanced",
+/** What Settings still reads for its "delete account" warning; the Profile uses real stats */
+export const myProfile = {
   level: myLevel,
-  progressToNext: 0.62,
-  nextLevelHint: { wins: 6, opponentLevel: 4.5 },
   matchesPlayed: 32,
-  winRate: 59,
-  streak: "W3",
   friendCount: 48,
-  levelHistory: [
-    { month: "May", level: 4.0 },
-    { month: "Jun", level: 4.1 },
-    { month: "Jul", level: 4.1 },
-    { month: "Aug", level: 4.25 },
-    { month: "Sep", level: 4.35 },
-    { month: "Oct", level: 4.5 },
-  ],
-  winRates: [
-    {
-      title: "By side",
-      stats: [
-        { label: "Right side", winRate: 68 },
-        { label: "Left side", winRate: 41 },
-      ],
-    },
-    {
-      title: "By opponent level",
-      stats: [
-        { label: "Lower than you", winRate: 82 },
-        { label: "Same level", winRate: 58 },
-        { label: "Higher than you", winRate: 36 },
-      ],
-    },
-    {
-      title: "By set",
-      stats: [
-        { label: "First set", winRate: 63 },
-        { label: "Third set", winRate: 29 },
-      ],
-    },
-  ],
-  bestPartners: [
-    { player: players.amira, matches: 9, wins: 7 },
-    { player: players.karim, matches: 6, wins: 4 },
-    { player: players.mehdi, matches: 4, wins: 2 },
-  ],
 };
 
 /** Players whose level is still settling (few matches played) */
