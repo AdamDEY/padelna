@@ -25,7 +25,7 @@ export async function fetchMyAccount(): Promise<MyAccount> {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("first_name, last_name, phone, city, bio, hand, side, play_style, level, avatar_url, gender, birth_date")
+    .select("first_name, last_name, phone, city, bio, hand, side, play_style, level, level_points, avatar_url, gender, birth_date")
     .eq("id", user.id)
     .single();
   if (error) throw error;
@@ -44,6 +44,7 @@ export async function fetchMyAccount(): Promise<MyAccount> {
     gender: (data.gender as MyAccount["gender"]) ?? undefined,
     birthDate: data.birth_date ?? undefined,
     level: data.level ?? undefined,
+    levelPoints: data.level_points === null ? undefined : Number(data.level_points),
     avatarUrl: data.avatar_url ?? undefined,
   };
 }

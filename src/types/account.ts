@@ -16,5 +16,7 @@ export type MyAccount = {
   /** "YYYY-MM-DD" */
   birthDate: string | undefined;
   level: number | undefined;
+  /** The exact level behind `level`, which matches move in small steps */
+  levelPoints: number | undefined;
   avatarUrl: string | undefined;
 };

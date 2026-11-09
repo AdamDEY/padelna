@@ -4,6 +4,7 @@ import { t } from "i18next";
 import type { PlayerTag, PlayerTagCount } from "@/data/player-tags";
 import type { ReportReason } from "@/data/report-reasons";
 import { supabase } from "@/lib/supabase";
+import type { CoachVerification } from "@/types/coach";
 import type { ConnectionState, DiscoverPlayer, Friend, PlayerDetails, PlayerSuggestion } from "@/types/player";
 
 // How long to wait before reconnecting after the live connection fails
@@ -33,6 +34,14 @@ type DetailsRow = {
   last_played_together_at: string | null;
   connection: ConnectionState;
   mutual_count: number;
+};
+
+type CoachRow = {
+  coach_name: string;
+  level: number | string;
+  scores: Record<string, number>;
+  comment: string;
+  evaluated_at: string;
 };
 
 /** A club where you've played at least one full match */
@@ -141,6 +150,21 @@ export async function fetchPlayerTags(playerId: string): Promise<PlayerTagCount[
   const { data, error } = await supabase.rpc("get_player_tags", { p_player_id: playerId });
   if (error) throw error;
   return (data as { tag: PlayerTag; count: number }[]).map((row) => ({ tag: row.tag, count: Number(row.count) }));
+}
+
+/** The player's latest coach evaluation, or null when no coach has verified them yet. */
+export async function fetchCoachVerification(playerId: string): Promise<CoachVerification | null> {
+  const { data, error } = await supabase.rpc("get_coach_verification", { p_player_id: playerId });
+  if (error) throw error;
+  const row = (data as CoachRow[])[0];
+  if (!row) return null;
+  return {
+    coachName: row.coach_name,
+    level: Number(row.level),
+    scores: row.scores,
+    comment: row.comment,
+    evaluatedAt: new Date(row.evaluated_at),
+  };
 }
 
 /** Sends a connection request, or accepts theirs if they already asked you. */

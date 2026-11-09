@@ -124,6 +124,10 @@ Match the existing files; read a neighbouring component before writing a new one
 
 Clubs are real data from Supabase (`clubs`, `courts`, `club_hours`, `club_photos`, filled in from the admin dashboard), read by `src/repositories/club-repository.ts` and `src/hooks/useClubs.ts`. `useClubCards` adds the open-match count, "your club" and the distance on top; distance needs the player's location (`useMyLocation`, `expo-location`) and a club with a map pin, so it's left out otherwise. Drafts are hidden by the database; only `published` clubs can host new matches. **Club reviews** live in `club_reviews` (migration `20261106160000_club_reviews.sql`), read by `club-review-repository.ts` and `useClubReviews.ts` (`get_club_ratings`, `get_club_reviews`, `submit_club_review`). Only players who have played a full match at the club can review it, one review per player per club (sending again replaces it). The club screen has a "Rate the club" button (`useRateClub` + `RateClubSheet`), the summary with popular tags, the latest two reviews and "See all", which opens `club/[id]/reviews` (topic filter, score per court, every review). Aspects are in `src/data/club-review-aspects.ts`, tags in `src/data/club-review-tags.ts` (same list as `c_tags` in `submit_club_review`). There is no "Helpful" or club reply yet. Club photos aren't shown yet either (the court-line placeholder stands in); `club_photos` rows are in a private bucket and would need signed URLs.
 
+## Profile stats
+
+The Profile's numbers are real: `get_my_stats` (`stats-repository.ts`, `useMyStats`) counts matches with a **confirmed score** (friendly and competitive). Win rate, streak, level over the last 6 months (`level_history`), win rate by opponent level (today's levels, ±0.25 = same) and by set, and best partners (2+ matches together) show only from **5 scored matches** (`STATS_MIN_MATCHES` in `src/lib/profile-stats.ts`); before that the hero shows dashes and `NewPlayerCards` shows placeholders. There is no "by side" because matches don't record which side of the court a player stood on. A coach evaluation (admin app) sets the player's level (`level_history.cause = 'coach'`) and shows as a badge plus the **Coach evaluation** card.
+
 ## Data
 
 Most of the app now reads from Supabase (see the repositories). What is still mock lives in `src/data/mock.ts` (dates are relative to today, `me` is the signed-in player with `level: myLevel`), typed with `src/types/`. Add new mock data there with the matching type rather than inline in screens. The planned backend is **Supabase** (auth, Postgres, realtime) with TanStack Query; until that work starts, don't add networking.
@@ -147,7 +151,7 @@ The repo is `AdamDEY/padelna` on GitHub; there is no CI.
 - Every input has a visible label. Icon-only buttons get an `accessibilityLabel`.
 - Colour is never the only signal: selected states add a border or tick, warnings add an icon, wins/losses add W/L.
 - Keep text out of images and leave room for longer French words. Prefer `start`/`end` (`ps-*`, `pe-*`, `ms-*`, `me-*`) over `left`/`right` so layouts flip for Arabic.
-- Copy is short, warm and direct ("Let's play", "Book your court first"). Don't call a level "Verified" until coach verification exists.
+- Copy is short, warm and direct ("Let's play", "Book your court first"). "Coach verified" (badge + level) is shown only for a player with a coach evaluation (`get_coach_verification`); a level built only from the quiz and matches is never called verified.
 
 ## Before calling a task done
 

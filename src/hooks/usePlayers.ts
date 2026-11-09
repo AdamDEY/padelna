@@ -9,6 +9,7 @@ import {
   fetchMyFriends,
   fetchMyClubs,
   fetchPlayerDetails,
+  fetchCoachVerification,
   fetchPlayerTags,
   fetchPlayedWith,
   fetchPlayersAtMyClubs,
@@ -115,6 +116,15 @@ export function usePlayerTags(playerId: string | undefined) {
   return useQuery({
     queryKey: [...playersKey, "tags", playerId],
     queryFn: () => fetchPlayerTags(playerId!),
+    enabled: playerId !== undefined,
+  });
+}
+
+/** The player's latest coach evaluation; null data means no coach has verified them. */
+export function useCoachVerification(playerId: string | undefined) {
+  return useQuery({
+    queryKey: [...playersKey, "coach", playerId],
+    queryFn: () => fetchCoachVerification(playerId!),
     enabled: playerId !== undefined,
   });
 }
