@@ -13,7 +13,7 @@ export const clubsKey = ["clubs"] as const;
 // The admin dashboard edits clubs now and then; a few minutes old is fine
 const CLUBS_STALE_MS = 5 * 60_000;
 // Nearby clubs on Home
-const NEARBY_LIMIT = 3;
+const NEARBY_LIMIT = 5;
 
 /** Every club players can see, as the database holds it. */
 export function useClubs() {
