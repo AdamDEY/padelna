@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import { CourtPlaceholder } from "@/components/court-placeholder";
+import { ClubThumb } from "@/components/club-thumb";
 import { Icon } from "@/components/icon";
 import { formatDistance } from "@/lib/club";
 import type { ClubCard } from "@/types/club";
@@ -29,7 +29,7 @@ export function ClubRow({ club, onPress }: ClubRowProps) {
       accessibilityLabel={`${club.name}, ${details}`}
     >
       <View className="flex-row items-center gap-3 rounded-[18px] border border-line bg-surface p-2.5">
-        <CourtPlaceholder tint={club.placeholderTint} />
+        <ClubThumb club={club} />
         <View className="flex-1">
           <Text numberOfLines={1} className="font-bold text-[15px] text-foreground">
             {club.name}

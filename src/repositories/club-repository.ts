@@ -1,6 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import type { Club, ClubStatus } from "@/types/club";
 
+const LOGO_BUCKET = "club-logos";
+
 type ClubRow = {
   id: string;
   name: string;
@@ -17,6 +19,7 @@ type ClubRow = {
   instagram: string | null;
   facebook: string | null;
   facilities: string[];
+  logo_path: string | null;
   status: ClubStatus;
   closed_note: string | null;
   courts: { id: string; number: number; indoor: boolean; active: boolean }[];
@@ -26,7 +29,7 @@ type ClubRow = {
 
 const CLUB_SELECT = `
   id, name, area, city, region, address, description, latitude, longitude,
-  phone, whatsapp, website, instagram, facebook, facilities, status, closed_note,
+  phone, whatsapp, website, instagram, facebook, facilities, logo_path, status, closed_note,
   courts(id, number, indoor, active),
   club_hours(day, closed, opens_at, closes_at),
   club_photos(count)
@@ -68,5 +71,8 @@ export async function fetchClubs(): Promise<Club[]> {
       closesAt: toClock(item.closes_at),
     })),
     photoCount: row.club_photos[0]?.count ?? 0,
+    logoUrl: row.logo_path
+      ? supabase.storage.from(LOGO_BUCKET).getPublicUrl(row.logo_path).data.publicUrl
+      : undefined,
   }));
 }
