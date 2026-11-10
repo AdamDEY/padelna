@@ -1,6 +1,7 @@
 import { t } from "i18next";
 
 import type { SetScore } from "@/lib/padel-score";
+import type { Player } from "@/types/player";
 import type { LiveEntry, LiveMatch, LiveTournament, TournamentScore } from "@/types/tournament";
 
 // The same rules as admin_save_tournament_score and the dashboard's tournament-engine.ts
@@ -221,6 +222,18 @@ export function entryById(tournament: LiveTournament, id: string | undefined) {
 
 export function playersOf(entry: LiveEntry | undefined) {
   return entry ? [entry.player1, entry.player2].filter((player) => player !== undefined) : [];
+}
+
+/** The faces of an entry: its player accounts, or the initials of the typed names */
+export function facesOf(entry: LiveEntry): Player[] {
+  const players = playersOf(entry);
+  if (players.length > 0) return players;
+  return [entry.name1, entry.name2]
+    .filter((name): name is string => !!name)
+    .map((name, index) => {
+      const [firstName, ...rest] = name.split(" ");
+      return { id: `${entry.id}-${index}`, firstName, lastName: rest.join(" ") };
+    });
 }
 
 /** "Sami B. + Wael M.", or "You + Rami" for my own pair */

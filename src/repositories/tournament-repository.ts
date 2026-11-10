@@ -137,11 +137,8 @@ function toTeam(json: TeamJson): TournamentTeam {
   };
 }
 
-/** Live tournaments first, then those still open for entries, soonest first. */
-export async function fetchTournaments(): Promise<TournamentSummary[]> {
-  const { data, error } = await supabase.rpc("get_tournaments");
-  if (error) throw error;
-  return (data as SummaryRow[]).map((row) => ({
+function toSummary(row: SummaryRow): TournamentSummary {
+  return {
     id: row.id,
     name: row.name,
     format: row.format,
@@ -156,7 +153,21 @@ export async function fetchTournaments(): Promise<TournamentSummary[]> {
     waitlistCount: row.waitlist_count,
     registrationOpen: row.registration_open,
     myStatus: row.my_status ?? undefined,
-  }));
+  };
+}
+
+/** Live tournaments first, then those still open for entries, soonest first. */
+export async function fetchTournaments(): Promise<TournamentSummary[]> {
+  const { data, error } = await supabase.rpc("get_tournaments");
+  if (error) throw error;
+  return (data as SummaryRow[]).map(toSummary);
+}
+
+/** The finished tournaments I played, newest first (Profile > Tournament history). */
+export async function fetchMyTournamentHistory(): Promise<TournamentSummary[]> {
+  const { data, error } = await supabase.rpc("get_my_tournament_history");
+  if (error) throw error;
+  return (data as SummaryRow[]).map(toSummary);
 }
 
 /** The Tournament detail screen; null if the tournament doesn't exist. */

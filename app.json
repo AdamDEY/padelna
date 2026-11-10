@@ -75,7 +75,7 @@
       [
         "expo-media-library",
         {
-          "savePhotosPermission": "Padelna saves your profile card to your photos when you ask it to.",
+          "savePhotosPermission": "Padelna saves your profile card or tournament result to your photos when you ask it to.",
           "photosPermission": false,
           "granularPermissions": ["photo"]
         }

@@ -18,6 +18,7 @@ import { ShareProfileSheet } from "@/components/share-profile-sheet";
 import { WinRateBars } from "@/components/win-rate-bars";
 import { useMatchHistory, useMyPastMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
+import { useMyFinishedTournaments } from "@/hooks/useTournaments";
 import { useMyStats } from "@/hooks/useMyStats";
 import { useCoachVerification, usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
 import { stopPushNotifications } from "@/hooks/usePushNotifications";
@@ -33,6 +34,7 @@ export default function Profile() {
   const { data: pastMatches } = useMyPastMatches();
   const { data: history } = useMatchHistory();
   const { data: stats } = useMyStats();
+  const { data: finishedTournaments } = useMyFinishedTournaments();
   // The profile's own friend count is mock, so ask for the real one
   const friendCount = usePlayerDetails(profile?.player.id).data?.friendCount ?? 0;
   const { data: tags = [] } = usePlayerTags(profile?.player.id);
@@ -134,6 +136,16 @@ export default function Profile() {
         hasNoMatches
           ? toast.show({ label: t("profile.historyLockedTitle"), description: t("profile.historyLockedText") })
           : router.push("/match-history"),
+    },
+    {
+      label: t("profile.tournamentHistory"),
+      // Only the count here; the history screen reads each tournament's results
+      value:
+        finishedTournaments === undefined ? undefined : t("profile.tournamentsCount", { count: finishedTournaments.length }),
+      onPress: () =>
+        finishedTournaments?.length === 0
+          ? toast.show({ label: t("tournamentHistory.lockedTitle"), description: t("tournamentHistory.lockedText") })
+          : router.push("/tournament-history"),
     },
     {
       label: t("profile.friends"),
