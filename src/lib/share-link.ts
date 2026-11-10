@@ -15,3 +15,8 @@ export function shareLinkFor(code: string) {
 export function codeFromLink(text: string) {
   return LINK_PATTERN.exec(text.trim())?.[1].toUpperCase();
 }
+
+/** The link to a tournament, for the result you share (it opens the tournament in the app). */
+export function tournamentLinkFor(id: string) {
+  return `padelna://tournament/${id}`;
+}

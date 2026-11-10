@@ -171,6 +171,19 @@ You need at least:
 - [ ] **APP-LIVE-06 (P1)** Americano leaderboard adds up each player's games or points; rounds show the right partners and opponents.
 - [ ] **APP-LIVE-07 (P2)** Finished tournament still opens and shows the final results.
 
+### Tournaments: history and recap (APP-THIST)
+
+- [ ] **APP-THIST-01 (P1)** Profile has a "Tournament history" row under "Match history" showing how many finished tournaments you played. With none, tapping it shows the "Play your first tournament" toast.
+- [ ] **APP-THIST-02 (P1)** Tournament history lists only finished tournaments where you held a spot (not invites, the waitlist or the partner list), newest first, grouped by month; the header shows played, titles, best Americano place and matches won – lost. The All / Knockout / Americano filter changes the list and its counts stay the same.
+- [ ] **APP-THIST-03 (P1)** A tournament you won shows the dark "Winner" chip and the "N title" line in the header; a quarter-final exit shows "Quarter-final"; an Americano shows "3rd of 16" (lime with a trophy on the podium).
+- [ ] **APP-THIST-04 (P2)** A tournament you're registered in (or playing) shows above the months with a blue border, and opens its detail / live screen. Pair tournaments say who you registered with.
+- [ ] **APP-THIST-05 (P1)** Group + knockout recap: your finish, matches and sets won, the podium (third place shared with the other semi-final loser), your path match by match with scores from your side, and your group table with "You finished Nth".
+- [ ] **APP-THIST-06 (P1)** Americano recap (individual and pairs): place, points and rounds won; best round; leaderboard (your row is always visible); each of your rounds with partner, opponents and score from your side.
+- [ ] **APP-THIST-07 (P2)** Opening the recap of a tournament that isn't finished offers to open the tournament instead; one that was removed says "Tournament not found".
+- [ ] **APP-THIST-08 (P1)** "Share result" opens the sheet with the result card preview. Share and Save image produce the 1080 × 1920 result image (Save asks to add photos once); Copy link copies the tournament link. "Post to Community" only says it's coming soon and posts nothing.
+- [ ] **APP-THIST-09 (P2)** Turning "Post in Community" off hides the caption and tagged partner and disables "Post to Community".
+- [ ] **APP-THIST-10 (P2)** French: place endings (1er, 2e), plurals and long stage names ("Quart de finale") fit in the header strip and rows without cutting.
+
 ### Notifications and push (APP-NOTIF)
 
 - [ ] **APP-NOTIF-01 (P1)** Each event creates an in-app notification and a push: joined, left, invited, court changed, cancelled, score to confirm, score confirmed, connection request, tournament invite.
@@ -310,3 +323,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-09 | First version, covering app up to individual Americano (PR #120) and dashboard up to individual Americano (PR #59). |
 | 2026-11-10 | Added Reports (ADM-REP): read-only inbox of player reports. |
 | 2026-11-10 | Removed the in-app QR scanner (camera); sharing your code and opening `/u/<code>` links stay. App icon is now the logo on blue. |
+| 2026-11-10 | Added Tournament history and recaps (APP-THIST): Profile row, history list, group + knockout and Americano recaps, share sheet and result image. Needs migration `20261110140000_tournament_history.sql`. |

@@ -84,6 +84,8 @@ export default function RootLayout() {
               <Stack.Screen name="settings" />
               <Stack.Screen name="notifications" />
               <Stack.Screen name="match-history" />
+              <Stack.Screen name="tournament-history/index" />
+              <Stack.Screen name="tournament-history/[id]" />
               <Stack.Screen name="friends" />
               <Stack.Screen name="clubs" />
               <Stack.Screen name="club/[id]/index" />

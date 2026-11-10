@@ -16,10 +16,12 @@ type TournamentGroupTableProps = {
   rows: StandingRow[];
   myEntryId?: string;
   myId?: string;
+  /** Replaces "Top 2 go through", e.g. "You finished 2nd" in a recap */
+  caption?: string;
 };
 
 /** A group's table: rank, pair, wins, losses, set difference, points. The top two go through. */
-export function TournamentGroupTable({ label, rows, myEntryId, myId }: TournamentGroupTableProps) {
+export function TournamentGroupTable({ label, rows, myEntryId, myId, caption }: TournamentGroupTableProps) {
   const { t } = useTranslation();
 
   return (
@@ -29,7 +31,7 @@ export function TournamentGroupTable({ label, rows, myEntryId, myId }: Tournamen
           {t("tournaments.live.group", { group: label })}
         </Text>
         <Text className="font-bold text-[12px] text-success-soft-foreground">
-          {t("tournaments.live.topGoThrough", { count: QUALIFIERS_PER_GROUP })}
+          {caption ?? t("tournaments.live.topGoThrough", { count: QUALIFIERS_PER_GROUP })}
         </Text>
       </View>
 
