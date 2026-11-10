@@ -2,7 +2,7 @@ import { PressableFeedback } from "heroui-native";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import { CourtPlaceholder } from "@/components/court-placeholder";
+import { ClubThumb } from "@/components/club-thumb";
 import { formatDistance } from "@/lib/club";
 import type { ClubCard } from "@/types/club";
 
@@ -34,7 +34,7 @@ export function ClubListItem({ club, onPress }: { club: ClubCard; onPress?: () =
         .join(", ")}
     >
       <View className="flex-row items-center gap-3 rounded-[18px] border border-line bg-surface p-2.5">
-        <CourtPlaceholder tint={club.placeholderTint} size={56} />
+        <ClubThumb club={club} size={56} />
         <View className="min-w-0 flex-1 gap-[3px]">
           <View className="flex-row items-center justify-between gap-2">
             <Text numberOfLines={1} className="flex-1 font-bold text-[15px] text-foreground">

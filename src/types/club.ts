@@ -47,6 +47,8 @@ export type Club = {
   courts: Court[];
   hours: ClubHours[];
   photoCount: number;
+  /** Public URL of the club's logo; left out until the club has one */
+  logoUrl?: string;
 };
 
 /** A club with what the lists and the club page show on top of it. */
