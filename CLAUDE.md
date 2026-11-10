@@ -160,3 +160,4 @@ The repo is `AdamDEY/padelna` on GitHub; there is no CI.
 
 1. `npx tsc --noEmit` and `npx expo lint` pass.
 2. Any UI change has been checked in the iOS Simulator (screenshot), compared with `design.md`.
+3. `docs/test-scenarios.md` has the scenarios for what was added or changed (app and dashboard), with a line in its change log.

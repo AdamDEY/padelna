@@ -8,7 +8,7 @@
     "scheme": "padelna",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.padelna.app",
       "usesAppleSignIn": true
     },
@@ -16,7 +16,7 @@
       "package": "com.padelna.app",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#2D63C8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -41,7 +41,6 @@
         "expo-image-picker",
         {
           "photosPermission": "Padelna uses your photos so you can add a profile picture.",
-          "cameraPermission": "Padelna uses your camera to scan another player's code.",
           "microphonePermission": false
         }
       ],
@@ -71,14 +70,6 @@
         {
           "writeOnlyAccess": true,
           "writeOnlyCalendarPermission": "Padelna adds your padel matches to your calendar when you ask it to."
-        }
-      ],
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Padelna uses your camera to scan another player's code.",
-          "microphonePermission": false,
-          "recordAudioAndroid": false
         }
       ],
       [

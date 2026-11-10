@@ -2,7 +2,7 @@ import { Asset, requestPermissionsAsync } from "expo-media-library";
 import * as Clipboard from "expo-clipboard";
 import * as Sharing from "expo-sharing";
 import { BottomSheet, cn, Spinner, useToast } from "heroui-native";
-import { Download, Link2, QrCode, ScanLine, Share } from "lucide-react-native";
+import { Download, Link2, Share } from "lucide-react-native";
 import { Fragment, useRef, useState, type ComponentRef } from "react";
 import { useTranslation } from "react-i18next";
 import { PixelRatio, Text, View } from "react-native";
@@ -12,7 +12,6 @@ import { captureRef } from "react-native-view-shot";
 
 import { Icon } from "@/components/icon";
 import { LoadError } from "@/components/load-error";
-import { SegmentedControl } from "@/components/segmented-control";
 import { ShareProfileCard } from "@/components/share-profile-card";
 import { SHARE_IMAGE_WIDTH, ShareProfileImage } from "@/components/share-profile-image";
 import { useShareProfile } from "@/hooks/useShareProfile";
@@ -31,12 +30,10 @@ type ShareAction = "share" | "save";
 type ShareProfileSheetProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  /** "Scan a code" was picked; the sheet closes and the scanner opens */
-  onScan: () => void;
 };
 
 /** "Share your profile" (design: Share profile · my code): your QR card, with Share, Copy link and Save image. */
-export function ShareProfileSheet({ isOpen, onOpenChange, onScan }: ShareProfileSheetProps) {
+export function ShareProfileSheet({ isOpen, onOpenChange }: ShareProfileSheetProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { profile, error, refetch, isRefetching } = useShareProfile();
@@ -117,15 +114,6 @@ export function ShareProfileSheet({ isOpen, onOpenChange, onScan }: ShareProfile
                 </BottomSheet.Title>
                 <BottomSheet.Close className="size-9 rounded-full bg-surface" />
               </View>
-
-              <SegmentedControl
-                value="code"
-                onChange={(tab) => tab === "scan" && onScan()}
-                options={[
-                  { value: "code", label: t("shareProfile.tabCode"), icon: QrCode },
-                  { value: "scan", label: t("shareProfile.tabScan"), icon: ScanLine },
-                ]}
-              />
 
               {profile ? (
                 <Fragment>
