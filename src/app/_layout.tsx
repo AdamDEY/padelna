@@ -94,7 +94,6 @@ export default function RootLayout() {
               <Stack.Screen name="log-match" />
               <Stack.Screen name="tournaments" />
               <Stack.Screen name="tournament/[id]" />
-              <Stack.Screen name="scan" />
               <Stack.Screen name="u/[code]" />
               <Stack.Screen name="design-check" />
             </Stack.Protected>

@@ -60,7 +60,7 @@ export default function OpenedCode() {
             </Button>
           </>
         ) : lookup.isPending ? (
-          <Spinner accessibilityLabel={t("shareProfile.tabScan")} />
+          <Spinner accessibilityLabel={t("profile.loading")} />
         ) : null}
       </Page.Body>
 

@@ -1175,8 +1175,6 @@ export const fr: Messages = {
   shareProfile: {
     open: "Partager mon profil",
     title: "Partage ton profil",
-    tabCode: "Mon code",
-    tabScan: "Scanner un code",
     level: "Niveau {{level}}",
     coachVerified: "Vérifié par un coach",
     codeLabel: "Code {{code}}",

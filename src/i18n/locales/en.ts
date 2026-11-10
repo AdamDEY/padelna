@@ -1171,8 +1171,6 @@ export const en = {
   shareProfile: {
     open: "Share profile",
     title: "Share your profile",
-    tabCode: "My code",
-    tabScan: "Scan a code",
     level: "Level {{level}}",
     coachVerified: "Coach-verified",
     codeLabel: "Code {{code}}",

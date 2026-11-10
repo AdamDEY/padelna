@@ -1,4 +1,4 @@
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { Button, cn, PressableFeedback, Spinner, useToast } from "heroui-native";
 import { ChevronRight, LogOut } from "lucide-react-native";
@@ -39,14 +39,8 @@ export default function Profile() {
   const { data: coach } = useCoachVerification(profile?.player.id);
 
   const [isShareOpen, setIsShareOpen] = useState(false);
-  // "Show my code" on the scanner comes back here and opens the sheet again
-  const { share } = useLocalSearchParams<{ share?: string }>();
-  function setShareOpen(open: boolean) {
-    setIsShareOpen(open);
-    if (!open && share) router.setParams({ share: undefined });
-  }
   // The sheet is drawn above everything, so it must close when another screen opens over this one
-  // (the scanner, or a player's code opened as a link)
+  // (a player's code opened as a link)
   useFocusEffect(
     useCallback(() => () => setIsShareOpen(false), []),
   );
@@ -163,7 +157,7 @@ export default function Profile() {
             friendCount={friendCount}
             isCoachVerified={Boolean(coach)}
             onPressSettings={() => router.push("/settings")}
-            onPressShare={() => setShareOpen(true)}
+            onPressShare={() => setIsShareOpen(true)}
           />
         </View>
 
@@ -295,12 +289,8 @@ export default function Profile() {
       </Page.Body>
 
       <ShareProfileSheet
-        isOpen={isShareOpen || share === "1"}
-        onOpenChange={setShareOpen}
-        onScan={() => {
-          setShareOpen(false);
-          router.push("/scan");
-        }}
+        isOpen={isShareOpen}
+        onOpenChange={setIsShareOpen}
       />
     </Page>
   );
