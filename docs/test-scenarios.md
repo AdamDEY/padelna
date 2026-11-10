@@ -240,6 +240,7 @@ You need at least:
 - [ ] **ADM-CLUB-05 (P1)** Photos: upload (≤ 10 MB, jpeg/png/webp), refuse a bigger or wrong file, drag to reorder, set cover, delete.
 - [ ] **ADM-CLUB-06 (P1)** Delete club: allowed only when it has no matches; otherwise the dashboard explains and offers Close.
 - [ ] **ADM-CLUB-07 (P2)** Filters and search on the clubs table; bad id shows "not found".
+- [ ] **ADM-CLUB-08 (P1)** Logo: upload (≤ 2 MB), replace and clear it from the club editor; the clubs table and the app (Home, Clubs, club rows) show the new logo, and a replaced or cleared file is removed from storage. ↔
 
 ### Players (ADM-PLAYER)
 
@@ -334,3 +335,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-10 | Removed the in-app QR scanner (camera); sharing your code and opening `/u/<code>` links stay. App icon is now the logo on blue. |
 | 2026-11-10 | Added Tournament history and recaps (APP-THIST): Profile row, history list, group + knockout and Americano recaps, share sheet and result image. Needs migration `20261110140000_tournament_history.sql`. |
 | 2026-11-10 | Added tournament result posts in the Community feeds (APP-THPOST). Needs migration `20261110160000_tournament_posts.sql`. |
+| 2026-11-10 | Added the club logo scenario (ADM-CLUB-08). The migrations `20261108220000_admin_edit_gender_birthday.sql` and `20261108240000_admin_reason_optional.sql` were applied to the database earlier but missing from the repo; added. |
