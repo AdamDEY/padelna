@@ -45,6 +45,25 @@ export type FeedMatch = {
   photoPath?: string;
 };
 
+/** A tournament result a player posted from the share sheet; the card itself is worked out from the tournament */
+export type FeedTournamentPost = {
+  id: string;
+  tournamentId: string;
+  postedAt: Date;
+  caption?: string;
+  author: PlayerSuggestion;
+  /** The player they played with, when it was in pairs */
+  partner?: PlayerSuggestion;
+};
+
+/** One card of a Community feed, newest first by `at` */
+export type FeedItem =
+  | { kind: "match"; at: Date; match: FeedMatch }
+  | { kind: "tournament"; at: Date; post: FeedTournamentPost };
+
+/** A page of a feed, and where the next one starts (undefined when there's nothing older) */
+export type FeedPage = { items: FeedItem[]; next?: Date };
+
 /** This week at your clubs, for the My clubs banner */
 export type ClubsWeek = { matchesPlayed: number; openForYourLevel: number };
 

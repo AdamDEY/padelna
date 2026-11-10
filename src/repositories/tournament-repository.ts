@@ -412,3 +412,12 @@ export async function submitAmericanoScore(matchId: string, score: TournamentSco
   });
   if (error) throw error;
 }
+
+/** Posts my result of a finished tournament to the Community; posting again only changes the caption. */
+export async function postTournamentResult(tournamentId: string, caption?: string) {
+  const { error } = await supabase.rpc("post_tournament_result", {
+    p_tournament_id: tournamentId,
+    p_caption: caption?.trim() || null,
+  });
+  if (error) throw error;
+}

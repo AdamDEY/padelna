@@ -3,48 +3,79 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { communityFeedKey, friendsFeedKey } from "@/hooks/useMatches";
 import {
   fetchClubsFeed,
+  fetchClubsTournamentPosts,
   fetchClubsWeek,
   fetchCommunityCities,
   fetchFriendsFeed,
+  fetchFriendsTournamentPosts,
   fetchRisingPlayers,
   fetchTunisiaFeed,
+  fetchTunisiaTournamentPosts,
 } from "@/repositories/feed-repository";
-import type { FeedMatch } from "@/types/post";
+import type { FeedItem, FeedMatch, FeedPage, FeedTournamentPost } from "@/types/post";
 
 // Matches per page of the feed
 const PAGE_SIZE = 20;
 
-/** One feed, a page at a time; `fetchPage` gets the last page's oldest confirmation. */
-function useFeedPages(
-  queryKey: readonly unknown[],
-  fetchPage: (before: Date | undefined, limit: number) => Promise<FeedMatch[]>,
-) {
+type Fetcher<T> = (before: Date | undefined, limit: number) => Promise<T[]>;
+
+/**
+ * One page of a feed: matches and tournament posts, newest first. Each kind is paged by its own
+ * date, so a kind that returned a full page may still have older ones than its last; nothing older
+ * than the newest of those "last" dates is shown yet, and the next page starts from there.
+ */
+async function fetchMixedPage(
+  before: Date | undefined,
+  limit: number,
+  fetchMatches: Fetcher<FeedMatch>,
+  fetchPosts: Fetcher<FeedTournamentPost>,
+): Promise<FeedPage> {
+  const [matches, posts] = await Promise.all([fetchMatches(before, limit), fetchPosts(before, limit)]);
+  const items: FeedItem[] = [
+    ...matches.map((match): FeedItem => ({ kind: "match", at: match.confirmedAt, match })),
+    ...posts.map((post): FeedItem => ({ kind: "tournament", at: post.postedAt, post })),
+  ].sort((a, b) => b.at.getTime() - a.at.getTime());
+
+  const horizons = [
+    matches.length >= limit ? matches[matches.length - 1].confirmedAt : undefined,
+    posts.length >= limit ? posts[posts.length - 1].postedAt : undefined,
+  ].filter((date) => date !== undefined);
+  if (horizons.length === 0) return { items };
+
+  const horizon = new Date(Math.max(...horizons.map((date) => date.getTime())));
+  return { items: items.filter((item) => item.at >= horizon), next: horizon };
+}
+
+/** One feed, a page at a time; the next page starts where the last one ended. */
+function useFeedPages(queryKey: readonly unknown[], fetchMatches: Fetcher<FeedMatch>, fetchPosts: Fetcher<FeedTournamentPost>) {
   return useInfiniteQuery({
     queryKey,
-    queryFn: ({ pageParam }) => fetchPage(pageParam, PAGE_SIZE),
+    queryFn: ({ pageParam }) => fetchMixedPage(pageParam, PAGE_SIZE, fetchMatches, fetchPosts),
     initialPageParam: undefined as Date | undefined,
-    // A short page means there's nothing older
-    getNextPageParam: (lastPage) =>
-      lastPage.length < PAGE_SIZE ? undefined : lastPage[lastPage.length - 1].confirmedAt,
+    getNextPageParam: (lastPage) => lastPage.next,
   });
 }
 
-/** Confirmed matches where you or a friend played, newest first, a page at a time. */
+/** Confirmed matches and tournament results where you or a friend played, newest first, a page at a time. */
 export function useFriendsFeed() {
-  return useFeedPages(friendsFeedKey, fetchFriendsFeed);
+  return useFeedPages(friendsFeedKey, fetchFriendsFeed, fetchFriendsTournamentPosts);
 }
 
-/** Confirmed matches at your clubs, or at the club with `clubId`. */
+/** Confirmed matches and tournament results at your clubs, or at the club with `clubId`. */
 export function useClubsFeed(clubId?: string) {
-  return useFeedPages([...communityFeedKey, "clubs", clubId ?? null], (before, limit) =>
-    fetchClubsFeed(clubId, before, limit),
+  return useFeedPages(
+    [...communityFeedKey, "clubs", clubId ?? null],
+    (before, limit) => fetchClubsFeed(clubId, before, limit),
+    (before, limit) => fetchClubsTournamentPosts(clubId, before, limit),
   );
 }
 
-/** Confirmed matches anywhere in Tunisia, or in `city`. */
+/** Confirmed matches and tournament results anywhere in Tunisia, or in `city`. */
 export function useTunisiaFeed(city?: string) {
-  return useFeedPages([...communityFeedKey, "tunisia", city ?? null], (before, limit) =>
-    fetchTunisiaFeed(city, before, limit),
+  return useFeedPages(
+    [...communityFeedKey, "tunisia", city ?? null],
+    (before, limit) => fetchTunisiaFeed(city, before, limit),
+    (before, limit) => fetchTunisiaTournamentPosts(city, before, limit),
   );
 }
 
