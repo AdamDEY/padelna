@@ -54,7 +54,10 @@ export function SetupGameStep({ values, onChange }: SetupGameStepProps) {
         <SegmentedControl
           options={handOptions}
           value={values.hand}
-          onChange={(hand) => onChange({ ...values, hand })}
+          // A left-handed player can't play the left side, so the side is set to right
+          onChange={(hand) =>
+            onChange({ ...values, hand, side: hand === "left" ? "right" : values.side })
+          }
         />
       </View>
 
@@ -65,6 +68,7 @@ export function SetupGameStep({ values, onChange }: SetupGameStepProps) {
             <OptionTile
               key={side}
               label={t(sideLabelKeys[side])}
+              isDisabled={values.hand === "left" && side !== "right"}
               isSelected={values.side === side}
               onPress={() => onChange({ ...values, side })}
               renderIcon={(isSelected) => <SideDiagram side={side} isSelected={isSelected} />}
