@@ -337,3 +337,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-10 | Added tournament result posts in the Community feeds (APP-THPOST). Needs migration `20261110160000_tournament_posts.sql`. |
 | 2026-11-10 | Added the club logo scenario (ADM-CLUB-08). The migrations `20261108220000_admin_edit_gender_birthday.sql` and `20261108240000_admin_reason_optional.sql` were applied to the database earlier but missing from the repo; added. |
 | 2026-11-10 | Hid the Share button on the tournament detail screen (commented out for now); no scenario covered it. |
+| 2026-11-10 | Also hid the Share button in the live and finished tournament views (group stage and Americano). |
