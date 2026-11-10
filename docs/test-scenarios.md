@@ -180,9 +180,18 @@ You need at least:
 - [ ] **APP-THIST-05 (P1)** Group + knockout recap: your finish, matches and sets won, the podium (third place shared with the other semi-final loser), your path match by match with scores from your side, and your group table with "You finished Nth".
 - [ ] **APP-THIST-06 (P1)** Americano recap (individual and pairs): place, points and rounds won; best round; leaderboard (your row is always visible); each of your rounds with partner, opponents and score from your side.
 - [ ] **APP-THIST-07 (P2)** Opening the recap of a tournament that isn't finished offers to open the tournament instead; one that was removed says "Tournament not found".
-- [ ] **APP-THIST-08 (P1)** "Share result" opens the sheet with the result card preview. Share and Save image produce the 1080 × 1920 result image (Save asks to add photos once); Copy link copies the tournament link. "Post to Community" only says it's coming soon and posts nothing.
+- [ ] **APP-THIST-08 (P1)** "Share result" opens the sheet with the result card preview. Share and Save image produce the 1080 × 1920 result image (Save asks to add photos once); Copy link copies the tournament link. "Post to Community" is covered in APP-THPOST.
 - [ ] **APP-THIST-09 (P2)** Turning "Post in Community" off hides the caption and tagged partner and disables "Post to Community".
 - [ ] **APP-THIST-10 (P2)** French: place endings (1er, 2e), plurals and long stage names ("Quart de finale") fit in the header strip and rows without cutting.
+
+### Tournaments: Community posts (APP-THPOST)
+
+- [ ] **APP-THPOST-01 (P0)** "Post to Community" on a recap you played posts your result (with the caption) and closes the sheet with a "Posted" toast; posting again only changes the caption. With the switch off, the button is disabled.
+- [ ] **APP-THPOST-02 (P0)** Your post, and your friends' posts (or posts by someone whose partner is your friend), show in Community > Friends. Group + knockout posts get the blue card with the final, Americano posts the light card with place and points.
+- [ ] **APP-THPOST-03 (P0)** A post by someone who isn't your friend does not show in Friends; it shows in All Tunisia (filtered by the tournament club's city), and in My clubs when the tournament was at a club you've played at. It never shows in two tabs.
+- [ ] **APP-THPOST-04 (P1)** Posts and matches mix by date in every feed, "Show older results" keeps the order with no gaps or repeats.
+- [ ] **APP-THPOST-05 (P1)** The title is told from your side ("You and Amira won…") and a post about a tournament you also played adds "You finished …". "See the tournament" opens your recap when you played it, else the tournament page.
+- [ ] **APP-THPOST-06 (P1)** Only a finished tournament you played can be posted: the database refuses anything else, and the card shown is the real result, never one the poster typed.
 
 ### Notifications and push (APP-NOTIF)
 
@@ -324,3 +333,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-10 | Added Reports (ADM-REP): read-only inbox of player reports. |
 | 2026-11-10 | Removed the in-app QR scanner (camera); sharing your code and opening `/u/<code>` links stay. App icon is now the logo on blue. |
 | 2026-11-10 | Added Tournament history and recaps (APP-THIST): Profile row, history list, group + knockout and Americano recaps, share sheet and result image. Needs migration `20261110140000_tournament_history.sql`. |
+| 2026-11-10 | Added tournament result posts in the Community feeds (APP-THPOST). Needs migration `20261110160000_tournament_posts.sql`. |

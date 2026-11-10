@@ -1,5 +1,6 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { communityFeedKey } from "@/hooks/useMatches";
 import { notificationsKey } from "@/hooks/useNotifications";
 import { useMyAccount } from "@/hooks/useMyProfile";
 import { partnerOf, recapOf, type HistoryItem } from "@/lib/tournament-history";
@@ -12,6 +13,7 @@ import {
   joinTournament,
   joinTournamentPartnerList,
   leaveTournament,
+  postTournamentResult,
   joinTournamentSolo,
   respondToTournamentInvite,
   submitAmericanoScore,
@@ -158,4 +160,24 @@ export function useTournamentHistory() {
     isRefetching: list.isRefetching || lives.some((live) => live.isRefetching),
     refetch: () => Promise.all([list.refetch(), ...lives.map((live) => live.refetch())]),
   };
+}
+
+/** A finished tournament as it was played, for a Community post; it never changes, so no refresh. */
+export function useFinishedTournament(id: string) {
+  return useQuery({
+    queryKey: [...tournamentsKey, "live", id],
+    queryFn: () => fetchTournamentLive(id),
+    staleTime: FINISHED_STALE_MS,
+  });
+}
+
+/** Posts my result of a finished tournament to the Community feeds. */
+export function usePostTournamentResult() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ tournamentId, caption }: { tournamentId: string; caption?: string }) =>
+      postTournamentResult(tournamentId, caption),
+    // The new post shows in the feeds right away
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: communityFeedKey }),
+  });
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
-import { FeedMatches } from "@/components/community-feed";
+import { FeedItems } from "@/components/community-feed";
 import { ConnectButton } from "@/components/connect-button";
 import { Page } from "@/components/page";
 import { PlayerTileSkeleton } from "@/components/player-tile-skeleton";
@@ -38,7 +38,7 @@ export function FriendsNewPlayer({ me, onSeeAllTunisia }: FriendsNewPlayerProps)
   const [isViewing, setIsViewing] = useState(false);
   const people = discover.data?.slice(0, MAX_PEOPLE);
   // The newest result from around Tunisia; the section is left out until there is one
-  const latest = useTunisiaFeed().data?.pages[0]?.[0];
+  const latest = useTunisiaFeed().data?.pages[0]?.items[0];
 
   return (
     <>
@@ -119,7 +119,7 @@ export function FriendsNewPlayer({ me, onSeeAllTunisia }: FriendsNewPlayerProps)
             actionLabel={t("common.seeAll")}
             onPressAction={onSeeAllTunisia}
           />
-          <FeedMatches matches={[latest]} myId={me.id} />
+          <FeedItems items={[latest]} myId={me.id} />
         </View>
       ) : null}
 

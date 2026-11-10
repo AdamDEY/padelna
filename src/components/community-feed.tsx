@@ -1,4 +1,5 @@
 import type { InfiniteData, UseInfiniteQueryResult } from "@tanstack/react-query";
+import { router } from "expo-router";
 import { Button } from "heroui-native";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,17 +10,18 @@ import { ConnectSheet } from "@/components/connect-sheet";
 import { PlayerSheet } from "@/components/player-sheet";
 import { ResultPostCard } from "@/components/result-post-card";
 import { ResultPostCardSkeleton } from "@/components/result-post-card-skeleton";
+import { TournamentPostCard } from "@/components/tournament-post-card";
 import { useMatchPhotoUrl } from "@/hooks/useMatches";
 import { toFeedPost } from "@/lib/feed-post";
 import type { Player, PlayerSuggestion } from "@/types/player";
-import type { FeedMatch } from "@/types/post";
+import type { FeedItem, FeedMatch, FeedPage } from "@/types/post";
 import { errorMessage } from "@/lib/error-message";
 
 type CommunityFeedProps = {
-  feed: UseInfiniteQueryResult<InfiniteData<FeedMatch[]>>;
+  feed: UseInfiniteQueryResult<InfiniteData<FeedPage>>;
   /** The signed-in player, so cards are told from your side */
   myId: string;
-  /** Shown when the feed has no matches */
+  /** Shown when the feed has nothing */
   empty: ReactNode;
 };
 
@@ -27,7 +29,7 @@ type CommunityFeedProps = {
 export function CommunityFeed({ feed, myId, empty }: CommunityFeedProps) {
   const { t } = useTranslation();
   const { data, error, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } = feed;
-  const matches = data?.pages.flat();
+  const items = data?.pages.flatMap((page) => page.items);
 
   if (error) {
     return (
@@ -39,12 +41,12 @@ export function CommunityFeed({ feed, myId, empty }: CommunityFeedProps) {
       </View>
     );
   }
-  if (!matches) return <ResultPostCardSkeleton label={t("community.loading")} />;
-  if (matches.length === 0) return empty;
+  if (!items) return <ResultPostCardSkeleton label={t("community.loading")} />;
+  if (items.length === 0) return empty;
 
   return (
     <>
-      <FeedMatches matches={matches} myId={myId} />
+      <FeedItems items={items} myId={myId} />
       {hasNextPage ? (
         <Button
           variant="secondary"
@@ -69,13 +71,14 @@ export function CommunityFeedEmpty({ title, text }: { title: string; text: strin
   );
 }
 
-type FeedMatchesProps = {
-  matches: FeedMatch[];
+type FeedItemsProps = {
+  items: FeedItem[];
   myId: string;
 };
 
-/** Result cards with the Connect and player sheets they open. */
-export function FeedMatches({ matches, myId }: FeedMatchesProps) {
+/** Result cards (matches and tournament results) with the Connect and player sheets they open. */
+export function FeedItems({ items, myId }: FeedItemsProps) {
+  const matches = items.flatMap((item) => (item.kind === "match" ? [item.match] : []));
   // Kept as ids so the sheets show the latest connection states after a refresh
   const [connectMatchId, setConnectMatchId] = useState<string>();
   const [viewedPlayer, setViewedPlayer] = useState<Player>();
@@ -84,19 +87,37 @@ export function FeedMatches({ matches, myId }: FeedMatchesProps) {
 
   return (
     <>
-      {matches.map((match) => (
-        <FeedCard
-          key={match.id}
-          match={match}
-          myId={myId}
-          onConnect={() => setConnectMatchId(match.id)}
-          onPlayerPress={(player) => {
-            if (player.id === myId) return;
-            setViewedPlayer(player);
-            setIsViewingPlayer(true);
-          }}
-        />
-      ))}
+      {items.map((item) => {
+        const openPlayer = (player: Player) => {
+          if (player.id === myId) return;
+          setViewedPlayer(player);
+          setIsViewingPlayer(true);
+        };
+        return item.kind === "match" ? (
+          <FeedCard
+            key={`match-${item.match.id}`}
+            match={item.match}
+            myId={myId}
+            onConnect={() => setConnectMatchId(item.match.id)}
+            onPlayerPress={openPlayer}
+          />
+        ) : (
+          <TournamentPostCard
+            key={`tournament-${item.post.id}`}
+            post={item.post}
+            myId={myId}
+            onPlayerPress={openPlayer}
+            // Your own recap when you played it, else the tournament's page, which shows the final results
+            onOpenTournament={(id, viewerPlayed) =>
+              router.push(
+                viewerPlayed
+                  ? { pathname: "/tournament-history/[id]", params: { id } }
+                  : { pathname: "/tournament/[id]", params: { id } },
+              )
+            }
+          />
+        );
+      })}
 
       <ConnectSheet
         post={connectMatch ? toFeedPost(connectMatch, myId).post : null}

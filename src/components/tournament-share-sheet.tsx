@@ -24,6 +24,7 @@ import {
   TournamentShareCard,
   TournamentShareImage,
 } from "@/components/tournament-share-image";
+import { usePostTournamentResult } from "@/hooks/useTournaments";
 import { errorMessage } from "@/lib/error-message";
 import { tournamentLinkFor } from "@/lib/share-link";
 import type { ShareResult } from "@/lib/tournament-share";
@@ -60,7 +61,8 @@ type TournamentShareSheetProps = {
 
 /**
  * "Share your result" (design: Tournament · share result): a preview of the result card, the
- * Community post (not connected yet), Share, Copy link and Save image, and "Post to Community".
+ * Community post (switch, caption and the tagged partner), Share, Copy link and Save image, and
+ * "Post to Community".
  */
 export function TournamentShareSheet({
   isOpen,
@@ -79,6 +81,7 @@ export function TournamentShareSheet({
   const [isPosting, setIsPosting] = useState(true);
   const [caption, setCaption] = useState("");
   const [cardHeight, setCardHeight] = useState(0);
+  const post = usePostTournamentResult();
 
   async function makeImage() {
     return captureRef(image, { format: "png", result: "tmpfile", width: IMAGE_WIDTH, height: IMAGE_HEIGHT });
@@ -126,9 +129,20 @@ export function TournamentShareSheet({
     toast.show({ variant: "success", label: t("tournamentShare.linkCopied") });
   }
 
-  function postToCommunity() {
-    // Nothing is posted yet; the Community API will take the image, the caption and the tagged partner
-    toast.show({ label: t("tournamentShare.postSoonTitle"), description: t("tournamentShare.postSoonText") });
+  async function postToCommunity() {
+    try {
+      await post.mutateAsync({ tournamentId, caption });
+    } catch (failure) {
+      toast.show({ variant: "danger", label: t("tournamentShare.postFailed"), description: errorMessage(failure) });
+      return;
+    }
+    toast.show({
+      variant: "success",
+      label: t("tournamentShare.posted"),
+      description: clubName ? t("tournamentShare.communityClub", { club: clubName }) : t("tournamentShare.communityAny"),
+    });
+    setCaption("");
+    onOpenChange(false);
   }
 
   return (
@@ -157,7 +171,7 @@ export function TournamentShareSheet({
               // Post stays pinned at the bottom while the form scrolls
               <BottomSheetFooter {...props}>
                 <View className="bg-surface px-5 pt-3" style={{ paddingBottom: Math.max(insets.bottom, 34) }}>
-                  <Button size="lg" isDisabled={!isPosting} onPress={postToCommunity} className="h-14 rounded-[18px]">
+                  <Button size="lg" isDisabled={!isPosting || post.isPending} onPress={postToCommunity} className="h-14 rounded-[18px]">
                     <Button.Label className="text-[17px]">{t("tournamentShare.post")}</Button.Label>
                   </Button>
                 </View>

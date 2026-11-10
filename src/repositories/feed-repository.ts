@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { ConnectionState, PlayerSuggestion } from "@/types/player";
-import type { ClubsWeek, FeedMatch, RisingPlayer } from "@/types/post";
+import type { ClubsWeek, FeedMatch, FeedTournamentPost, RisingPlayer } from "@/types/post";
 
 // Padel is 2 vs 2
 const CAPACITY = 4;
@@ -135,4 +135,63 @@ export async function fetchRisingPlayers(limit = 10): Promise<RisingPlayer[]> {
     },
     levelChange: Number(row.level_change),
   }));
+}
+
+type PostPlayerJson = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  level: number | null;
+  avatar_url: string | null;
+  connection: ConnectionState;
+};
+
+type PostRow = {
+  post_id: string;
+  tournament_id: string;
+  created_at: string;
+  caption: string | null;
+  author: PostPlayerJson;
+  partner: PostPlayerJson | null;
+};
+
+function toPostPlayer(json: PostPlayerJson): PlayerSuggestion {
+  return {
+    id: json.id,
+    firstName: json.first_name,
+    lastName: json.last_name,
+    level: json.level ?? undefined,
+    avatarUrl: json.avatar_url ?? undefined,
+    connection: json.connection,
+  };
+}
+
+async function fetchPosts(fn: string, args: Record<string, unknown>, before?: Date, limit = 20) {
+  const { data, error } = await supabase.rpc(fn, { ...args, p_before: before?.toISOString() ?? null, p_limit: limit });
+  if (error) throw error;
+  return (data as PostRow[]).map(
+    (row): FeedTournamentPost => ({
+      id: row.post_id,
+      tournamentId: row.tournament_id,
+      postedAt: new Date(row.created_at),
+      caption: row.caption ?? undefined,
+      author: toPostPlayer(row.author),
+      partner: row.partner ? toPostPlayer(row.partner) : undefined,
+    }),
+  );
+}
+
+/** Tournament results posted by you, your friends and their partners. */
+export function fetchFriendsTournamentPosts(before?: Date, limit = 20) {
+  return fetchPosts("get_friends_tournament_posts", {}, before, limit);
+}
+
+/** Tournament results from the clubs where you've played, from people outside your circle. */
+export function fetchClubsTournamentPosts(clubId?: string, before?: Date, limit = 20) {
+  return fetchPosts("get_clubs_tournament_posts", { p_club_id: clubId ?? null }, before, limit);
+}
+
+/** Tournament results from anywhere in Tunisia, or one city, from people outside your circle. */
+export function fetchTunisiaTournamentPosts(city?: string, before?: Date, limit = 20) {
+  return fetchPosts("get_tunisia_tournament_posts", { p_city: city ?? null }, before, limit);
 }
