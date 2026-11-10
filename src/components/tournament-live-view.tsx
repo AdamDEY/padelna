@@ -1,10 +1,10 @@
 import { Button, cn, Spinner } from "heroui-native";
-import { Share as ShareIcon } from "lucide-react-native";
+// import { Share as ShareIcon } from "lucide-react-native"; // Share button hidden for now
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, Share, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import { IconButton } from "@/components/icon-button";
+// import { IconButton } from "@/components/icon-button"; // Share button hidden for now
 import { LoadError } from "@/components/load-error";
 import { Page } from "@/components/page";
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -39,7 +39,7 @@ type Tab = "mine" | "groups" | "bracket" | "teams";
 const TABS: Tab[] = ["mine", "groups", "bracket", "teams"];
 
 // The app's own link; there is no website to send people to yet
-const TOURNAMENT_LINK = "padelna:///tournament/";
+// const TOURNAMENT_LINK = "padelna:///tournament/"; // Share button hidden for now
 const FACE_SIZE = 40;
 const FACE_OVERLAP = 13;
 
@@ -99,9 +99,10 @@ function LiveScreen({ tournament }: { tournament: LiveTournament }) {
   const isFinished = tournament.status === "finished";
   const subtitle = [tournament.startsAt ? formatMatchDay(tournament.startsAt) : undefined, tournament.clubName].filter(Boolean).join(" · ");
 
-  function share() {
-    Share.share({ message: `${[tournament.name, subtitle].filter(Boolean).join(" · ")}\n${TOURNAMENT_LINK}${tournament.id}` });
-  }
+  // // Share button hidden for now
+  // function share() {
+  // Share.share({ message: `${[tournament.name, subtitle].filter(Boolean).join(" · ")}\n${TOURNAMENT_LINK}${tournament.id}` });
+  // }
 
   const enterScore = (match: LiveMatch) => (canSendScore(tournament, match) ? () => setScoring(match) : undefined);
 
@@ -118,7 +119,8 @@ function LiveScreen({ tournament }: { tournament: LiveTournament }) {
           </View>
         }
       >
-        <IconButton icon={ShareIcon} label={t("tournaments.detail.share")} onPress={share} />
+        {/* Share button hidden for now:
+        <IconButton icon={ShareIcon} label={t("tournaments.detail.share")} onPress={share} /> */}
       </Page.Header>
 
       <Page.Body onRefresh={refresh} className="gap-4">
