@@ -8,19 +8,19 @@ import {
   Info,
   LayoutGrid,
   MapPin,
-  Share as ShareIcon,
+  // Share as ShareIcon, // Share button hidden for now
   Trophy,
   TriangleAlert,
   Wallet,
 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, Share, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native"; // Share: hidden with the Share button
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { COURT_HERO_HEIGHT, CourtHero } from "@/components/court-hero";
 import { Icon } from "@/components/icon";
-import { IconButton } from "@/components/icon-button";
+// import { IconButton } from "@/components/icon-button"; // Share button hidden for now
 import { InfoNote } from "@/components/info-note";
 import { LoadError } from "@/components/load-error";
 import { Page } from "@/components/page";
@@ -53,7 +53,7 @@ const FRIEND_FACES = 3;
 const FRIEND_FACE_SIZE = 30;
 const FRIEND_FACE_OVERLAP = 9;
 // The app's own link; there is no website to send people to yet
-const TOURNAMENT_LINK = "padelna:///tournament/";
+// const TOURNAMENT_LINK = "padelna:///tournament/"; // Share button hidden for now
 
 function refresh() {
   return queryClient.refetchQueries({ queryKey: tournamentsKey });
@@ -182,12 +182,13 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
       : formatMatchDateTime(startsAt)
     : t("tournaments.detail.dateSoon");
 
-  function share() {
-    const about = [tournament.name, startsAt ? formatMatchDateTime(startsAt) : undefined, tournament.clubName]
-      .filter(Boolean)
-      .join(" · ");
-    Share.share({ message: `${about}\n${TOURNAMENT_LINK}${tournament.id}` });
-  }
+  // Share button hidden for now
+  // function share() {
+  //   const about = [tournament.name, startsAt ? formatMatchDateTime(startsAt) : undefined, tournament.clubName]
+  //     .filter(Boolean)
+  //     .join(" · ");
+  //   Share.share({ message: `${about}\n${TOURNAMENT_LINK}${tournament.id}` });
+  // }
 
   function answerInvite(accept: boolean) {
     if (!myEntry) return;
@@ -253,13 +254,11 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
         onRefresh={refresh}
         onScrollY={(y) => setIsPastHero(y > COURT_HERO_HEIGHT - SHEET_OVERLAP - insets.top)}
       >
-        <CourtHero
-          tint="blue"
-          showBall
+        {/* Share button hidden for now:
           rightAction={
             <IconButton icon={ShareIcon} label={t("tournaments.detail.share")} onPress={share} className="border-0 bg-white/90" />
-          }
-        />
+          } */}
+        <CourtHero tint="blue" showBall />
 
         <View className="gap-[22px] rounded-t-[28px] bg-surface px-5 pt-[22px]" style={{ marginTop: -SHEET_OVERLAP }}>
           <View className="gap-2">
