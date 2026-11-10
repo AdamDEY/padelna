@@ -1,12 +1,12 @@
 import { Button, cn, Spinner } from "heroui-native";
-import { ArrowLeftRight, ChevronDown, ChevronUp, Share as ShareIcon } from "lucide-react-native";
+import { ArrowLeftRight, ChevronDown, ChevronUp } from "lucide-react-native"; // Share icon: button hidden for now
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Share, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { AmericanoScoreSheet, faceOf } from "@/components/americano-score-sheet";
 import { Icon } from "@/components/icon";
-import { IconButton } from "@/components/icon-button";
+// import { IconButton } from "@/components/icon-button"; // Share button hidden for now
 import { LoadError } from "@/components/load-error";
 import { Page } from "@/components/page";
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -31,7 +31,7 @@ import { queryClient } from "@/lib/query-client";
 import type { LiveEntry, LiveMatch, LiveTournament } from "@/types/tournament";
 
 // The app's own link; there is no website to send people to yet
-const TOURNAMENT_LINK = "padelna:///tournament/";
+// const TOURNAMENT_LINK = "padelna:///tournament/"; // Share button hidden for now
 // Leaderboard rows before "See all N players" (design "Americano live")
 const LEADERS_SHOWN = 8;
 const FACE_SIZE = 40;
@@ -95,9 +95,10 @@ function LiveScreen({ tournament }: { tournament: LiveTournament }) {
   const mine = myMatches(tournament).filter((match) => match.score);
   const subtitle = [tournament.startsAt ? formatMatchDay(tournament.startsAt) : undefined, tournament.clubName].filter(Boolean).join(" · ");
 
-  function share() {
-    Share.share({ message: `${[tournament.name, subtitle].filter(Boolean).join(" · ")}\n${TOURNAMENT_LINK}${tournament.id}` });
-  }
+  // // Share button hidden for now
+  // function share() {
+  // Share.share({ message: `${[tournament.name, subtitle].filter(Boolean).join(" · ")}\n${TOURNAMENT_LINK}${tournament.id}` });
+  // }
 
   return (
     <Page>
@@ -112,7 +113,8 @@ function LiveScreen({ tournament }: { tournament: LiveTournament }) {
           </View>
         }
       >
-        <IconButton icon={ShareIcon} label={t("tournaments.detail.share")} onPress={share} />
+        {/* Share button hidden for now:
+        <IconButton icon={ShareIcon} label={t("tournaments.detail.share")} onPress={share} /> */}
       </Page.Header>
 
       <Page.Body onRefresh={refresh} className="gap-4">
