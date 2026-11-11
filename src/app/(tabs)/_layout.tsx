@@ -18,8 +18,8 @@ export default function TabsLayout() {
       tintColor={accent}
       iconColor={{ default: mutedIcon, selected: accent }}
       labelStyle={{
-        default: { color: mutedIcon, fontFamily: "Nunito_700Bold", fontSize: 11 },
-        selected: { color: accent, fontFamily: "Nunito_800ExtraBold", fontSize: 11 },
+        default: { color: mutedIcon, fontFamily: "Lato_700Bold", fontSize: 11 },
+        selected: { color: accent, fontFamily: "Lato_900Black", fontSize: 11 },
       }}
     >
       <NativeTabs.Trigger name="index">

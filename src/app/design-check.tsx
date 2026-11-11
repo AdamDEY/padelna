@@ -34,7 +34,7 @@ export default function DesignCheck() {
       <Page.Body>
         <Page.Title
           eyebrow="Your next match"
-          description="Nunito, the Padelna colours and HeroUI components together."
+          description="Lato, the Padelna colours and HeroUI components together."
         >
           Design check
         </Page.Title>

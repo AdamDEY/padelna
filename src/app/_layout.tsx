@@ -1,13 +1,11 @@
 import "../global.css";
 
 import {
-  Nunito_400Regular,
-  Nunito_600SemiBold,
-  Nunito_700Bold,
-  Nunito_800ExtraBold,
-  Nunito_900Black,
+  Lato_400Regular,
+  Lato_700Bold,
+  Lato_900Black,
   useFonts,
-} from "@expo-google-fonts/nunito";
+} from "@expo-google-fonts/lato";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -49,11 +47,9 @@ export default function RootLayout() {
   }, []);
 
   const [fontsLoaded, fontError] = useFonts({
-    Nunito_400Regular,
-    Nunito_600SemiBold,
-    Nunito_700Bold,
-    Nunito_800ExtraBold,
-    Nunito_900Black,
+    Lato_400Regular,
+    Lato_700Bold,
+    Lato_900Black,
   });
 
   useEffect(() => {
