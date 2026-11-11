@@ -90,6 +90,8 @@ type PageProps = {
   variant?: PageVariant;
   /** White page instead of the grey canvas, for detail screens */
   surface?: boolean;
+  /** Dark ink page, for screens that preview a picture (Share your match) */
+  dark?: boolean;
   /**
    * Start the content at the very top, under the status bar, for screens that
    * open with a full-width photo. The screen then handles the top inset itself.
@@ -98,7 +100,7 @@ type PageProps = {
   children: ReactNode;
 };
 
-function PageRoot({ variant = "app", surface, underStatusBar, children }: PageProps) {
+function PageRoot({ variant = "app", surface, dark, underStatusBar, children }: PageProps) {
   const insets = useSafeAreaInsets();
   // Without a footer, the body itself has to clear the home indicator
   const hasFooter = Children.toArray(children).some(
@@ -108,7 +110,7 @@ function PageRoot({ variant = "app", surface, underStatusBar, children }: PagePr
   return (
     <PageContext.Provider value={{ variant, hasFooter, underStatusBar: !!underStatusBar }}>
       <KeyboardAvoidingView
-        className={cn("flex-1", surface ? "bg-surface" : "bg-background")}
+        className={cn("flex-1", surface ? "bg-surface" : dark ? "bg-ink" : "bg-background")}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ paddingTop: underStatusBar ? 0 : insets.top + TOP_GAP }}
       >

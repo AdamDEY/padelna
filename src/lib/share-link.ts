@@ -16,6 +16,11 @@ export function codeFromLink(text: string) {
   return LINK_PATTERN.exec(text.trim())?.[1].toUpperCase();
 }
 
+/** The link to a match, for the text shared with its picture (it opens the match in the app). */
+export function matchLinkFor(id: string) {
+  return `padelna://match/${id}`;
+}
+
 /** The link to a tournament, for the result you share (it opens the tournament in the app). */
 export function tournamentLinkFor(id: string) {
   return `padelna://tournament/${id}`;
