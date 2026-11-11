@@ -193,6 +193,17 @@ You need at least:
 - [ ] **APP-THPOST-05 (P1)** The title is told from your side ("You and Amira won…") and a post about a tournament you also played adds "You finished …". "See the tournament" opens your recap when you played it, else the tournament page.
 - [ ] **APP-THPOST-06 (P1)** Only a finished tournament you played can be posted: the database refuses anything else, and the card shown is the real result, never one the poster typed.
 
+### Sharing a match (APP-MSHARE)
+
+- [ ] **APP-MSHARE-01 (P0)** On the detail of a finished match you played in, once a score has been sent (waiting or confirmed), a "Share match" button shows under the score card. It is missing when there is no score, when the score expired, and for a match you weren't in.
+- [ ] **APP-MSHARE-02 (P0)** "Share match" opens a full-screen dark "Share your match" with a 9:16 preview, four styles (Score, Stats, Minimal, Streak) and Photo / Sticker / Plain tabs. The score reads from your side: your pair first, WON or LOST, your games first in each set. A deciding super tie-break like 10–8 stays on one line.
+- [ ] **APP-MSHARE-03 (P0)** The photo starts as the team photo added with the score (or the court drawing without one). "Add photo" / "Change" picks one from the gallery; the preview and the four style thumbnails update.
+- [ ] **APP-MSHARE-04 (P1)** Swiping the preview sideways cycles the style; dragging up or down moves the overlay inside the picture and stops at its edges; picking a style puts it back where its design places it.
+- [ ] **APP-MSHARE-05 (P0)** Story opens the system share sheet with a 1080 × 1920 PNG that matches the preview (position included). Save adds it to Photos (asks for permission once; a refusal shows "Padelna can't save photos"). More shares a short message with the match link.
+- [ ] **APP-MSHARE-06 (P1)** Sticker tab: the preview sits on grey squares, "Copy sticker" puts a transparent PNG cut to the overlay on the clipboard (toast "Sticker copied") and pastes onto a photo in an Instagram story; Save PNG keeps the transparency.
+- [ ] **APP-MSHARE-07 (P1)** Streak style and Stats: after two or more wins in a row (counting this one) they show "n wins in a row" / the streak, and the last five results as W / L boxes; after a loss or a first win they show the result and score instead. A pending score still counts as the newest result.
+- [ ] **APP-MSHARE-08 (P2)** The Close button goes back to the match; the status bar is white on the dark screen and dark again on return. In French the chips and labels read "GAGNÉ", "PERDU", "V" / "D".
+
 ### Notifications and push (APP-NOTIF)
 
 - [ ] **APP-NOTIF-01 (P1)** Each event creates an in-app notification and a push: joined, left, invited, court changed, cancelled, score to confirm, score confirmed, connection request, tournament invite.
@@ -338,3 +349,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-10 | Added the club logo scenario (ADM-CLUB-08). The migrations `20261108220000_admin_edit_gender_birthday.sql` and `20261108240000_admin_reason_optional.sql` were applied to the database earlier but missing from the repo; added. |
 | 2026-11-10 | Hid the Share button on the tournament detail screen (commented out for now); no scenario covered it. |
 | 2026-11-10 | Also hid the Share button in the live and finished tournament views (group stage and Americano). |
+| 2026-11-10 | Added sharing a finished match as a story picture (APP-MSHARE): Share match button on the match detail, photo / sticker / plain, four overlay styles. No migration. |

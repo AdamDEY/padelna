@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { Button, PressableFeedback, useToast } from "heroui-native";
-import { CalendarDays, Check, Clock, MapPin, MessageSquare, Trophy, Users } from "lucide-react-native";
+import { CalendarDays, Check, Clock, MapPin, MessageSquare, Share2, Trophy, Users } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActionSheetIOS, Alert, Linking, Platform, Text, View } from "react-native";
@@ -25,6 +25,7 @@ import { InfoNote } from "@/components/info-note";
 import { showDirections } from "@/lib/directions";
 import { addToCalendar, googleCalendarUrl, outlookCalendarUrl, type CalendarEventDetails } from "@/lib/add-to-calendar";
 import { formatMatchDay, formatStartsIn } from "@/lib/format-date";
+import { canShareScore } from "@/lib/match-share";
 import { teamOf } from "@/lib/padel-score";
 import { isRatingOpen, playersToRate } from "@/lib/player-rating";
 import type { MatchDetails, MatchInvite } from "@/types/match";
@@ -383,6 +384,18 @@ export function MyMatch({ match, role }: MyMatchProps) {
             canAdd={canAdd}
             isTooLateToAdd={isTooLateToAdd}
           />
+        ) : null}
+
+        {/* Once the score is in, the match can be shared as a picture (design: Share your match) */}
+        {isOver && canShareScore(score) && myTeam !== undefined ? (
+          <Button
+            size="lg"
+            variant="secondary"
+            onPress={() => router.push({ pathname: "/match/[id]/share", params: { id: match.id } })}
+          >
+            <Icon as={Share2} size={20} color="primary-dark" />
+            <Button.Label>{t("matchShare.button")}</Button.Label>
+          </Button>
         ) : null}
 
         {!isOver && !isHost && !match.isCourtBooked ? (

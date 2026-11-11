@@ -93,6 +93,7 @@ export default function RootLayout() {
               <Stack.Screen name="match/[id]/index" />
               <Stack.Screen name="match/[id]/rate" />
               <Stack.Screen name="match/[id]/chat" />
+              <Stack.Screen name="match/[id]/share" options={{ presentation: "fullScreenModal" }} />
               <Stack.Screen name="log-match" />
               <Stack.Screen name="tournaments" />
               <Stack.Screen name="tournament/[id]" />
