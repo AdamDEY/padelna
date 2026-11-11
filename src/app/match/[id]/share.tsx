@@ -10,7 +10,6 @@ import { useCallback, useMemo, useRef, useState, type ComponentRef } from "react
 import { useTranslation } from "react-i18next";
 import { PixelRatio, Pressable, Share, Text, View } from "react-native";
 import { GestureDetector, usePanGesture } from "react-native-gesture-handler";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
 
 import { Icon } from "@/components/icon";
@@ -34,8 +33,9 @@ import { matchLinkFor } from "@/lib/share-link";
 const SCREEN_SCALE = PixelRatio.get();
 const CAPTURE_WIDTH = 1080 / SCREEN_SCALE;
 const CAPTURE_HEIGHT = 1920 / SCREEN_SCALE;
-// design: the preview is 236 × 420 and each style thumbnail 54 × 96
-const PREVIEW_WIDTH = 236;
+// design: the preview is 236 × 420 and each style thumbnail 54 × 96; the preview is a little smaller
+// so the whole screen fits above the buttons without crowding the home indicator
+const PREVIEW_WIDTH = 216;
 const PREVIEW_SCALE = PREVIEW_WIDTH / SHARE_IMAGE_WIDTH;
 const THUMB_WIDTH = 54;
 const THUMB_SCALE = THUMB_WIDTH / SHARE_IMAGE_WIDTH;
@@ -64,7 +64,6 @@ function clamp(value: number, min: number, max: number) {
 export default function ShareMatch() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: match, isPending } = useMatch(id);
   const { data: account } = useMyAccount();
@@ -323,7 +322,7 @@ export default function ShareMatch() {
           })}
         </View>
 
-        <View className="mt-1 flex-row gap-2" style={{ paddingBottom: Math.max(insets.bottom, 26) }}>
+        <View className="mt-1 flex-row gap-2">
           <ActionButton
             primary
             icon={isSticker ? Copy : Smartphone}
