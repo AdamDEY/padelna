@@ -1,6 +1,6 @@
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { BottomSheet, cn, PressableFeedback, Spinner, useToast } from "heroui-native";
-import * as ImagePicker from "expo-image-picker";
 import { CalendarDays, ChevronRight, Plus } from "lucide-react-native";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,9 +11,9 @@ import { PlayerAvatar, stackTintIndices } from "@/components/player-avatar";
 import { SaveScoreSheet } from "@/components/save-score-sheet";
 import { useMatch, useShareableMatches, useUploadMatchPhoto } from "@/hooks/useMatches";
 import { useMyAccount } from "@/hooks/useMyProfile";
+import { errorMessage } from "@/lib/error-message";
 import { formatMatchDay } from "@/lib/format-date";
 import type { ShareableMatch } from "@/types/match";
-import { errorMessage } from "@/lib/error-message";
 
 const missingCopy = {
   score: { status: "shareMatch.noScore", action: "shareMatch.addScore" },
