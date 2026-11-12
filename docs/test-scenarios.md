@@ -41,6 +41,8 @@ You need at least:
 - [ ] **APP-AUTH-04 (P1)** Kill and reopen the app: the session is kept. Sign out: the app returns to sign-in and the back gesture doesn't reopen the tabs.
 - [ ] **APP-AUTH-05 (P0)** Delete account from Settings: confirmation sheet, then the account is gone, sign-in with it fails, and the player no longer shows in Players, feeds or line-ups.
 - [ ] **APP-AUTH-06 (P2)** Delete an account that hosts an upcoming match: check what happens to the match and its other players (they should be told, not see a broken match).
+- [ ] **APP-AUTH-07 (P1)** On Create account, tap "Terms" and then "Privacy Policy" in the agree line: each opens its page (padelna.tn/terms/ and /privacy/) in the in-app browser, in the right order, and the checkbox is not ticked by the tap. With no network, a toast says the page couldn't open.
+- [ ] **APP-AUTH-08 (P2)** Edit profile → Legal section → Terms of Use and Privacy Policy rows open the same two pages; closing the browser returns to Edit profile with nothing lost (unsaved edits are kept, no discard warning).
 
 ### Profile setup, level quiz and onboarding (APP-SETUP)
 
@@ -350,6 +352,7 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-10 | Added Tournament history and recaps (APP-THIST): Profile row, history list, group + knockout and Americano recaps, share sheet and result image. Needs migration `20261110140000_tournament_history.sql`. |
 | 2026-11-10 | Added tournament result posts in the Community feeds (APP-THPOST). Needs migration `20261110160000_tournament_posts.sql`. |
 | 2026-11-10 | Added the club logo scenario (ADM-CLUB-08). The migrations `20261108220000_admin_edit_gender_birthday.sql` and `20261108240000_admin_reason_optional.sql` were applied to the database earlier but missing from the repo; added. |
+| 2026-11-12 | Terms of Use and Privacy Policy pages on the landing page (`/terms/`, `/privacy/`), linked from Create account and from a Legal section in Edit profile (APP-AUTH-07, APP-AUTH-08). |
 | 2026-11-10 | Hid the Share button on the tournament detail screen (commented out for now); no scenario covered it. |
 | 2026-11-10 | Also hid the Share button in the live and finished tournament views (group stage and Americano). |
 | 2026-11-10 | Added sharing a finished match as a story picture (APP-MSHARE): Share match button on the match detail, photo / sticker / plain, four overlay styles. No migration. |

@@ -33,6 +33,7 @@ import type { Hand, PlayStyle, Side } from "@/components/setup-game-step";
 import { LANGUAGE_NAMES, LANGUAGES, setLanguage, type Language } from "@/i18n";
 import { cities, me, myProfile, upcomingMatches } from "@/data/mock";
 import { useClubs } from "@/hooks/useClubs";
+import { useOpenLegal } from "@/hooks/useOpenLegal";
 import { useMyClubs } from "@/hooks/usePlayers";
 import { myProfileKey, useMyAccount } from "@/hooks/useMyProfile";
 import {
@@ -104,6 +105,7 @@ function SettingsForm({ account }: { account: MyAccount }) {
     { value: "tactical", label: t("playStyle.tactical") },
   ];
   const { toast } = useToast();
+  const openLegal = useOpenLegal();
   const navigation = useNavigation();
   const [photoUri, setPhotoUri] = useState<string>();
   const [firstName, setFirstName] = useState(account.firstName);
@@ -370,6 +372,11 @@ function SettingsForm({ account }: { account: MyAccount }) {
 
         <SettingsSection title={t("settings.appearance")}>
           <DarkModeRow />
+        </SettingsSection>
+
+        <SettingsSection title={t("settings.legal")}>
+          <SettingsRow label={t("settings.termsOfUse")} onPress={() => openLegal("terms")} />
+          <SettingsRow label={t("settings.privacyPolicy")} onPress={() => openLegal("privacy")} />
         </SettingsSection>
 
         <View className="mt-1 gap-2.5">
