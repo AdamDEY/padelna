@@ -163,7 +163,8 @@ export default function SignIn() {
                   onPress={() => setShowPassword((shown) => !shown)}
                   className="size-11 items-center justify-center"
                 >
-                  <Icon as={showPassword ? EyeOff : Eye} color="muted" size={22} />
+                  {/* The icon shows the state: open eye = visible, crossed eye = hidden */}
+                  <Icon as={showPassword ? Eye : EyeOff} color="muted" size={22} />
                 </Pressable>
               </InputGroup.Suffix>
             </InputGroup>
