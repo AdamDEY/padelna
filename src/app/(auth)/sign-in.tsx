@@ -1,13 +1,16 @@
 import { Link, router } from "expo-router";
-import { Button, FieldError, Input, Label, TextField, useToast } from "heroui-native";
+import { Button, FieldError, Input, InputGroup, Label, TextField, useToast } from "heroui-native";
+import { Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SocialAuthButtons } from "@/components/social-auth-buttons";
+import { Icon } from "@/components/icon";
 import { Page } from "@/components/page";
 import { PadelnaLogo } from "@/components/padelna-logo";
+import { SocialAuthButtons } from "@/components/social-auth-buttons";
+import { useHeroStatusBar } from "@/hooks/useHeroStatusBar";
 import { signIn as signInWithPassword } from "@/repositories/auth-repository";
 import { hasProfile } from "@/repositories/profile-repository";
 import { isEmail, isEmailOrPhone } from "@/lib/validation";
@@ -15,19 +18,24 @@ import { errorMessage } from "@/lib/error-message";
 
 // The design is drawn for a 44 pt status bar; taller ones push everything down
 const DESIGN_STATUS_BAR = 44;
+// The hero ends where the form sheet starts
 const HERO_HEIGHT = 300;
+const LOGO_TOP = 78;
+// Page.Body pads its end by this much when a footer is pinned below it
+const BODY_END_PADDING = 24;
 
 export default function SignIn() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const shift = Math.max(0, insets.top - DESIGN_STATUS_BAR);
-  // Court drawing starts below the logo row
-  const courtTop = insets.top + 70;
+  // White status bar text over the dark hero, dark again once it scrolls away
+  const { onHeroLayout, onScrollY } = useHeroStatusBar();
   const { toast } = useToast();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const identifierError = submitted && !isEmailOrPhone(identifier);
   const passwordError = submitted && password.length === 0;
@@ -67,32 +75,31 @@ export default function SignIn() {
   }
 
   return (
-    <Page variant="auth" underStatusBar>
-      <Page.Body className="gap-[18px] px-0">
-        {/* Court illustration with the logo, rounded at the bottom */}
+    <Page variant="auth" underStatusBar dark>
+      <Page.Body className="gap-0 px-0" onScrollY={onScrollY}>
+        {/* Dark hero: the logo over two faint lime rings, like court lines */}
         <View
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          className="overflow-hidden rounded-b-[36px] bg-court-blue"
-          style={{ height: HERO_HEIGHT + shift }}
+          onLayout={onHeroLayout}
+          className="items-center gap-3.5 overflow-hidden bg-ink"
+          style={{ height: HERO_HEIGHT + shift, paddingTop: LOGO_TOP + shift }}
         >
           <View
-            className="absolute inset-x-[70px] -bottom-10 rounded-md border-2 border-white/90"
-            style={{ top: courtTop }}
+            aria-hidden
+            className="absolute -end-[70px] -top-[90px] size-[260px] rounded-full border-2 border-lime opacity-[0.16]"
           />
-          <View className="absolute inset-x-[70px] h-[3px] bg-white" style={{ top: courtTop + 120 }} />
-          <View className="absolute inset-x-[70px] h-0.5 bg-white/70" style={{ top: courtTop + 60 }} />
-          <View className="absolute left-1/2 h-[60px] w-0.5 bg-white/70" style={{ top: courtTop }} />
           <View
-            className="absolute left-[60%] size-[22px] rounded-full bg-lime"
-            style={{ top: courtTop + 82 }}
+            aria-hidden
+            className="absolute -start-[120px] top-[160px] size-[240px] rounded-full border-2 border-lime opacity-10"
           />
-        </View>
-        <View className="absolute start-6" style={{ top: insets.top + 8 }}>
           <PadelnaLogo />
+          <Text className="font-semibold text-[15px] text-ink-tint-text">{t("auth.tagline")}</Text>
         </View>
 
-        <View className="gap-[18px] px-6 pt-2.5">
+        {/* The form sheet slides over the hero; it also covers the body's bottom padding */}
+        <View
+          className="grow gap-[18px] rounded-t-[32px] bg-background px-6 pt-7"
+          style={{ marginBottom: -BODY_END_PADDING }}
+        >
           <View className="gap-1.5">
             <Text
               accessibilityRole="header"
@@ -136,15 +143,30 @@ export default function SignIn() {
                 {t("auth.forgot")}
               </Text>
             </View>
-            <Input
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete="current-password"
-              textContentType="password"
-              returnKeyType="go"
-              onSubmitEditing={signIn}
-            />
+            <InputGroup>
+              <InputGroup.Input
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="current-password"
+                textContentType="password"
+                returnKeyType="go"
+                onSubmitEditing={signIn}
+              />
+              <InputGroup.Suffix>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t(showPassword ? "auth.hidePassword" : "auth.showPassword")}
+                  hitSlop={8}
+                  onPress={() => setShowPassword((shown) => !shown)}
+                  className="size-11 items-center justify-center"
+                >
+                  <Icon as={showPassword ? EyeOff : Eye} color="muted" size={22} />
+                </Pressable>
+              </InputGroup.Suffix>
+            </InputGroup>
             <FieldError>{t("auth.passwordError")}</FieldError>
           </TextField>
 
@@ -156,7 +178,7 @@ export default function SignIn() {
         </View>
       </Page.Body>
 
-      <Page.Footer className="items-center">
+      <Page.Footer className="items-center bg-background">
         <Text className="font-normal text-[15px] text-muted">
           {t("auth.newTo")}{" "}
           <Link href="/sign-up" replace className="font-bold text-link">

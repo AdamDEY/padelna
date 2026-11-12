@@ -44,6 +44,9 @@ You need at least:
 - [ ] **APP-AUTH-07 (P1)** On Create account, tap "Terms" and then "Privacy Policy" in the agree line: each opens its page (padelna.tn/terms/ and /privacy/) in the in-app browser, in the right order, and the checkbox is not ticked by the tap. With no network, a toast says the page couldn't open.
 - [ ] **APP-AUTH-08 (P2)** Edit profile → Legal section → Terms of Use and Privacy Policy rows open the same two pages; closing the browser returns to Edit profile with nothing lost (unsaved edits are kept, no discard warning).
 
+- [ ] **APP-AUTH-09 (P1)** Sign-in screen: dark hero with the lime Padelna logo and "Find players at your level", the light form sheet over it, and "New to Padelna?" pinned at the bottom. With a long phone number or the keyboard open, the form scrolls and nothing is cut off; status bar text is white over the hero and dark once it scrolls away. Check on a small phone (iPhone SE) and in dark mode, and in French.
+- [ ] **APP-AUTH-10 (P1)** Password field has an eye button: tapping it shows the password as typed (icon changes to a crossed eye), tapping again hides it; the text is kept when toggling and typing continues where it was. The button has a screen-reader label ("Show password" / "Hide password").
+
 ### Profile setup, level quiz and onboarding (APP-SETUP)
 
 - [ ] **APP-SETUP-01 (P0)** Step 1 About you: name, phone (`+216`, 8 digits), city, gender and birthday are required; an invalid phone or a birthday under the minimum age is refused.
@@ -357,3 +360,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-10 | Also hid the Share button in the live and finished tournament views (group stage and Americano). |
 | 2026-11-10 | Added sharing a finished match as a story picture (APP-MSHARE): Share match button on the match detail, photo / sticker / plain, four overlay styles. No migration. |
 | 2026-11-12 | Added dark mode (APP-PROF-05/06, APP-GEN-05): Dark mode switch in Edit profile, dark palette in `global.css`, saved on the phone. No migration. |
+| 2026-11-12 | New sign-in screen (APP-AUTH-09, APP-AUTH-10): new lime logo on a dark hero and a show/hide eye on the password field. No migration. |
