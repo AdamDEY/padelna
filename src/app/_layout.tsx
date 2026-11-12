@@ -14,7 +14,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { HeroUINativeProvider } from "heroui-native";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Uniwind } from "uniwind";
 
 import { CrashScreen } from "@/components/crash-screen";
 import { Celebration } from "@/components/celebration";
@@ -26,9 +25,7 @@ import { useNotificationsRealtime } from "@/hooks/useNotifications";
 import { useConnectionsRealtime } from "@/hooks/usePlayers";
 import { usePrepareHome } from "@/hooks/usePrepareHome";
 import { queryClient } from "@/lib/query-client";
-
-// design.md only defines a light palette
-Uniwind.setTheme("light");
+import { restoreThemePreference } from "@/lib/theme-preference";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -42,10 +39,10 @@ export default function RootLayout() {
   // Home's data loads behind the splash screen, in parallel with the fonts
   const isHomeReady = usePrepareHome();
   const authState = useAuthState();
-  // The saved language is applied behind the splash screen, so nothing flashes in the wrong one
+  // The saved language and theme are applied behind the splash screen, so nothing flashes in the wrong one
   const [isLanguageReady, setIsLanguageReady] = useState(false);
   useEffect(() => {
-    restoreLanguage().finally(() => setIsLanguageReady(true));
+    Promise.all([restoreLanguage(), restoreThemePreference()]).finally(() => setIsLanguageReady(true));
   }, []);
 
   const [fontsLoaded, fontError] = useFonts({

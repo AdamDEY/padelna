@@ -263,7 +263,7 @@ function NextMatchCard({ tournament, match, myId, onEnterScore }: { tournament: 
           {t("tournaments.live.nextMatch", { match: matchTitle(match) })}
         </Text>
         <View className="rounded-[10px] bg-lime px-2.5 py-1">
-          <Text className="font-bold text-[12px] text-lime-foreground">
+          <Text className="font-bold text-[12px] text-on-lime">
             {match.submitted ? t("tournaments.live.matchState.sent") : t("tournaments.live.matchState.next")}
           </Text>
         </View>
@@ -283,7 +283,7 @@ function NextMatchCard({ tournament, match, myId, onEnterScore }: { tournament: 
 
       {onEnterScore ? (
         <Button variant="secondary" onPress={onEnterScore} className="bg-surface">
-          <Button.Label className="text-accent">
+          <Button.Label className="text-accent-text">
             {match.submitted ? t("tournaments.live.changeScore") : t("tournaments.live.enterScore")}
           </Button.Label>
         </Button>

@@ -47,7 +47,7 @@ export function AmericanoLiveCard({ tournamentId, onPress }: AmericanoLiveCardPr
           </Text>
         </View>
         <View className="rounded-[10px] bg-lime px-2.5 py-1">
-          <Text className="font-bold text-[12px] text-lime-foreground">{t("tournaments.americano.roundOf", { round, total: roundCount(tournament) })}</Text>
+          <Text className="font-bold text-[12px] text-on-lime">{t("tournaments.americano.roundOf", { round, total: roundCount(tournament) })}</Text>
         </View>
       </View>
 

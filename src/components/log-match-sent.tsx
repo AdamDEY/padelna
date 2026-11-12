@@ -35,7 +35,7 @@ export function LogMatchSent({ clubName, startsAt, seats, sets, myId }: LogMatch
     <View className="gap-3.5">
       <View className="items-center gap-2 pt-2">
         <View className="size-16 items-center justify-center rounded-full bg-primary-soft">
-          <Icon as={Send} size={32} color="accent" />
+          <Icon as={Send} size={32} color="accent-text" />
         </View>
         <Text accessibilityRole="header" className="text-center font-black text-[24px] text-foreground">
           {t("logMatch.sentTitle")}

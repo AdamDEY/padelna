@@ -26,7 +26,7 @@ export function LevelRangeSlider({ value, onChange, myLevel }: LevelRangeSliderP
     >
       <View className="flex-row items-baseline justify-between">
         <Text className="font-bold text-[14px] text-foreground">{t("createMatch.levelRange")}</Text>
-        <Text className="font-black text-[15px] text-accent">
+        <Text className="font-black text-[15px] text-accent-text">
           {value[0].toFixed(1)} – {value[1].toFixed(1)}
         </Text>
       </View>

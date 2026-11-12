@@ -1,6 +1,7 @@
 import { BadgeCheck } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
+import { ScopedTheme } from "uniwind";
 
 import { Icon } from "@/components/icon";
 import { PadelnaMark } from "@/components/padelna-logo";
@@ -39,36 +40,38 @@ export function ShareProfileCard({ profile }: { profile: ShareProfile }) {
   const { t } = useTranslation();
 
   return (
-    <View
-      className="flex-1 items-center justify-center gap-4 overflow-hidden rounded-[28px] bg-accent px-5 py-[22px]"
-      style={{ minHeight: CARD_MIN_HEIGHT }}
-    >
-      {/* Faint circles in the corners, like the court lines on the Profile header */}
-      <View aria-hidden className="absolute -end-[50px] -top-[50px] size-[180px] rounded-full border-2 border-white/15" />
-      <View aria-hidden className="absolute -bottom-10 -start-[70px] size-[190px] rounded-full border-2 border-white/10" />
+    <ScopedTheme theme="light">
+      <View
+        className="flex-1 items-center justify-center gap-4 overflow-hidden rounded-[28px] bg-hero px-5 py-[22px]"
+        style={{ minHeight: CARD_MIN_HEIGHT }}
+      >
+        {/* Faint circles in the corners, like the court lines on the Profile header */}
+        <View aria-hidden className="absolute -end-[50px] -top-[50px] size-[180px] rounded-full border-2 border-white/15" />
+        <View aria-hidden className="absolute -bottom-10 -start-[70px] size-[190px] rounded-full border-2 border-white/10" />
 
-      <View className="flex-row items-center gap-2">
-        <PadelnaMark size={28} />
-        <Text className="font-black text-[17px] text-accent-foreground">Padelna</Text>
-      </View>
-
-      <View className="items-center gap-3.5 self-stretch rounded-[28px] bg-surface px-5 pb-5 pt-[22px]">
-        <View className="items-center gap-0.5">
-          <Text numberOfLines={1} className="font-black text-[22px] tracking-[-0.3px] text-foreground">
-            {profile.name}
-          </Text>
-          <Text className="font-bold text-[15px] tracking-[1px] text-muted">
-            {t("shareProfile.codeLabel", { code: profile.code })}
-          </Text>
+        <View className="flex-row items-center gap-2">
+          <PadelnaMark size={28} />
+          <Text className="font-black text-[17px] text-accent-foreground">Padelna</Text>
         </View>
-        <QrCode
-          logo
-          value={profile.link}
-          size={QR_SIZE}
-          accessibilityLabel={t("shareProfile.qrA11y", { name: profile.name })}
-        />
-        <Text className="text-center font-normal text-[13px] text-muted">{t("shareProfile.scanToConnect")}</Text>
+
+        <View className="items-center gap-3.5 self-stretch rounded-[28px] bg-surface px-5 pb-5 pt-[22px]">
+          <View className="items-center gap-0.5">
+            <Text numberOfLines={1} className="font-black text-[22px] tracking-[-0.3px] text-foreground">
+              {profile.name}
+            </Text>
+            <Text className="font-bold text-[15px] tracking-[1px] text-muted">
+              {t("shareProfile.codeLabel", { code: profile.code })}
+            </Text>
+          </View>
+          <QrCode
+            logo
+            value={profile.link}
+            size={QR_SIZE}
+            accessibilityLabel={t("shareProfile.qrA11y", { name: profile.name })}
+          />
+          <Text className="text-center font-normal text-[13px] text-muted">{t("shareProfile.scanToConnect")}</Text>
+        </View>
       </View>
-    </View>
+    </ScopedTheme>
   );
 }

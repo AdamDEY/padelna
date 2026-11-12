@@ -27,14 +27,14 @@ export function ChoiceChips<T extends string>({ options, value, onChange }: Choi
             hitSlop={4}
             className={cn(
               "h-9 justify-center rounded-full px-3.5",
-              selected ? "bg-foreground" : "border border-line-input bg-surface",
+              selected ? "bg-ink" : "border border-line-input bg-surface",
             )}
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
             <Text
               className={cn(
                 "text-[13px]",
-                selected ? "font-bold text-background" : "font-semibold text-foreground",
+                selected ? "font-bold text-white" : "font-semibold text-foreground",
               )}
             >
               {option.label}

@@ -53,7 +53,7 @@ export function PhotoPicker({ uri, onChange, current }: PhotoPickerProps) {
             current
           ) : (
             <View className="flex-1 items-center justify-center rounded-full border-2 border-dashed border-slot-border bg-primary-soft">
-              <Icon as={Camera} size={30} color="accent" />
+              <Icon as={Camera} size={30} color="accent-text" />
             </View>
           )}
         </PressableFeedback>
@@ -65,7 +65,7 @@ export function PhotoPicker({ uri, onChange, current }: PhotoPickerProps) {
           <Icon as={hasPhoto ? Camera : Plus} size={16} color="accent-foreground" />
         </View>
       </View>
-      <Text className="font-semibold text-[14px] text-accent">
+      <Text className="font-semibold text-[14px] text-accent-text">
         {hasPhoto ? t("profilePhoto.changeLabel") : t("profilePhoto.addLabel")}
       </Text>
     </View>

@@ -78,7 +78,7 @@ export function BookingNoticeSheet({
           ) : null}
 
           <View className="flex-row items-center gap-2.5 rounded-2xl border border-dashed border-primary-outline px-3 py-2.5">
-            <Text className="overflow-hidden rounded-lg bg-lime px-2 py-1 font-black text-[11px] uppercase tracking-[0.6px] text-lime-foreground">
+            <Text className="overflow-hidden rounded-lg bg-lime px-2 py-1 font-black text-[11px] uppercase tracking-[0.6px] text-on-lime">
               {t("bookingNotice.soon")}
             </Text>
             <Text className="flex-1 font-normal text-[13px] leading-[18px] text-ink-2">

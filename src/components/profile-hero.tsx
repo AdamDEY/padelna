@@ -68,7 +68,7 @@ export function ProfileHero({ profile, onPressSettings, onPressShare, onPressFri
 
   return (
     <View
-      className="gap-[18px] overflow-hidden rounded-b-[32px] bg-accent px-5 pb-[22px]"
+      className="gap-[18px] overflow-hidden rounded-b-[32px] bg-hero px-5 pb-[22px]"
       style={{ paddingTop: insets.top + 8 }}
     >
       {/* Faint court lines in the corner */}
@@ -161,7 +161,7 @@ export function ProfileHero({ profile, onPressSettings, onPressShare, onPressFri
               {t("profile.progress", { percent, next: nextLevel.toFixed(1) })}
             </Text>
             {isCoachVerified ? (
-              <Text className="self-start overflow-hidden rounded-[10px] bg-lime px-2.5 py-1 font-bold text-[12px] text-lime-foreground">
+              <Text className="self-start overflow-hidden rounded-[10px] bg-lime px-2.5 py-1 font-bold text-[12px] text-on-lime">
                 {t("coach.verified")}
               </Text>
             ) : null}
@@ -171,7 +171,7 @@ export function ProfileHero({ profile, onPressSettings, onPressShare, onPressFri
           </View>
         ) : (
           <View className="flex-1 gap-1.5">
-            <Text className="self-start overflow-hidden rounded-[10px] bg-lime px-2.5 py-1 font-bold text-[12px] text-lime-foreground">
+            <Text className="self-start overflow-hidden rounded-[10px] bg-lime px-2.5 py-1 font-bold text-[12px] text-on-lime">
               {isCoachVerified ? t("coach.verified") : t("profile.startingLevel")}
             </Text>
             <Text className="font-black text-[16px] text-accent-foreground">

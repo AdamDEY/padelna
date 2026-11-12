@@ -72,7 +72,7 @@ export function TournamentPostCard({ post, myId, onPlayerPress, onOpenTournament
         <View className="gap-3 rounded-[18px] bg-accent p-3.5">
           <View className="flex-row items-center gap-2.5">
             <View className="size-10 items-center justify-center rounded-xl bg-lime">
-              <Icon as={Trophy} size={22} color="lime-foreground" />
+              <Icon as={Trophy} size={22} color="on-lime" />
             </View>
             <View className="min-w-0 flex-1">
               <Text numberOfLines={1} className="font-black text-[16px] text-lime">
@@ -144,8 +144,8 @@ export function TournamentPostCard({ post, myId, onPlayerPress, onOpenTournament
           onPress={() => onOpenTournament(post.tournamentId, card.viewerPlayed)}
           className="flex-row items-center gap-1 self-start"
         >
-          <Text className="font-bold text-[13px] text-accent">{t("tournamentPost.seeTournament")}</Text>
-          <Icon as={ChevronRight} size={16} color="accent" />
+          <Text className="font-bold text-[13px] text-accent-text">{t("tournamentPost.seeTournament")}</Text>
+          <Icon as={ChevronRight} size={16} color="accent-text" />
         </PressableFeedback>
       ) : null}
     </View>

@@ -164,7 +164,7 @@ function FriendTag({ team, friendIds }: { team: Team; friendIds?: Set<string> })
 // Friendly results are blue, competitive ones ink, so the two read apart at a glance
 const scoreboardTone = {
   friendly: { bg: "bg-accent", ring: "border-accent", soft: "text-primary-tint-text" },
-  competitive: { bg: "bg-foreground", ring: "border-foreground", soft: "text-ink-tint-text" },
+  competitive: { bg: "bg-ink", ring: "border-ink", soft: "text-ink-tint-text" },
 } as const;
 
 /** Result block for posts without a photo: blue for friendly, ink for competitive. */

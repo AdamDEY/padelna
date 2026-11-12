@@ -36,7 +36,7 @@ export function HomeHeader({
         <View accessible accessibilityLabel={t("home.youLevel", { level: levelLabel })}>
           <PlayerAvatar player={player} size={44} ringClassName="border-accent" />
           <View className="absolute -bottom-1 -end-1.5 rounded-lg border-2 border-background bg-lime px-[5px] py-px">
-            <Text className="font-black text-[10px] text-lime-foreground">{levelLabel}</Text>
+            <Text className="font-black text-[10px] text-on-lime">{levelLabel}</Text>
           </View>
         </View>
       ) : (

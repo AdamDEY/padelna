@@ -203,8 +203,8 @@ export function InviteFriendSheet({ match, onClose, meId }: InviteFriendSheetPro
                 onPress={shareLink}
                 className="h-12 rounded-[14px] border-dashed border-primary-outline bg-surface"
               >
-                <Icon as={Link2} size={18} color="accent" />
-                <Button.Label className="text-[15px] text-accent">{t("inviteSheet.shareLink")}</Button.Label>
+                <Icon as={Link2} size={18} color="accent-text" />
+                <Button.Label className="text-[15px] text-accent-text">{t("inviteSheet.shareLink")}</Button.Label>
               </Button>
 
               <Text className="text-center font-normal text-[12px] text-muted">
@@ -331,7 +331,7 @@ function FriendRow({ friend, inRange, detail, action, isSent, onPress }: FriendR
           accessibilityLabel={t("inviteSheet.askHostA11y", { name })}
           className="h-9 min-w-[92px] rounded-xl border-primary-outline bg-surface px-2.5"
         >
-          <Button.Label className="text-[13px] text-accent">{t("inviteSheet.askHost")}</Button.Label>
+          <Button.Label className="text-[13px] text-accent-text">{t("inviteSheet.askHost")}</Button.Label>
         </Button>
       )}
     </View>

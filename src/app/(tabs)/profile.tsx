@@ -26,6 +26,7 @@ import { STATS_MIN_MATCHES } from "@/lib/profile-stats";
 import { queryClient } from "@/lib/query-client";
 import { signOut } from "@/repositories/auth-repository";
 import { errorMessage } from "@/lib/error-message";
+import { pageStatusBarStyle } from "@/lib/theme-preference";
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -55,7 +56,7 @@ export default function Profile() {
   const hasHero = profile !== undefined;
 
   const applyStatusBar = useCallback(() => {
-    setStatusBarStyle(hasHero && statusBarOverHero.current ? "light" : "dark");
+    setStatusBarStyle(hasHero && statusBarOverHero.current ? "light" : pageStatusBarStyle());
   }, [hasHero]);
 
   function handleScroll(y: number) {
@@ -70,7 +71,7 @@ export default function Profile() {
   useFocusEffect(
     useCallback(() => {
       applyStatusBar();
-      return () => setStatusBarStyle("dark");
+      return () => setStatusBarStyle(pageStatusBarStyle());
     }, [applyStatusBar]),
   );
   useEffect(() => {
@@ -240,7 +241,7 @@ export default function Profile() {
                       {t("profile.matchesCount", { count: matches })} · {t("profile.winsCount", { count: wins })}
                     </Text>
                   </View>
-                  <Text className="font-black text-[15px] text-accent">{rate}%</Text>
+                  <Text className="font-black text-[15px] text-accent-text">{rate}%</Text>
                 </PressableFeedback>
               );
             })}

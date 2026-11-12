@@ -4,6 +4,8 @@ import { useCallback, useRef } from "react";
 import type { LayoutChangeEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { pageStatusBarStyle } from "@/lib/theme-preference";
+
 /**
  * White status bar text while a blue header is behind it, dark once it scrolls away (Match history,
  * Tournament history and its recaps). Put `onHeroLayout` on the view around the header and
@@ -15,13 +17,13 @@ export function useHeroStatusBar() {
   const isOverHero = useRef(true);
 
   const apply = useCallback(() => {
-    setStatusBarStyle(isOverHero.current ? "light" : "dark");
+    setStatusBarStyle(isOverHero.current ? "light" : pageStatusBarStyle());
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       apply();
-      return () => setStatusBarStyle("dark");
+      return () => setStatusBarStyle(pageStatusBarStyle());
     }, [apply]),
   );
 

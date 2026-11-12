@@ -119,7 +119,7 @@ export function SaveScoreSheet({ match, myId, mode, isOpen, onOpenChange, onSave
         >
           <View className="flex-row items-center gap-3">
             <View className="size-[52px] items-center justify-center rounded-full bg-lime">
-              <Icon as={Trophy} size={26} color="lime-foreground" />
+              <Icon as={Trophy} size={26} color="on-lime" />
             </View>
             <View className="flex-1">
               <BottomSheet.Title className="font-black text-[24px] tracking-[-0.4px] text-foreground">

@@ -358,8 +358,8 @@ export function MyMatch({ match, role }: MyMatchProps) {
             </Text>
             {isHost && !isOver ? (
               <View className="flex-row items-center gap-1 rounded-[10px] bg-lime px-2.5 py-1">
-                <Icon as={match.isCourtBooked ? Check : Clock} size={12} color="lime-foreground" />
-                <Text className="font-bold text-[12px] text-lime-foreground">
+                <Icon as={match.isCourtBooked ? Check : Clock} size={12} color="on-lime" />
+                <Text className="font-bold text-[12px] text-on-lime">
                   {match.isCourtBooked ? t("matchDetail.courtBooked") : t("matchDetail.notBookedYet")}
                 </Text>
               </View>
@@ -433,7 +433,7 @@ export function MyMatch({ match, role }: MyMatchProps) {
                   accessibilityRole="button"
                   hitSlop={8}
                 >
-                  <Text className="font-bold text-[13px] text-accent">{t("myMatch.swapTeams")}</Text>
+                  <Text className="font-bold text-[13px] text-accent-text">{t("myMatch.swapTeams")}</Text>
                 </PressableFeedback>
               ) : null}
             </View>
@@ -655,7 +655,7 @@ function ActionTile({
       className="h-16 flex-1 items-center justify-center gap-1 rounded-2xl border border-line bg-surface"
     >
       <View>
-        <Icon as={icon} size={20} color="accent" />
+        <Icon as={icon} size={20} color="accent-text" />
         {showDot ? <View className="absolute -end-1 -top-0.5 size-2 rounded-full bg-dot" /> : null}
       </View>
       <Text className="font-bold text-[12px] text-foreground">{label}</Text>

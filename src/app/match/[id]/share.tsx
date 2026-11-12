@@ -27,6 +27,7 @@ import { useMyAccount } from "@/hooks/useMyProfile";
 import { errorMessage } from "@/lib/error-message";
 import { buildMatchShare, canShareScore, SHARE_STYLES, type ShareBackdrop, type ShareStyle } from "@/lib/match-share";
 import { matchLinkFor } from "@/lib/share-link";
+import { pageStatusBarStyle } from "@/lib/theme-preference";
 
 // The picture is laid out at 390 × 694 and captured at story size (1080 × 1920 px). The capture
 // size is in points and the screen is 3x, so ask for a third of that.
@@ -93,7 +94,7 @@ export default function ShareMatch() {
   useFocusEffect(
     useCallback(() => {
       setStatusBarStyle("light");
-      return () => setStatusBarStyle("dark");
+      return () => setStatusBarStyle(pageStatusBarStyle());
     }, []),
   );
 

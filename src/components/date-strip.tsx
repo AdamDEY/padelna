@@ -36,7 +36,7 @@ export function DateStrip({ start, days = 7, selected, onSelect }: DateStripProp
             accessibilityLabel={formatFullDate(date)}
             className={cn(
               "h-[72px] items-center justify-center rounded-[18px]",
-              isSelected ? "bg-foreground" : "border border-line bg-surface",
+              isSelected ? "bg-ink" : "border border-line bg-surface",
             )}
             style={{ width: DAY_WIDTH }}
           >
@@ -51,7 +51,7 @@ export function DateStrip({ start, days = 7, selected, onSelect }: DateStripProp
             <Text
               className={cn(
                 "font-black text-[20px]",
-                isSelected ? "text-background" : "text-foreground",
+                isSelected ? "text-white" : "text-foreground",
               )}
             >
               {date.getDate()}

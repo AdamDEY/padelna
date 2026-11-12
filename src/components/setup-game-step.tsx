@@ -97,7 +97,7 @@ export function SetupGameStep({ values, onChange }: SetupGameStepProps) {
                   <Icon
                     as={option.icon}
                     size={18}
-                    color={isSelected ? "accent-foreground" : "accent"}
+                    color={isSelected ? "accent-foreground" : "accent-text"}
                   />
                 </View>
               )}

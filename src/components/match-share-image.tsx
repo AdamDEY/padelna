@@ -4,7 +4,7 @@ import type { ComponentRef, ReactNode, Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Defs, Line, Pattern, Polygon, Rect } from "react-native-svg";
-import { useCSSVariable } from "uniwind";
+import { ScopedTheme, useCSSVariable } from "uniwind";
 
 import { PadelnaMark } from "@/components/padelna-logo";
 import type { MatchShareData, ShareBackdrop, ShareStyle } from "@/lib/match-share";
@@ -71,7 +71,7 @@ function ScoreStyle({ data }: { data: MatchShareData }) {
       <Text
         className={cn(
           "self-start overflow-hidden rounded-[10px] px-[13px] py-[5px] font-black text-[16px] tracking-[1px]",
-          won ? "bg-lime text-lime-foreground" : "bg-white/20 text-white",
+          won ? "bg-lime text-on-lime" : "bg-white/20 text-white",
         )}
       >
         {t(won ? "matchShare.chipWon" : "matchShare.chipLost", { count: data.setsWon, other: data.setsLost })}
@@ -186,7 +186,7 @@ function StreakStyle({ data }: { data: MatchShareData }) {
             className={cn("items-center justify-center rounded-[7px]", result === "won" ? "bg-lime" : "bg-white/25")}
             style={{ width: FORM_BOX, height: FORM_BOX }}
           >
-            <Text className={cn("font-black text-[15px]", result === "won" ? "text-lime-foreground" : "text-white")}>
+            <Text className={cn("font-black text-[15px]", result === "won" ? "text-on-lime" : "text-white")}>
               {t(result === "won" ? "matchShare.formWon" : "matchShare.formLost")}
             </Text>
           </View>
@@ -221,17 +221,19 @@ type MatchShareStickerProps = {
 /** The transparent sticker (design: Share your match · transparent sticker). Drawn off-screen and captured as a PNG. */
 export function MatchShareSticker({ data, style, ref }: MatchShareStickerProps) {
   return (
-    <View
-      ref={ref}
-      collapsable={false}
-      style={{
-        alignSelf: "flex-start",
-        padding: STICKER_PADDING,
-        width: style === "score" ? SCORE_WIDTH + STICKER_PADDING * 2 : undefined,
-      }}
-    >
-      <MatchShareContent data={data} style={style} />
-    </View>
+    <ScopedTheme theme="light">
+      <View
+        ref={ref}
+        collapsable={false}
+        style={{
+          alignSelf: "flex-start",
+          padding: STICKER_PADDING,
+          width: style === "score" ? SCORE_WIDTH + STICKER_PADDING * 2 : undefined,
+        }}
+      >
+        <MatchShareContent data={data} style={style} />
+      </View>
+    </ScopedTheme>
   );
 }
 
@@ -313,52 +315,54 @@ export function MatchShareImage({
   const isPhoto = backdrop === "photo";
 
   return (
-    <View
-      ref={ref}
-      collapsable={false}
-      className={cn("overflow-hidden", backdrop === "plain" && "bg-accent")}
-      style={{ width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT }}
-    >
-      {isPhoto ? (
-        photoUri ? (
-          <Image
-            source={{ uri: photoUri }}
-            contentFit="cover"
-            accessibilityIgnoresInvertColors
-            onLoad={() => onPhotoLoad?.(photoUri)}
-            style={StyleSheet.absoluteFill}
-          />
-        ) : (
-          <PhotoPlaceholder />
-        )
-      ) : null}
-      {showCheckerboard && backdrop === "sticker" ? <Checkerboard /> : null}
-      {isPhoto ? (
-        style === "score" ? (
-          <View aria-hidden className="absolute inset-x-0 bottom-0 bg-ink/60" style={{ height: SCRIM_HEIGHT }} />
-        ) : (
-          <View aria-hidden className="absolute inset-0 bg-ink/30" />
-        )
-      ) : null}
-
+    <ScopedTheme theme="light">
       <View
-        className="absolute"
-        style={{
-          start: SIDE_MARGIN,
-          end: SIDE_MARGIN,
-          ...(anchor === "bottom" ? { bottom: BOTTOM_MARGIN } : null),
-          ...(anchor === "top" ? { top: TOP_MARGIN } : null),
-          ...(anchor === "center" ? { top: 0, bottom: 0, justifyContent: "center" } : null),
-        }}
+        ref={ref}
+        collapsable={false}
+        className={cn("overflow-hidden", backdrop === "plain" && "bg-hero")}
+        style={{ width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT }}
       >
+        {isPhoto ? (
+          photoUri ? (
+            <Image
+              source={{ uri: photoUri }}
+              contentFit="cover"
+              accessibilityIgnoresInvertColors
+              onLoad={() => onPhotoLoad?.(photoUri)}
+              style={StyleSheet.absoluteFill}
+            />
+          ) : (
+            <PhotoPlaceholder />
+          )
+        ) : null}
+        {showCheckerboard && backdrop === "sticker" ? <Checkerboard /> : null}
+        {isPhoto ? (
+          style === "score" ? (
+            <View aria-hidden className="absolute inset-x-0 bottom-0 bg-ink/60" style={{ height: SCRIM_HEIGHT }} />
+          ) : (
+            <View aria-hidden className="absolute inset-0 bg-ink/30" />
+          )
+        ) : null}
+
         <View
-          onLayout={(event) => onContentHeight?.(event.nativeEvent.layout.height)}
-          style={{ transform: [{ translateY: offsetY }] }}
+          className="absolute"
+          style={{
+            start: SIDE_MARGIN,
+            end: SIDE_MARGIN,
+            ...(anchor === "bottom" ? { bottom: BOTTOM_MARGIN } : null),
+            ...(anchor === "top" ? { top: TOP_MARGIN } : null),
+            ...(anchor === "center" ? { top: 0, bottom: 0, justifyContent: "center" } : null),
+          }}
         >
-          <MatchShareContent data={data} style={style} />
+          <View
+            onLayout={(event) => onContentHeight?.(event.nativeEvent.layout.height)}
+            style={{ transform: [{ translateY: offsetY }] }}
+          >
+            <MatchShareContent data={data} style={style} />
+          </View>
         </View>
       </View>
-    </View>
+    </ScopedTheme>
   );
 }
 

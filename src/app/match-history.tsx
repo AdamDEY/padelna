@@ -16,6 +16,7 @@ import { useMatchHistory } from "@/hooks/useMatches";
 import { formatMonthName } from "@/lib/format-date";
 import { groupByMonth, summarize } from "@/lib/match-history";
 import { errorMessage } from "@/lib/error-message";
+import { pageStatusBarStyle } from "@/lib/theme-preference";
 
 type ResultFilter = "all" | "won" | "lost";
 
@@ -36,7 +37,7 @@ export default function MatchHistory() {
   const heroHeight = useRef(0);
   const isOverHero = useRef(true);
   const applyStatusBar = useCallback(() => {
-    setStatusBarStyle(isOverHero.current ? "light" : "dark");
+    setStatusBarStyle(isOverHero.current ? "light" : pageStatusBarStyle());
   }, []);
   function handleScroll(y: number) {
     const over = y < heroHeight.current - insets.top;
@@ -48,7 +49,7 @@ export default function MatchHistory() {
   useFocusEffect(
     useCallback(() => {
       applyStatusBar();
-      return () => setStatusBarStyle("dark");
+      return () => setStatusBarStyle(pageStatusBarStyle());
     }, [applyStatusBar]),
   );
 

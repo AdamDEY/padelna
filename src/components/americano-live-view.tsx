@@ -193,7 +193,7 @@ function LiveScreen({ tournament }: { tournament: LiveTournament }) {
                   </Text>
                   {canEnterScore(tournament, match) ? (
                     <Button size="sm" variant="ghost" onPress={() => setScoring(match)} accessibilityLabel={t("tournaments.americano.correctA11y", { round: match.round })}>
-                      <Button.Label className="text-accent">{t("tournaments.americano.correct")}</Button.Label>
+                      <Button.Label className="text-accent-text">{t("tournaments.americano.correct")}</Button.Label>
                     </Button>
                   ) : null}
                 </View>
@@ -223,7 +223,7 @@ function CurrentRoundCard({ tournament, match, onEnterScore }: { tournament: Liv
         </Text>
         {match.score ? (
           <View className="rounded-[10px] bg-lime px-2.5 py-1">
-            <Text className="font-bold text-[12px] text-lime-foreground">{americanoScoreText(mode, match.score, match.mySide)}</Text>
+            <Text className="font-bold text-[12px] text-on-lime">{americanoScoreText(mode, match.score, match.mySide)}</Text>
           </View>
         ) : null}
       </View>
@@ -239,7 +239,7 @@ function CurrentRoundCard({ tournament, match, onEnterScore }: { tournament: Liv
       </View>
 
       <Button variant="secondary" onPress={onEnterScore} className="bg-surface">
-        <Button.Label className="text-accent">
+        <Button.Label className="text-accent-text">
           {match.score ? t("tournaments.americano.correctPoints") : t("tournaments.americano.enterPointsWhenDone")}
         </Button.Label>
       </Button>
@@ -285,6 +285,7 @@ function NextRoundCard({ tournament, match }: { tournament: LiveTournament; matc
 }
 
 const MEDAL_BG = ["bg-lime", "bg-lime-soft", "bg-lime-soft"] as const;
+const MEDAL_TEXT = ["text-on-lime", "text-lime-foreground", "text-lime-foreground"] as const;
 
 function LeaderRowView({ tournament, entry, rank, scored, moved }: { tournament: LiveTournament; entry: LiveEntry; rank: number; scored: number; moved?: number }) {
   const { t } = useTranslation();
@@ -298,7 +299,7 @@ function LeaderRowView({ tournament, entry, rank, scored, moved }: { tournament:
       className={cn("flex-row items-center gap-2.5 rounded-[14px] px-2.5 py-2", isMe && "bg-primary-soft")}
     >
       <View className={cn("size-[26px] items-center justify-center rounded-full", MEDAL_BG[rank - 1] ?? "bg-background")}>
-        <Text className="font-black text-[12px] text-foreground">{rank}</Text>
+        <Text className={cn("font-black text-[12px]", MEDAL_TEXT[rank - 1] ?? "text-foreground")}>{rank}</Text>
       </View>
       <PlayerAvatar player={faceOf(entry)} size={32} ringClassName={isMe ? "border-primary-soft" : "border-surface"} />
       <Text numberOfLines={1} className="flex-1 font-bold text-[14px] text-foreground">

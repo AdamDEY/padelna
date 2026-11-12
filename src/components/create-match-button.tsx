@@ -33,8 +33,8 @@ export function CreateMatchButton({ onPress }: { onPress: () => void }) {
         elevation: 8,
       }}
     >
-      <Icon as={Plus} size={22} />
-      <Text className="font-black text-[16px] text-foreground">{t("home.createMatch")}</Text>
+      <Icon as={Plus} size={22} color="on-lime" />
+      <Text className="font-black text-[16px] text-on-lime">{t("home.createMatch")}</Text>
     </PressableFeedback>
   );
 }

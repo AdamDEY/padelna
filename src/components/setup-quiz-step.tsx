@@ -22,7 +22,7 @@ export function SetupQuizStep({ questions, index, answers, onPick }: SetupQuizSt
   return (
     <>
       <View className="gap-2">
-        <Text className="font-bold text-[13px] uppercase tracking-[0.6px] text-accent">
+        <Text className="font-bold text-[13px] uppercase tracking-[0.6px] text-accent-text">
           {t("setup.quizEyebrow", { number: index + 1, total: questions.length })}
         </Text>
         <Text

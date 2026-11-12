@@ -19,6 +19,7 @@ import type { LiveEntry, LiveTournament } from "@/types/tournament";
 const LEADERS_SHOWN = 6;
 
 const MEDAL_BG = ["bg-lime", "bg-lime-soft", "bg-lime-soft"] as const;
+const MEDAL_TEXT = ["text-on-lime", "text-lime-foreground", "text-lime-foreground"] as const;
 
 type AmericanoRecapViewProps = {
   tournament: LiveTournament;
@@ -158,7 +159,7 @@ function BestRound({ best, onPodium }: { best: RoundStep; onPodium: boolean }) {
       className={cn("flex-row items-center gap-3 rounded-[20px] p-3.5", onPodium ? "bg-lime-soft" : "bg-primary-soft")}
     >
       <View className={cn("size-11 items-center justify-center rounded-[14px]", onPodium ? "bg-lime" : "bg-surface")}>
-        <Icon as={Trophy} size={22} color={onPodium ? "lime-foreground" : "primary-dark"} />
+        <Icon as={Trophy} size={22} color={onPodium ? "on-lime" : "primary-dark"} />
       </View>
       <View className="min-w-0 flex-1">
         <Text className={cn("font-bold text-[15px]", onPodium ? "text-foreground" : "text-primary-dark")}>
@@ -200,7 +201,7 @@ function LeaderRowView({
       className={cn("flex-row items-center gap-2.5 rounded-[14px] px-2.5 py-2", isMe && "bg-primary-soft")}
     >
       <View className={cn("size-[26px] items-center justify-center rounded-full", MEDAL_BG[rank - 1] ?? "bg-background")}>
-        <Text className="font-black text-[12px] text-foreground">{rank}</Text>
+        <Text className={cn("font-black text-[12px]", MEDAL_TEXT[rank - 1] ?? "text-foreground")}>{rank}</Text>
       </View>
       {isPairs ? (
         <TournamentFaces entry={entry} size={26} ringClassName={isMe ? "border-primary-soft" : "border-surface"} overlap={6} />

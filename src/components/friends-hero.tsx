@@ -34,7 +34,7 @@ export function FriendsHero({ subtitle, requests, onBack, onReview }: FriendsHer
 
   return (
     <View
-      className="gap-4 overflow-hidden rounded-b-[32px] bg-accent px-5 pb-5"
+      className="gap-4 overflow-hidden rounded-b-[32px] bg-hero px-5 pb-5"
       style={{ paddingTop: insets.top + 8 }}
     >
       {/* Faint court lines in the corner */}
@@ -87,7 +87,7 @@ export function FriendsHero({ subtitle, requests, onBack, onReview }: FriendsHer
           <Text className="flex-1 font-bold text-[14px] text-accent-foreground">
             {t("connections.banner", { count: requests.length })}
           </Text>
-          <Text className="overflow-hidden rounded-[11px] bg-lime px-3 py-[7px] font-black text-[13px] text-lime-foreground">
+          <Text className="overflow-hidden rounded-[11px] bg-lime px-3 py-[7px] font-black text-[13px] text-on-lime">
             {t("connections.review")}
           </Text>
         </Pressable>

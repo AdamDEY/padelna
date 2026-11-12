@@ -68,7 +68,7 @@ export function MatchInviteCard({ invite, onPress }: MatchInviteCardProps) {
           <Text numberOfLines={1} className="font-black text-[15px] text-foreground">
             {t("matchInvite.invitedYou", { name: host.firstName })}
           </Text>
-          <Text numberOfLines={1} className="font-bold text-[14px] text-accent">
+          <Text numberOfLines={1} className="font-bold text-[14px] text-accent-text">
             {formatMatchDateTime(invite.startsAt)}
           </Text>
           <Text numberOfLines={1} className="font-normal text-[13px] text-muted">

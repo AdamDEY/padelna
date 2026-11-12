@@ -119,7 +119,7 @@ export function NewPlayerCards({ friendCount, levelLabel }: NewPlayerCardsProps)
           <Text accessibilityRole="header" className="font-black text-[17px] text-foreground">
             {t("profile.getStarted")}
           </Text>
-          <Text className="font-bold text-[13px] text-accent">
+          <Text className="font-bold text-[13px] text-accent-text">
             {t("profile.stepsDone", { done: doneCount, total: steps.length })}
           </Text>
         </View>

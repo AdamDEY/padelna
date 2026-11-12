@@ -311,7 +311,7 @@ function PlayedTogether({ details }: { details?: PlayerDetails }) {
         : t("playerSheet.times", { count: details.playedTogether });
   return (
     <View className="flex-row items-center gap-2.5">
-      <Icon as={CalendarDays} size={18} color="accent" />
+      <Icon as={CalendarDays} size={18} color="accent-text" />
       <Text className="flex-1 font-normal text-[14px] text-ink-2">
         {t("playerSheet.playedTogether")} <Strong>{times}</Strong>
         {details.lastPlayedTogetherAt
@@ -389,7 +389,7 @@ function FullProfile({
             {
               value: String(stats.won),
               label: t("playerSheet.won"),
-              tone: "text-accent",
+              tone: "text-accent-text",
             },
             {
               value: String(stats.lost),

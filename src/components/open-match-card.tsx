@@ -67,7 +67,7 @@ export function OpenMatchCard({ match, onPress, onJoin, width }: OpenMatchCardPr
               className="items-center justify-center rounded-full border-2 border-dashed border-slot-border"
               style={{ width: SLOT_SIZE, height: SLOT_SIZE }}
             >
-              {index === 0 ? <Icon as={Plus} size={16} color="accent" /> : null}
+              {index === 0 ? <Icon as={Plus} size={16} color="accent-text" /> : null}
             </View>
           ))}
         </View>

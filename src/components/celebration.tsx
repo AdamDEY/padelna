@@ -77,7 +77,7 @@ function Ball() {
       >
         {/* The tick pops once the ball has landed */}
         <PopIn animate delay={DROP_MS - 150}>
-          <Icon as={Check} size={38} color="lime-foreground" />
+          <Icon as={Check} size={38} color="on-lime" />
         </PopIn>
       </View>
     </Animated.View>
