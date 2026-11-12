@@ -6,6 +6,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { SocialAuthButtons } from "@/components/social-auth-buttons";
 import { Page } from "@/components/page";
+import { useOpenLegal } from "@/hooks/useOpenLegal";
 import { signUp } from "@/repositories/auth-repository";
 import { isEmail, MIN_PASSWORD_LENGTH } from "@/lib/validation";
 import { errorMessage } from "@/lib/error-message";
@@ -13,6 +14,7 @@ import { errorMessage } from "@/lib/error-message";
 export default function SignUp() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const openLegal = useOpenLegal();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -47,10 +49,6 @@ export default function SignUp() {
       toast.show({ label: t("auth.checkEmail"), description: t("auth.checkEmailText") });
       router.replace("/sign-in");
     }
-  }
-
-  function showLegal(name: string) {
-    toast.show({ label: t("auth.legalSoon", { name }) });
   }
 
   return (
@@ -104,11 +102,11 @@ export default function SignUp() {
               <Pressable onPress={() => setAcceptedTerms((value) => !value)} className="flex-1">
                 <Text className="font-normal text-[14px] leading-5 text-muted">
                   {t("auth.agreeTo")}{" "}
-                  <Text className="font-bold text-link" onPress={() => showLegal(t("auth.terms"))}>
+                  <Text className="font-bold text-link" onPress={() => openLegal("terms")}>
                     {t("auth.terms")}
                   </Text>{" "}
                   {t("auth.agreeAnd")}{" "}
-                  <Text className="font-bold text-link" onPress={() => showLegal(t("auth.privacy"))}>
+                  <Text className="font-bold text-link" onPress={() => openLegal("privacy")}>
                     {t("auth.privacy")}
                   </Text>
                 </Text>
