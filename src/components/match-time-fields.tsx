@@ -116,7 +116,7 @@ function DateField({ value, minimumDate, maximumDate, accentColor, onChange }: D
     <>
       <GesturePressable onPress={() => setIsPicking(true)} accessibilityRole="button">
         <PickerBox>
-          <Icon as={CalendarDays} size={18} color="accent" />
+          <Icon as={CalendarDays} size={18} color="accent-text" />
           <Text className="font-semibold text-[15px] text-foreground">{formatMatchDay(value)}</Text>
         </PickerBox>
       </GesturePressable>

@@ -177,13 +177,13 @@ export function RateClubSheet({ club, lastMatchHere, isOpen, onOpenChange }: Rat
                       hitSlop={{ top: 4, bottom: 4 }}
                       className={cn(
                         "h-9 flex-1 items-center justify-center rounded-xl",
-                        selected ? "bg-foreground" : "border border-line-input bg-surface",
+                        selected ? "bg-ink" : "border border-line-input bg-surface",
                       )}
                     >
                       <Text
                         className={cn(
                           "text-[13px]",
-                          selected ? "font-bold text-background" : "font-semibold text-foreground",
+                          selected ? "font-bold text-white" : "font-semibold text-foreground",
                         )}
                       >
                         C{court.number}

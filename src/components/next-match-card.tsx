@@ -33,7 +33,7 @@ export function NextMatchCard({ match, onPress }: NextMatchCardProps) {
           {t("home.nextMatch.title")}
         </Text>
         <View className="rounded-[10px] bg-lime px-2.5 py-1">
-          <Text className="font-bold text-[12px] text-lime-foreground">{countdown}</Text>
+          <Text className="font-bold text-[12px] text-on-lime">{countdown}</Text>
         </View>
       </View>
 

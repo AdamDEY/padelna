@@ -46,6 +46,7 @@ import { deleteOwnAccount } from "@/repositories/auth-repository";
 import { updateProfile } from "@/repositories/profile-repository";
 import type { MyAccount } from "@/types/account";
 import { errorMessage } from "@/lib/error-message";
+import { setThemePreference, useThemePreference } from "@/lib/theme-preference";
 
 const BIO_MAX_LENGTH = 150;
 const cityOptions = cities.map((city) => ({ value: city, label: city }));
@@ -367,6 +368,10 @@ function SettingsForm({ account }: { account: MyAccount }) {
           <LanguageRow />
         </SettingsSection>
 
+        <SettingsSection title={t("settings.appearance")}>
+          <DarkModeRow />
+        </SettingsSection>
+
         <View className="mt-1 gap-2.5">
           <Button size="lg" variant="ghost" onPress={() => setIsDeleteOpen(true)}>
             <Button.Label className="text-danger">{t("settings.deleteAccount")}</Button.Label>
@@ -478,6 +483,20 @@ function NotificationRows() {
   );
 }
 
+/** Dark mode switch. Like the language, it applies at once and isn't part of Save. */
+function DarkModeRow() {
+  const { t } = useTranslation();
+  const theme = useThemePreference();
+
+  return (
+    <SettingsSwitchRow
+      label={t("settings.darkMode")}
+      isSelected={theme === "dark"}
+      onSelectedChange={(on) => void setThemePreference(on ? "dark" : "light")}
+    />
+  );
+}
+
 function LanguageRow() {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -555,8 +574,8 @@ function AddClubButton({ options, onAdd }: { options: string[]; onAdd: (name: st
         accessibilityLabel={t("settings.addClubA11y")}
         className="h-[34px] flex-row items-center gap-1 rounded-full border border-dashed border-slot-border px-3"
       >
-        <Icon as={Plus} size={14} color="accent" />
-        <Text className="font-bold text-[13px] text-accent">{t("settings.addClub")}</Text>
+        <Icon as={Plus} size={14} color="accent-text" />
+        <Text className="font-bold text-[13px] text-accent-text">{t("settings.addClub")}</Text>
       </PressableFeedback>
       <Select.Portal>
         <Select.Overlay />

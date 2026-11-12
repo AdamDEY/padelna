@@ -44,7 +44,7 @@ export function TournamentUpcomingCard({ tournament, onPress }: TournamentUpcomi
           <TournamentFormatIcon format={tournament.format} size={22} />
         </View>
         <View className="min-w-0 flex-1 gap-0.5">
-          <Text numberOfLines={1} className="font-bold text-[11px] uppercase tracking-[0.5px] text-primary">
+          <Text numberOfLines={1} className="font-bold text-[11px] uppercase tracking-[0.5px] text-accent-text">
             {eyebrow}
           </Text>
           <Text numberOfLines={1} className="font-black text-[16px] text-foreground">

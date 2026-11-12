@@ -107,7 +107,7 @@ export function FloatingTabBar({
               numberOfLines={1}
               className={
                 focused
-                  ? "font-bold text-[11px] text-accent"
+                  ? "font-bold text-[11px] text-accent-text"
                   : "font-semibold text-[11px] text-muted-icon"
               }
             >

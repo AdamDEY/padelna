@@ -100,7 +100,7 @@ export function OpenMatchesEmpty({ day, level, onCreate, suggestion, onPickSugge
             className="h-[52px] flex-row items-center gap-3 rounded-2xl border border-line bg-surface px-3.5"
           >
             <View className="size-8 items-center justify-center rounded-[10px] bg-primary-soft">
-              <Icon as={CalendarDays} size={18} color="accent" />
+              <Icon as={CalendarDays} size={18} color="accent-text" />
             </View>
             <Text className="flex-1 font-bold text-[15px] text-foreground" numberOfLines={1}>
               {formatWeekdayDay(suggestion.date)}

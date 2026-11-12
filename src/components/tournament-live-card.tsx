@@ -51,7 +51,7 @@ export function TournamentLiveCard({ tournamentId, myId, onPress }: TournamentLi
         </View>
         {next ? (
           <View className="rounded-[10px] bg-lime px-2.5 py-1">
-            <Text className="font-bold text-[12px] text-lime-foreground">
+            <Text className="font-bold text-[12px] text-on-lime">
               {next.submitted ? t("tournaments.live.matchState.sent") : t("tournaments.live.matchState.next")}
             </Text>
           </View>

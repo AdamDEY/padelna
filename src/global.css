@@ -4,9 +4,14 @@
 @import 'heroui-native/styles';
 
 /*
- * Padelna theme. Values come from design.md; change them there first.
- * The app is light-only (Uniwind.setTheme('light') in the root layout),
- * so only the light variant of HeroUI's variables is overridden.
+ * Padelna theme. Light values come from design.md; change them there first.
+ * Dark values are the dark palette the design was handed over with (surfaces
+ * #0F141B / #171E27 / #1E2631, tinted status pairs, a lighter blue for text).
+ * The player picks light or dark in Edit profile (src/lib/theme-preference.ts).
+ *
+ * Two layers: HeroUI's own variables (--background, --accent, …) are set per theme
+ * in the variants below; Padelna-only colours have their light value in
+ * `@theme static` further down and a dark override in the `@variant dark` block.
  */
 
 @theme {
@@ -74,11 +79,118 @@
       --field-shadow: 0 0 0 0 transparent;
       --overlay-shadow: 0 8px 24px 0 rgba(23, 32, 43, 0.16);
     }
+
+    @variant dark {
+      --background: #0f141b;
+      --foreground: #eef2f6;
+
+      --surface: #171e27;
+      --surface-foreground: #eef2f6;
+      --surface-secondary: #242d39;
+      --surface-secondary-foreground: #eef2f6;
+      --surface-tertiary: #333e4c;
+      --surface-tertiary-foreground: #eef2f6;
+
+      /* Sheets, dialogs and menus sit one step above cards */
+      --overlay: #1e2631;
+      --overlay-foreground: #eef2f6;
+      --backdrop: rgba(0, 0, 0, 0.6);
+
+      --muted: #a3adb9;
+
+      --default: #242d39;
+      --default-foreground: #eef2f6;
+
+      /* Fill for buttons and selected states; text and icons use --color-accent-text */
+      --accent: #3d72d9;
+      --accent-foreground: #ffffff;
+
+      --field-background: #1e2631;
+      --field-foreground: #eef2f6;
+      --field-placeholder: #8793a2;
+      --field-border: #333e4c;
+
+      /* Status colours flip to the light tone so they read as text; the soft pairs are below */
+      --success: #6fd39b;
+      --success-foreground: #0f141b;
+      --warning: #f0cf6b;
+      --warning-foreground: #0f141b;
+      --danger: #ff8a80;
+      --danger-foreground: #0f141b;
+
+      --segment: #4a5668;
+      --segment-foreground: #eef2f6;
+
+      --border: #2a3441;
+      --separator: #2a3441;
+      --focus: #7fa7f0;
+      --link: #7fa7f0;
+
+      --surface-shadow: 0 0 0 0 transparent;
+      --field-shadow: 0 0 0 0 transparent;
+      --overlay-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.4);
+
+      /* Padelna-only colours (their light values are in @theme static below) */
+      --color-ink: #2e3846;
+      --color-ink-2: #c3cbd5;
+      --color-muted-icon: #8793a2;
+      --color-line: #2a3441;
+      --color-line-input: #333e4c;
+      --color-fill: #242d39;
+      --color-track: #333e4c;
+
+      --color-accent-text: #7fa7f0;
+      --color-accent-soft: #1b2a44;
+      --color-accent-soft-foreground: #9dbbf5;
+      --color-success-soft: #13301f;
+      --color-success-soft-foreground: #6fd39b;
+      --color-warning-soft: #33290f;
+      --color-warning-soft-foreground: #f0cf6b;
+      --color-danger-soft: #3d1714;
+      --color-danger-soft-foreground: #ff8a80;
+
+      --color-primary: #3d72d9;
+      --color-primary-dark: #9dbbf5;
+      --color-primary-soft: #1b2a44;
+      --color-primary-outline: #2d4a80;
+      --color-slot-border: #4a6aa8;
+      --color-diagram-line: #6b7684;
+      --color-radio-border: #4a5668;
+
+      --color-lime-soft: #2b3418;
+      --color-lime-foreground: #d8f06c;
+
+      --color-attention: #f5a06e;
+      --color-attention-soft: #3a2112;
+      --color-attention-action: #f5a06e;
+      --color-attention-outline: #6b3d22;
+
+      --color-out-of-range: #242d39;
+      --color-unread: #1a2740;
+      --color-line-soft: #222b36;
+
+      --color-avatar-blue: #1b2a44;
+      --color-avatar-blue-foreground: #9dbbf5;
+      --color-avatar-peach: #3a2112;
+      --color-avatar-peach-foreground: #f5a06e;
+      --color-avatar-mint: #13301f;
+      --color-avatar-mint-foreground: #6fd39b;
+      --color-avatar-lilac: #2a2140;
+      --color-avatar-lilac-foreground: #c4b0f0;
+      --color-avatar-sand: #33290f;
+      --color-avatar-sand-foreground: #f0cf6b;
+
+      --color-court-blue: #1d2f4a;
+      --color-court-green: #1c3a2b;
+      --color-court-peach: #3a2b22;
+      --color-court-lime: #2f3a1b;
+    }
   }
 }
 
-/* HeroUI's soft colours are computed tints; use the exact design.md pairs instead */
-@theme inline {
+/* HeroUI's soft colours are computed tints; use the exact design.md pairs instead.
+   static (not inline) so the dark variant can override them. */
+@theme static {
   --color-accent-soft: #e3ecfa;
   --color-accent-soft-foreground: #1f4a99;
   --color-success-soft: #dff1e7;
@@ -100,6 +212,11 @@
   --color-fill: #f0f3f7;
   --color-track: #e8ecf1;
 
+  /* Text and icons in the brand blue; dark mode lightens it, a fill stays --color-accent */
+  --color-accent-text: #2d63c8;
+  /* The blue hero headers keep the same blue in both themes */
+  --color-hero: #2d63c8;
+
   --color-primary: #2d63c8;
   --color-primary-dark: #1f4a99;
   --color-primary-soft: #e3ecfa;
@@ -116,6 +233,8 @@
   --color-lime: #d8f06c;
   --color-lime-soft: #e4f59e;
   --color-lime-foreground: #2e3a0a;
+  /* Text and icons on a solid lime fill (stays dark in both themes) */
+  --color-on-lime: #17202b;
 
   /* Call button on the booking notice */
   --color-call: #1f8a5b;

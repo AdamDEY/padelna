@@ -71,7 +71,7 @@ export default function DesignCheck() {
                 </Avatar>
               ))}
               <View className="-ms-2.5 size-8 items-center justify-center rounded-full border-2 border-dashed border-slot-border bg-surface">
-                <Text className="font-black text-[14px] text-accent">+</Text>
+                <Text className="font-black text-[14px] text-accent-text">+</Text>
               </View>
             </View>
             <Chip variant="soft" color="success" size="sm">
@@ -110,8 +110,8 @@ export default function DesignCheck() {
             <Chip.Label>1 spot left</Chip.Label>
           </Chip>
           <View className="flex-row items-center gap-1 rounded-full bg-lime px-3 py-1">
-            <Icon as={CalendarDays} size={14} color="lime-foreground" />
-            <Text className="font-bold text-[13px] text-lime-foreground">In 2 days</Text>
+            <Icon as={CalendarDays} size={14} color="on-lime" />
+            <Text className="font-bold text-[13px] text-on-lime">In 2 days</Text>
           </View>
         </View>
 

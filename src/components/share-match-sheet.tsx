@@ -92,7 +92,7 @@ export function ShareMatchSheet({ isOpen, onOpenChange }: ShareMatchSheetProps) 
 
             <View className="gap-2.5">
               <OptionHeader
-                icon={<Icon as={CalendarDays} size={22} color="accent" />}
+                icon={<Icon as={CalendarDays} size={22} color="accent-text" />}
                 iconClassName="bg-primary-soft"
                 title={t("shareMatch.postRecent")}
                 description={t("shareMatch.postRecentText")}
@@ -223,7 +223,7 @@ function RecentMatchRow({ match, isBusy, isDisabled, onPress }: RecentMatchRowPr
       {isBusy ? (
         <Spinner size="sm" />
       ) : (
-        <Text className="font-bold text-[13px] text-accent">{copy.action}</Text>
+        <Text className="font-bold text-[13px] text-accent-text">{copy.action}</Text>
       )}
     </PressableFeedback>
   );

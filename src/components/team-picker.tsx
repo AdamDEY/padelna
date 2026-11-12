@@ -109,7 +109,7 @@ export function TeamPicker({
               <Text
                 className={cn(
                   "font-bold text-[12px] uppercase tracking-[0.6px]",
-                  isSelectedTeam ? "text-accent" : "text-muted",
+                  isSelectedTeam ? "text-accent-text" : "text-muted",
                 )}
               >
                 {t("team.name", { team: teamIndex === 0 ? "A" : "B" })}
@@ -242,7 +242,7 @@ function MySeat({
           </View>
         ) : null}
       </PopIn>
-      <Text className="font-black text-[13px] text-accent">{t("team.you")}</Text>
+      <Text className="font-black text-[13px] text-accent-text">{t("team.you")}</Text>
       <Text className="font-normal text-[11px] text-muted">
         {sideLabel}
         {level ? ` · ${level}` : ""}
@@ -293,7 +293,7 @@ function InvitedSeat({
       </PopIn>
       <Text
         numberOfLines={1}
-        className={isMine ? "font-black text-[13px] text-accent" : "font-bold text-[13px] text-foreground"}
+        className={isMine ? "font-black text-[13px] text-accent-text" : "font-bold text-[13px] text-foreground"}
       >
         {name}
       </Text>
@@ -344,7 +344,7 @@ function OpenSeat({
           className="items-center justify-center rounded-full border-2 border-dashed border-accent bg-surface"
           style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
         >
-          <Icon as={Plus} size={20} color="accent" />
+          <Icon as={Plus} size={20} color="accent-text" />
         </PressableFeedback>
         {onPress && isYourSide ? (
           <Text className="absolute -top-[9px] self-center overflow-hidden rounded-[7px] bg-lime-soft px-1.5 py-px font-bold text-[10px] text-lime-foreground">
@@ -352,7 +352,7 @@ function OpenSeat({
           </Text>
         ) : null}
       </View>
-      <Text numberOfLines={1} className="font-bold text-[13px] text-accent">
+      <Text numberOfLines={1} className="font-bold text-[13px] text-accent-text">
         {label}
       </Text>
       <Text className="font-normal text-[11px] text-muted">{sideLabel}</Text>

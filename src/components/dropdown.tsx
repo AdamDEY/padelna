@@ -66,7 +66,7 @@ export function Dropdown({
           style={{ flex: 1 }}
         >
           <View className="flex-1 flex-row items-center gap-2 rounded-[14px] border border-line-input bg-surface px-3">
-            {icon ? <Icon as={icon} size={18} color="accent" /> : null}
+            {icon ? <Icon as={icon} size={18} color="accent-text" /> : null}
             <Text
               numberOfLines={1}
               className={cn(

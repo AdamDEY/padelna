@@ -8,7 +8,7 @@ import { Icon } from "@/components/icon";
 
 function tabIcon(icon: LucideIcon) {
   function TabIcon({ focused }: { focused: boolean }) {
-    return <Icon as={icon} color={focused ? "accent" : "muted-icon"} />;
+    return <Icon as={icon} color={focused ? "accent-text" : "muted-icon"} />;
   }
   return TabIcon;
 }

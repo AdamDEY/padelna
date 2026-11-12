@@ -8,7 +8,7 @@ import { useCSSVariable } from "uniwind";
  */
 export default function TabsLayout() {
   const { t } = useTranslation();
-  const [accent, mutedIcon] = useCSSVariable(["--color-accent", "--color-muted-icon"]) as [
+  const [accent, mutedIcon] = useCSSVariable(["--color-accent-text", "--color-muted-icon"]) as [
     string,
     string,
   ];

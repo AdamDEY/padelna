@@ -338,7 +338,7 @@ export default function MatchDetail() {
                 {t("matchDetail.players", { count: players.length, capacity: match.capacity })}
               </Text>
               {canPick ? (
-                <Text className="font-bold text-[13px] text-accent">
+                <Text className="font-bold text-[13px] text-accent-text">
                   {selectedSeat === undefined ? t("matchDetail.chooseSpot") : t("matchDetail.tapAnother")}
                 </Text>
               ) : averageLevel !== undefined ? (
@@ -424,7 +424,7 @@ export default function MatchDetail() {
           accessibilityLabel={isMine ? t("matchDetail.messagePlayers") : t("matchDetail.messageHost")}
           className="w-14"
         >
-          <Icon as={MessageSquare} size={22} color="accent" />
+          <Icon as={MessageSquare} size={22} color="accent-text" />
         </Button>
         {isMine ? (
           <Button size="lg" variant="secondary" isDisabled className="flex-1">

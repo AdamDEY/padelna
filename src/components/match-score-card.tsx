@@ -35,7 +35,7 @@ const kindTones = {
     label: "match.kind.friendly",
   },
   competitive: {
-    bg: "bg-foreground",
+    bg: "bg-ink",
     text: "text-accent-foreground",
     label: "match.kind.competitive",
   },

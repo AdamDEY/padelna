@@ -16,7 +16,7 @@ import type { LiveEntry, LiveTournament } from "@/types/tournament";
 // design: podium steps are 92 px for first, 64 for second and 44 for third
 const STEP_HEIGHTS = { first: 92, second: 64, third: 44 } as const;
 const STEP_TONES = {
-  first: { box: "bg-lime", text: "text-lime-foreground" },
+  first: { box: "bg-lime", text: "text-on-lime" },
   second: { box: "bg-primary-soft", text: "text-primary-dark" },
   third: { box: "bg-out-of-range", text: "text-ink-2" },
 } as const;

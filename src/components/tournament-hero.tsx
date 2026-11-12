@@ -32,7 +32,7 @@ export function TournamentHero({ title, subtitle, chips, highlight, stats, onBac
   const insets = useSafeAreaInsets();
 
   return (
-    <View className="gap-4 overflow-hidden rounded-b-[32px] bg-accent px-5 pb-5" style={{ paddingTop: insets.top + 8 }}>
+    <View className="gap-4 overflow-hidden rounded-b-[32px] bg-hero px-5 pb-5" style={{ paddingTop: insets.top + 8 }}>
       {/* Faint court lines in the corner */}
       <View
         aria-hidden
@@ -79,7 +79,7 @@ export function TournamentHero({ title, subtitle, chips, highlight, stats, onBac
       {highlight ? (
         <View accessible className="flex-row items-center gap-3 rounded-[18px] bg-white/12 px-3.5 py-3">
           <View className="size-[42px] items-center justify-center rounded-[14px] bg-lime">
-            <Icon as={Trophy} size={22} color="lime-foreground" />
+            <Icon as={Trophy} size={22} color="on-lime" />
           </View>
           <View className="min-w-0 flex-1">
             <Text numberOfLines={1} className="font-bold text-[15px] text-accent-foreground">

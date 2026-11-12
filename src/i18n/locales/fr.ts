@@ -1741,6 +1741,8 @@ export const fr: Messages = {
     visibilityFriends: "Amis",
     matchPrivacy: "Confidentialité des matchs",
     language: "Langue",
+    appearance: "Apparence",
+    darkMode: "Mode sombre",
     logOut: "Se déconnecter",
     deleteAccount: "Supprimer le compte",
     deleteNote: "La suppression efface définitivement ton profil, tes matchs et tes notes.",

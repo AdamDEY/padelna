@@ -275,7 +275,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
         <Text accessibilityRole="header" className="font-bold text-[12px] uppercase tracking-[0.6px] text-muted">
           {title}
         </Text>
-        {hint ? <Text className="shrink font-bold text-[13px] text-accent">{hint}</Text> : null}
+        {hint ? <Text className="shrink font-bold text-[13px] text-accent-text">{hint}</Text> : null}
       </View>
       {children}
     </View>

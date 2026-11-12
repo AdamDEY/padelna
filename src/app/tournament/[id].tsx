@@ -43,6 +43,7 @@ import { queryClient } from "@/lib/query-client";
 import { entryUnit, formatFee, hasFewSpots, isIndividual } from "@/lib/tournament";
 import type { Player } from "@/types/player";
 import type { TournamentDetail as Tournament } from "@/types/tournament";
+import { pageStatusBarStyle } from "@/lib/theme-preference";
 
 // How far the white sheet slides up over the court (design "Tournament detail")
 const SHEET_OVERLAP = 36;
@@ -123,7 +124,7 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
   // Once the sheet scrolls up to the status bar, the bar needs a background of its own
   const [isPastHero, setIsPastHero] = useState(false);
   // Dark text reads on both the pale court and the white bar; another screen may have left it light
-  useFocusEffect(useCallback(() => setStatusBarStyle("dark"), []));
+  useFocusEffect(useCallback(() => setStatusBarStyle(pageStatusBarStyle()), []));
 
   const {
     capacity,
@@ -263,7 +264,7 @@ function TournamentScreen({ tournament }: { tournament: Tournament }) {
         <View className="gap-[22px] rounded-t-[28px] bg-surface px-5 pt-[22px]" style={{ marginTop: -SHEET_OVERLAP }}>
           <View className="gap-2">
             <View className="flex-row flex-wrap gap-1.5">
-              <View className="rounded-[10px] bg-foreground px-2.5 py-1">
+              <View className="rounded-[10px] bg-ink px-2.5 py-1">
                 <Text className="font-bold text-[12px] text-lime">{t("tournaments.detail.tournament")}</Text>
               </View>
               {hasRange ? (

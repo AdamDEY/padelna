@@ -19,6 +19,7 @@ import { playersKey, useConnectionRequests, useMyFriends, useRemoveConnection } 
 import { queryClient } from "@/lib/query-client";
 import type { Friend } from "@/types/player";
 import { errorMessage } from "@/lib/error-message";
+import { pageStatusBarStyle } from "@/lib/theme-preference";
 
 type Sort = "played" | "level" | "recent" | "az";
 
@@ -58,7 +59,7 @@ export default function Friends() {
   const heroHeight = useRef(0);
   const isOverHero = useRef(true);
   const applyStatusBar = useCallback(() => {
-    setStatusBarStyle(isOverHero.current ? "light" : "dark");
+    setStatusBarStyle(isOverHero.current ? "light" : pageStatusBarStyle());
   }, []);
   function handleScroll(y: number) {
     const over = y < heroHeight.current - insets.top;
@@ -70,7 +71,7 @@ export default function Friends() {
   useFocusEffect(
     useCallback(() => {
       applyStatusBar();
-      return () => setStatusBarStyle("dark");
+      return () => setStatusBarStyle(pageStatusBarStyle());
     }, [applyStatusBar]),
   );
 
@@ -201,7 +202,7 @@ export default function Friends() {
                         <Text numberOfLines={1} className="mt-0.5 font-bold text-[14px] text-foreground">
                           {friend.firstName}
                         </Text>
-                        <Text className="font-bold text-[11px] text-accent">
+                        <Text className="font-bold text-[11px] text-accent-text">
                           {t("friends.together", { count: friend.matchesTogether })}
                         </Text>
                       </Pressable>

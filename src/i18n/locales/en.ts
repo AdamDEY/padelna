@@ -1739,6 +1739,8 @@ export const en = {
     visibilityFriends: "Friends",
     matchPrivacy: "Match privacy",
     language: "Language",
+    appearance: "Appearance",
+    darkMode: "Dark mode",
     logOut: "Log out",
     deleteAccount: "Delete account",
     deleteNote: "Deleting removes your profile, matches and ratings for good.",

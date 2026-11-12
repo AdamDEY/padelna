@@ -60,7 +60,7 @@ export function TournamentMatchRow({ tournament, match, caption, myId, isNext = 
           {score}
         </Text>
         {onEnterScore && !match.submitted ? (
-          <Text className="font-bold text-[12px] text-accent">{t("tournaments.live.enterScore")}</Text>
+          <Text className="font-bold text-[12px] text-accent-text">{t("tournaments.live.enterScore")}</Text>
         ) : (
           <View className={cn("rounded-[7px] px-[7px] py-0.5", chipTones[state].bg)}>
             <Text className={cn("font-bold text-[11px]", chipTones[state].fg)}>{t(`tournaments.live.matchState.${state}`)}</Text>

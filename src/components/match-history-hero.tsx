@@ -31,7 +31,7 @@ export function MatchHistoryHero({ subtitle, summary, onBack }: MatchHistoryHero
 
   return (
     <View
-      className="gap-4 overflow-hidden rounded-b-[32px] bg-accent px-5 pb-5"
+      className="gap-4 overflow-hidden rounded-b-[32px] bg-hero px-5 pb-5"
       style={{ paddingTop: insets.top + 8 }}
     >
       {/* Faint court lines in the corner */}
@@ -95,7 +95,7 @@ export function MatchHistoryHero({ subtitle, summary, onBack }: MatchHistoryHero
                     <Text
                       className={cn(
                         "font-black text-[11px]",
-                        result === "won" ? "text-lime-foreground" : "text-accent-foreground",
+                        result === "won" ? "text-on-lime" : "text-accent-foreground",
                       )}
                     >
                       {t(result === "won" ? "result.badgeWon" : "result.badgeLost")}

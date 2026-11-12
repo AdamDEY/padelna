@@ -183,7 +183,7 @@ export default function Notifications() {
           hitSlop={8}
           className="h-11 justify-center"
         >
-          <Text className={cn("font-bold text-[14px]", unreadCount("all") === 0 ? "text-muted" : "text-accent")}>
+          <Text className={cn("font-bold text-[14px]", unreadCount("all") === 0 ? "text-muted" : "text-accent-text")}>
             {t("notifications.markAllRead")}
           </Text>
         </PressableFeedback>

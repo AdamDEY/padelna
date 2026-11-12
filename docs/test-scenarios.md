@@ -217,12 +217,15 @@ You need at least:
 - [ ] **APP-PROF-02 (P1)** Coach verified badge shows only for a player with a coach evaluation from the dashboard. ↔
 - [ ] **APP-PROF-03 (P1)** Edit profile saves; level and other protected columns can't be changed from the app.
 - [ ] **APP-PROF-04 (P1)** Language switch English ↔ French changes the whole app; following the phone language works on first launch.
+- [ ] **APP-PROF-05 (P1)** Edit profile → Appearance → Dark mode switch turns the whole app dark at once (no Save needed) and back to light. Check Home, Matches, Community, Players, Profile, a match, a club, a bottom sheet and the native tab bar: no white cards, no unreadable text, status bar text flips to light. The choice survives closing and reopening the app. A new install starts in light.
+- [ ] **APP-PROF-06 (P2)** In dark mode, lime badges (level on your avatar, "In 2 days", Create match button) keep dark text; blue hero headers (Profile, Friends, Match history, tournament history) stay the same blue; selected chips and the competitive scoreboard show light text on a dark panel.
 
 ### General app checks (APP-GEN)
 
 - [ ] **APP-GEN-01 (P1)** Every list has loading, empty and error states; no raw error text ever shows.
 - [ ] **APP-GEN-02 (P1)** iOS and Android both: tab bar, bottom sheets, keyboard over inputs, back gesture.
 - [ ] **APP-GEN-03 (P2)** Small screen (iPhone SE) and large text: nothing is cut off; French fits.
+- [ ] **APP-GEN-05 (P2)** Both themes: contrast stays readable (text on soft status pills, placeholders, tab labels); the share pictures (match, tournament, profile) look the same whichever theme the phone app is in.
 - [ ] **APP-GEN-04 (P2)** Slow network: buttons don't double-submit (double-tap Join, Save score, Create).
 
 ---
@@ -350,3 +353,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-10 | Hid the Share button on the tournament detail screen (commented out for now); no scenario covered it. |
 | 2026-11-10 | Also hid the Share button in the live and finished tournament views (group stage and Americano). |
 | 2026-11-10 | Added sharing a finished match as a story picture (APP-MSHARE): Share match button on the match detail, photo / sticker / plain, four overlay styles. No migration. |
+| 2026-11-12 | Added dark mode (APP-PROF-05/06, APP-GEN-05): Dark mode switch in Edit profile, dark palette in `global.css`, saved on the phone. No migration. |

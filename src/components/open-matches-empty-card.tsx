@@ -21,7 +21,7 @@ type OpenMatchesEmptyCardProps = {
 function Slot({ className, top }: { className: string; top: number }) {
   return (
     <View
-      className={`absolute rounded-full border-2 border-dashed border-slot-border bg-white/60 ${className}`}
+      className={`absolute rounded-full border-2 border-dashed border-slot-border bg-surface/60 ${className}`}
       style={{ top, width: SLOT_SIZE, height: SLOT_SIZE }}
     />
   );
