@@ -21,8 +21,8 @@ export function PadelnaMark({ size = 28 }: { size?: number }) {
   );
 }
 
-// The artwork is 2000 × 1124 px
-const LOGO_ASPECT = 2000 / 1124;
+// The artwork is 1600 × 906 px, drawn from the "LOGO Lime soft" SVG of the brand files
+const LOGO_ASPECT = 1600 / 906;
 
 /**
  * The Padelna logo (design: Sign in · new logo): the ball-trail mark over the wordmark, in lime,

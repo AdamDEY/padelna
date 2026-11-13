@@ -2,6 +2,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { t } from "i18next";
 
 import type { PlayerTag, PlayerTagCount } from "@/data/player-tags";
+import type { LevelSource } from "@/data/level-credibility";
 import type { ReportReason } from "@/data/report-reasons";
 import { supabase } from "@/lib/supabase";
 import type { CoachVerification } from "@/types/coach";
@@ -208,6 +209,13 @@ export async function fetchCoachVerification(playerId: string): Promise<CoachVer
     comment: row.comment,
     evaluatedAt: new Date(row.evaluated_at),
   };
+}
+
+/** How the player's level was set (took the quiz or picked it), or null for players from before this was kept. */
+export async function fetchLevelSource(playerId: string): Promise<LevelSource | null> {
+  const { data, error } = await supabase.rpc("get_level_source", { p_player_id: playerId });
+  if (error) throw error;
+  return data === "quiz" || data === "self" ? data : null;
 }
 
 /** Sends a connection request, or accepts theirs if they already asked you. */
