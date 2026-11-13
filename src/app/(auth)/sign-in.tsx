@@ -1,5 +1,5 @@
 import { Link, router } from "expo-router";
-import { Button, FieldError, Input, InputGroup, Label, TextField, useToast } from "heroui-native";
+import { Button, cn, FieldError, Input, InputGroup, Label, TextField, useToast } from "heroui-native";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,26 +10,28 @@ import { Icon } from "@/components/icon";
 import { Page } from "@/components/page";
 import { PadelnaLogo } from "@/components/padelna-logo";
 import { SocialAuthButtons } from "@/components/social-auth-buttons";
-import { useHeroStatusBar } from "@/hooks/useHeroStatusBar";
 import { signIn as signInWithPassword } from "@/repositories/auth-repository";
 import { hasProfile } from "@/repositories/profile-repository";
 import { isEmail, isEmailOrPhone } from "@/lib/validation";
 import { errorMessage } from "@/lib/error-message";
+import { useThemePreference } from "@/lib/theme-preference";
 
 // The design is drawn for a 44 pt status bar; taller ones push everything down
 const DESIGN_STATUS_BAR = 44;
-// The hero ends where the form sheet starts
+// The form sheet starts here; the hero runs SHEET_OVERLAP further under it
 const HERO_HEIGHT = 300;
 const LOGO_TOP = 78;
 // Page.Body pads its end by this much when a footer is pinned below it
 const BODY_END_PADDING = 24;
+// How far the form sheet slides over the hero: its rounded corners show the hero behind them
+const SHEET_OVERLAP = 32;
 
 export default function SignIn() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const shift = Math.max(0, insets.top - DESIGN_STATUS_BAR);
-  // White status bar text over the dark hero, dark again once it scrolls away
-  const { onHeroLayout, onScrollY } = useHeroStatusBar();
+  // Light theme: grey hero with the blue logo. Dark theme: ink hero with the lime logo.
+  const isDark = useThemePreference() === "dark";
   const { toast } = useToast();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -75,30 +77,39 @@ export default function SignIn() {
   }
 
   return (
-    <Page variant="auth" underStatusBar dark>
-      <Page.Body className="gap-0 px-0" onScrollY={onScrollY}>
-        {/* Dark hero: the logo over two faint lime rings, like court lines */}
+    <Page variant="auth" underStatusBar dark={isDark}>
+      <Page.Body className="gap-0 px-0">
+        {/* Hero: the logo over two faint rings, like court lines */}
         <View
-          onLayout={onHeroLayout}
-          className="items-center gap-3.5 overflow-hidden bg-ink"
-          style={{ height: HERO_HEIGHT + shift, paddingTop: LOGO_TOP + shift }}
+          className={cn("items-center gap-3.5 overflow-hidden", isDark ? "bg-ink" : "bg-track")}
+          style={{ height: HERO_HEIGHT + shift + SHEET_OVERLAP, paddingTop: LOGO_TOP + shift }}
         >
           <View
             aria-hidden
-            className="absolute -end-[70px] -top-[90px] size-[260px] rounded-full border-2 border-lime opacity-[0.16]"
+            className={cn(
+              "absolute -end-[70px] -top-[90px] size-[260px] rounded-full border-2 opacity-[0.16]",
+              isDark ? "border-lime" : "border-primary",
+            )}
           />
           <View
             aria-hidden
-            className="absolute -start-[120px] top-[160px] size-[240px] rounded-full border-2 border-lime opacity-10"
+            className={cn(
+              "absolute -start-[120px] top-[160px] size-[240px] rounded-full border-2 opacity-10",
+              isDark ? "border-lime" : "border-primary",
+            )}
           />
-          <PadelnaLogo />
-          <Text className="font-semibold text-[15px] text-ink-tint-text">{t("auth.tagline")}</Text>
+          <PadelnaLogo tone={isDark ? "lime" : "blue"} />
+          <Text
+            className={cn("font-semibold text-[15px]", isDark ? "text-ink-tint-text" : "text-ink-2")}
+          >
+            {t("auth.tagline")}
+          </Text>
         </View>
 
         {/* The form sheet slides over the hero; it also covers the body's bottom padding */}
         <View
           className="grow gap-[18px] rounded-t-[32px] bg-background px-6 pt-7"
-          style={{ marginBottom: -BODY_END_PADDING }}
+          style={{ marginTop: -SHEET_OVERLAP, marginBottom: -BODY_END_PADDING }}
         >
           <View className="gap-1.5">
             <Text

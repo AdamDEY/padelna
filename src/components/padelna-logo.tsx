@@ -21,20 +21,28 @@ export function PadelnaMark({ size = 28 }: { size?: number }) {
   );
 }
 
-// The artwork is 1600 × 906 px, drawn from the "LOGO Lime soft" SVG of the brand files
-const LOGO_ASPECT = 1600 / 906;
+// Both are 1600 px wide, rendered from the brand SVGs ("LOGO Lime soft" and "LOGO Primary blue")
+const logos = {
+  lime: { source: require("../../assets/images/padelna-logo-lime.png"), aspect: 1600 / 906 },
+  blue: { source: require("../../assets/images/padelna-logo-blue.png"), aspect: 1600 / 914 },
+} as const;
 
-/**
- * The Padelna logo (design: Sign in · new logo): the ball-trail mark over the wordmark, in lime,
- * so it only works on a dark background.
- */
-export function PadelnaLogo({ width = 200 }: { width?: number }) {
+type PadelnaLogoProps = {
+  width?: number;
+  /** Lime works on dark backgrounds, blue on light ones */
+  tone?: keyof typeof logos;
+};
+
+/** The Padelna logo (design: Sign in · new logo): the ball-trail mark over the wordmark. */
+export function PadelnaLogo({ width = 200, tone = "lime" }: PadelnaLogoProps) {
+  const { source, aspect } = logos[tone];
+
   return (
     <Image
-      source={require("../../assets/images/padelna-logo-lime.png")}
+      source={source}
       accessibilityLabel="Padelna"
       contentFit="contain"
-      style={{ width, aspectRatio: LOGO_ASPECT }}
+      style={{ width, aspectRatio: aspect }}
     />
   );
 }
