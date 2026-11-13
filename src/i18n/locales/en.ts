@@ -1329,7 +1329,7 @@ export const en = {
       sets: "Sets",
       rounds: "Rounds",
       points: "Points",
-      footer: "Find players at your level on Padelna",
+      footer: "Your padel, on the record with Padelna",
       site: "padelna.tn",
     },
   },
@@ -1405,7 +1405,7 @@ export const en = {
     loadFailed: "Couldn’t load your code",
     imageHeadline: "Play a match\nwith me",
     scanWithCamera: "Scan with your phone camera",
-    imageFooter: "Find players at your level in Tunis, La Marsa, Sousse and Sfax",
+    imageFooter: "Your padel, on the record",
   },
   scanCode: {
     title: "Scan a code",
@@ -1781,7 +1781,7 @@ export const en = {
 
   auth: {
     welcomeBack: "Welcome back",
-    signInText: "Sign in to find your next match.",
+    signInText: "Sign in to log your next match.",
     emailOrPhone: "Email or phone",
     identifierError: "Enter your email or a Tunisian phone number.",
     tagline: "Find players at your level",
@@ -1996,17 +1996,18 @@ export const en = {
     },
   },
   onboarding: {
-    findTitle: "Find players at your level",
-    findText: "Join open matches that fit you, or create your own and fill the court in minutes.",
+    recordTitle: "Every match, on the record",
+    recordText:
+      "Log your matches, confirm the score with the other team and share the result. Your padel story, built one game at a time.",
     trustTitle: "A level people can trust",
     trustText:
-      "After each match, players rate the level they saw. Honest reviews keep every game balanced.",
+      "Results both teams confirm move your level, and players rate each other after competitive matches. It shows how you really play.",
     fairTitle: "Play fair, or you’re out",
     fairText:
       "Fake scores, revenge ratings or sabotaging other players will get your account banned. Every report is reviewed.",
-    communityTitle: "Grow Tunisia’s padel community",
-    communityText:
-      "Share your results, connect with players you meet on court and see who’s playing where.",
+    circleTitle: "Grow padel in Tunisia, together",
+    circleText:
+      "Connect with the players you meet, rate the courts you play on and see what everyone is up to. Better clubs, better games.",
     skip: "Skip",
     agree: "I agree",
     letsPlay: "Let’s play",
@@ -2149,7 +2150,7 @@ export const en = {
   },
   bookingNotice: {
     title: "Book your court first",
-    text: "Court availability isn’t shown in the app yet. Call the club to check a free slot and reserve it, then create your match.",
+    text: "Padelna doesn’t handle bookings. Call the club to reserve a slot, then create your match so players can join and the result lands on your profile.",
     call: "Call",
     callA11y: "Call {{club}}",
     soon: "Soon",

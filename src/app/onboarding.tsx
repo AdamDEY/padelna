@@ -16,20 +16,20 @@ import { SetupProgress } from "@/components/setup-progress";
 import { stepEntering } from "@/lib/motion";
 
 type OnboardingPage = {
-  title: "onboarding.findTitle" | "onboarding.trustTitle" | "onboarding.fairTitle" | "onboarding.communityTitle";
+  title: "onboarding.recordTitle" | "onboarding.trustTitle" | "onboarding.fairTitle" | "onboarding.circleTitle";
   description:
-    | "onboarding.findText"
+    | "onboarding.recordText"
     | "onboarding.trustText"
     | "onboarding.fairText"
-    | "onboarding.communityText";
+    | "onboarding.circleText";
   Illustration: ComponentType;
 };
 
 const pages: OnboardingPage[] = [
   {
-    title: "onboarding.findTitle",
-    description: "onboarding.findText",
-    Illustration: FindPlayersIllustration,
+    title: "onboarding.recordTitle",
+    description: "onboarding.recordText",
+    Illustration: CommunityIllustration,
   },
   {
     title: "onboarding.trustTitle",
@@ -42,9 +42,9 @@ const pages: OnboardingPage[] = [
     Illustration: FairPlayIllustration,
   },
   {
-    title: "onboarding.communityTitle",
-    description: "onboarding.communityText",
-    Illustration: CommunityIllustration,
+    title: "onboarding.circleTitle",
+    description: "onboarding.circleText",
+    Illustration: FindPlayersIllustration,
   },
 ];
 

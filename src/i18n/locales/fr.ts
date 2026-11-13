@@ -1333,7 +1333,7 @@ export const fr: Messages = {
       sets: "Sets",
       rounds: "Tours",
       points: "Points",
-      footer: "Trouve des joueurs à ton niveau sur Padelna",
+      footer: "Ton padel, noir sur blanc avec Padelna",
       site: "padelna.tn",
     },
   },
@@ -1409,7 +1409,7 @@ export const fr: Messages = {
     loadFailed: "Impossible de charger ton code",
     imageHeadline: "Jouons un match\nensemble",
     scanWithCamera: "Scanne avec l’appareil photo de ton téléphone",
-    imageFooter: "Trouve des joueurs de ton niveau à Tunis, La Marsa, Sousse et Sfax",
+    imageFooter: "Ton padel, noir sur blanc",
   },
   scanCode: {
     title: "Scanner un code",
@@ -1783,7 +1783,7 @@ export const fr: Messages = {
 
   auth: {
     welcomeBack: "Content de te revoir",
-    signInText: "Connecte-toi pour trouver ton prochain match.",
+    signInText: "Connecte-toi pour enregistrer ton prochain match.",
     emailOrPhone: "E-mail ou téléphone",
     identifierError: "Saisis ton e-mail ou un numéro de téléphone tunisien.",
     tagline: "Trouve des joueurs de ton niveau",
@@ -1998,18 +1998,18 @@ export const fr: Messages = {
     },
   },
   onboarding: {
-    findTitle: "Trouve des joueurs à ton niveau",
-    findText:
-      "Rejoins des matchs ouverts qui te correspondent, ou crée le tien et remplis le terrain en quelques minutes.",
+    recordTitle: "Chaque match compte",
+    recordText:
+      "Enregistre tes matchs, fais confirmer le score par l’autre équipe et partage le résultat. Ton histoire padel, un match après l’autre.",
     trustTitle: "Un niveau fiable",
     trustText:
-      "Après chaque match, les joueurs évaluent le niveau qu’ils ont vu. Des avis honnêtes gardent chaque match équilibré.",
+      "Les résultats confirmés par les deux équipes font évoluer ton niveau, et les joueurs s’évaluent après les matchs compétitifs. Il reflète ton vrai jeu.",
     fairTitle: "Joue fair-play, sinon dehors",
     fairText:
       "Faux scores, évaluations de vengeance ou sabotage des autres joueurs entraînent le bannissement de ton compte. Chaque signalement est examiné.",
-    communityTitle: "Fais grandir la communauté padel tunisienne",
-    communityText:
-      "Partage tes résultats, connecte-toi avec les joueurs croisés sur le terrain et vois qui joue où.",
+    circleTitle: "Fais grandir le padel en Tunisie, ensemble",
+    circleText:
+      "Connecte-toi avec les joueurs que tu croises, note les terrains où tu joues et vois ce que fait tout le monde. De meilleurs clubs, de meilleurs matchs.",
     skip: "Passer",
     agree: "J’accepte",
     letsPlay: "On joue",
@@ -2152,7 +2152,7 @@ export const fr: Messages = {
   },
   bookingNotice: {
     title: "Réserve d’abord ton terrain",
-    text: "Les disponibilités des terrains ne sont pas encore affichées dans l’app. Appelle le club pour vérifier un créneau libre et le réserver, puis crée ton match.",
+    text: "Padelna ne gère pas les réservations. Appelle le club pour réserver un créneau, puis crée ton match pour que les joueurs puissent le rejoindre et que le résultat arrive sur ton profil.",
     call: "Appeler",
     callA11y: "Appeler {{club}}",
     soon: "Bientôt",
