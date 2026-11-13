@@ -7,6 +7,8 @@ import Svg, { Circle } from "react-native-svg";
 import { useCSSVariable } from "uniwind";
 
 import { CoachVerifiedBadge } from "@/components/coach-verified-badge";
+import { LevelCredibilityChip } from "@/components/level-credibility-chip";
+import type { LevelSource } from "@/data/level-credibility";
 import { Icon } from "@/components/icon";
 import { PlayerAvatar } from "@/components/player-avatar";
 import type { PlayerProfile, ProfileStats } from "@/types/profile";
@@ -37,10 +39,12 @@ type ProfileHeroProps = {
   friendCount?: number;
   /** A coach has verified the level shown (the profile's level is then the coach's) */
   isCoachVerified?: boolean;
+  /** How the level was set (quiz or picked), shown as its credibility unless a coach verified it; unknown for older players */
+  levelSource?: LevelSource | null;
 };
 
 /** Blue profile header: who you are, your level ring with progress, and headline stats. */
-export function ProfileHero({ profile, onPressSettings, onPressShare, onPressFriends, stats, hasPlayed = true, friendCount, isCoachVerified = false }: ProfileHeroProps) {
+export function ProfileHero({ profile, onPressSettings, onPressShare, onPressFriends, stats, hasPlayed = true, friendCount, isCoachVerified = false, levelSource }: ProfileHeroProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const lime = useCSSVariable("--color-lime") as string;
@@ -178,11 +182,13 @@ export function ProfileHero({ profile, onPressSettings, onPressShare, onPressFri
               {isCoachVerified ? t("coach.heroTitle") : t("profile.welcome")}
             </Text>
             <Text className="font-normal text-[13px] leading-[18px] text-primary-tint-text">
-              {isCoachVerified ? t("coach.heroHint") : t("profile.welcomeHint")}
+              {isCoachVerified ? t("coach.heroHint") : levelSource === "self" ? t("profile.welcomeHintSelf") : t("profile.welcomeHint")}
             </Text>
           </View>
         )}
       </View>
+
+      {levelSource && !isCoachVerified ? <LevelCredibilityChip source={levelSource} tone="onBlue" /> : null}
 
       <View className="flex-row rounded-[18px] bg-white/10 py-3">
         {shownStats.map((stat, index) => (

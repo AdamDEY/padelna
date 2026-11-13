@@ -62,6 +62,7 @@ You need at least:
 - [ ] **APP-SETUP-14 (P1)** On the Starting level screen the blocks rise in one after the other, the level counts up from 1.0 to its value while the gauge fills from the left to match, and the level name tag pops in last. Moving the "Think your level is different?" slider makes the number and the gauge follow smoothly. With Reduce Motion on in the phone settings there is only a short pause, then the finished screen with no counting.
 - [ ] **APP-SETUP-15 (P0)** Skip on a quiz question opens "Pick your level": six cards (Beginner 1.0–1.5, Improving 2.0–2.5, Intermediate 3.0–3.5, Advanced 4.0–4.5, Competitive 5.0–5.5, Expert), none chosen, Continue disabled. Choosing a card opens a lower / upper choice (e.g. "3.0 · newer to it", "3.5 · solid"), starting on the lower; Continue reads "Continue with 3.5" and saves exactly that level, which then shows on Home and Profile. Expert is locked ("Set by a coach") and can't be chosen, so no level above 5.5 is ever saved this way. The sand note says it is the player's own estimate.
 - [ ] **APP-SETUP-16 (P1)** On Pick your level, "Take the quiz" and the Back arrow return to the question Skip was pressed on, with the answers already given kept. Skipping again shows the earlier pick still chosen. French reads correctly and nothing is cut off at a large text size.
+- [ ] **APP-SETUP-17 (P0)** The way the starting level was set is saved with the profile: a player who answered the quiz gets `level_source = 'quiz'`, one who skipped and picked a level gets `'self'`. Doing setup again on an existing profile (deep link) changes neither the level nor the source. ↔ needs migration `20261113120000_level_source.sql`.
 
 ### Home (APP-HOME)
 
@@ -231,6 +232,8 @@ You need at least:
 - [ ] **APP-PROF-04 (P1)** Language switch English ↔ French changes the whole app; following the phone language works on first launch.
 - [ ] **APP-PROF-05 (P1)** Edit profile → Appearance → Dark mode switch turns the whole app dark at once (no Save needed) and back to light. Check Home, Matches, Community, Players, Profile, a match, a club, a bottom sheet and the native tab bar: no white cards, no unreadable text, status bar text flips to light. The choice survives closing and reopening the app. A new install starts in light.
 - [ ] **APP-PROF-06 (P2)** In dark mode, lime badges (level on your avatar, "In 2 days", Create match button) keep dark text; blue hero headers (Profile, Friends, Match history, tournament history) stay the same blue; selected chips and the competitive scoreboard show light text on a dark panel.
+- [ ] **APP-PROF-07 (P1)** Level credibility: under the level on the Profile header, a player who took the quiz shows "50% credibility · Took the quiz" and one who skipped it and picked a level shows "20% credibility · Skipped the quiz". A player whose level a coach verified shows only the "Coach verified" badge, no percentage; a player from before this was kept (no source) shows nothing. A player who picked their level reads "You picked this level yourself" in the welcome text, not "comes from your quiz".
+- [ ] **APP-PROF-08 (P1)** The same credibility shows in the player sheet other players open (the percentage in a chip with "Took the quiz" / "Skipped the quiz" under it), in the preview and the full profile, and is hidden for coach-verified and older players.
 
 ### General app checks (APP-GEN)
 
@@ -340,6 +343,7 @@ Run these against the database directly (SQL editor or a player's session token)
 
 - [ ] **SEC-01 (P0)** A player can't call any `admin_*` function.
 - [ ] **SEC-02 (P0)** A player can't update protected profile columns (level, status, share code) with a direct update.
+- [ ] **SEC-02b (P1)** A player can't change `level_source` after setup (like the level, a later update keeps the saved value), and any signed-in player can read another player's source only through `get_level_source`.
 - [ ] **SEC-03 (P0)** A player can't read other players' ratings, private profile data or chats of matches they're not in.
 - [ ] **SEC-04 (P0)** A player can't insert a match at a draft or closed club, or in the past, with a direct insert.
 - [ ] **SEC-05 (P1)** A player can't confirm their own team's score or submit a tournament score for a match they don't play.
@@ -370,3 +374,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-13 | Level quiz now scores its answers (10 questions, three competition answers, caps for newcomers) and has a Starting level screen where the player can adjust the level by up to 0.5 (APP-SETUP-03, APP-SETUP-07 to 12). No migration. |
 | 2026-11-13 | Level quiz: "Working out your level" page before the Starting level screen, and the level counts up while its semicircle gauge fills (APP-SETUP-13, APP-SETUP-14). No migration. |
 | 2026-11-13 | Skip on the quiz now opens Pick your level (six level cards, lower / upper half, Expert locked) instead of a default 3.0; level names are now six (Improving and Competitive added); nothing above 5.5 can be chosen at setup, also not with the slider (APP-SETUP-09 to 11, APP-SETUP-15, APP-SETUP-16). No migration. |
+| 2026-11-13 | Level credibility: the Profile and the player sheet show 50% credibility (took the quiz) or 20% (skipped it and picked a level); coach-verified players keep only their badge (APP-SETUP-17, APP-PROF-07, APP-PROF-08, SEC-02b). Needs migration `20261113120000_level_source.sql`. |

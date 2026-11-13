@@ -161,7 +161,7 @@ export default function ProfileSetup() {
         return;
       }
       if (chosenLevel === undefined) return;
-      await saveProfile(user.id, about, game, chosenLevel);
+      await saveProfile(user.id, about, game, chosenLevel, picking ? "self" : "quiz");
       await queryClient.invalidateQueries({ queryKey: myProfileKey });
       // Setup is done: from now on the app opens on Home
       queryClient.setQueryData(profileExistsKey(user.id), true);

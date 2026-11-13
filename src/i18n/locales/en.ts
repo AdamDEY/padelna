@@ -1057,6 +1057,12 @@ export const en = {
     removeA11y: "Connected with {{name}}, remove connection",
     cancelA11y: "Request sent to {{name}}, cancel request",
   },
+  credibility: {
+    percent: "{{percent}}% credibility",
+    quiz: "Took the quiz",
+    self: "Skipped the quiz",
+    a11y: "Level credibility {{percent}}%, {{how}}",
+  },
   coach: {
     verified: "Coach verified",
     heroTitle: "Level set by a coach",
@@ -1632,6 +1638,7 @@ export const en = {
     startingLevel: "Starting level",
     welcome: "Welcome to Padelna!",
     welcomeHint: "This level comes from your quiz. It gets more accurate with every match and review.",
+    welcomeHintSelf: "You picked this level yourself. It gets more accurate with every match and review.",
     getStarted: "Get started",
     historyLockedTitle: "Play your first match",
     historyLockedText: "Your match history starts once you’ve played at least one match.",
