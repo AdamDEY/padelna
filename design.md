@@ -154,7 +154,7 @@ Icons are simple outline strokes, avatars are photos with an initials fallback, 
 - **Your own avatar** gets a 2 px `primary` ring and a small lime level badge when it opens your profile.
 - **Empty slot:** an open spot is a dashed `primary` circle with a +.
 - **Images:** match and club photos use radius 14–18 inside cards. Until real photos exist, use the court-line placeholder: a tinted block with white court outline, net line and an optional lime ball.
-- **Logo:** lime circle with a ball-seam mark and the "Padelna" wordmark in Nunito 900.
+- **Logo:** the ball-trail mark over the "PADELNA" wordmark, in lime on dark (`assets/images/padelna-logo-lime.png`, used on the dark hero of Sign in). The small lime circle with a ball-seam mark stays for headers on blue (share cards).
 
 ## Level, status and trust patterns
 

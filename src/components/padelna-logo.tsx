@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { Image } from "expo-image";
+import { View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { useCSSVariable } from "uniwind";
 
@@ -20,19 +21,20 @@ export function PadelnaMark({ size = 28 }: { size?: number }) {
   );
 }
 
-/** design.md logo: lime circle with a ball-seam mark and the "Padelna" wordmark. */
-export function PadelnaLogo() {
-  const ink = useCSSVariable("--color-foreground") as string;
+// The artwork is 1600 × 906 px, drawn from the "LOGO Lime soft" SVG of the brand files
+const LOGO_ASPECT = 1600 / 906;
 
+/**
+ * The Padelna logo (design: Sign in · new logo): the ball-trail mark over the wordmark, in lime,
+ * so it only works on a dark background.
+ */
+export function PadelnaLogo({ width = 200 }: { width?: number }) {
   return (
-    <View accessible accessibilityRole="image" accessibilityLabel="Padelna" className="flex-row items-center gap-2.5">
-      <View className="size-10 items-center justify-center rounded-full bg-lime">
-        <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={ink} strokeWidth={1.8} strokeLinecap="round">
-          <Circle cx={12} cy={12} r={9} />
-          <Path d="M4.5 7.5c3 1.5 4.5 4 4.5 7.5M19.5 16.5c-3-1.5-4.5-4-4.5-7.5" />
-        </Svg>
-      </View>
-      <Text className="font-black text-[20px] tracking-[-0.3px] text-foreground">Padelna</Text>
-    </View>
+    <Image
+      source={require("../../assets/images/padelna-logo-lime.png")}
+      accessibilityLabel="Padelna"
+      contentFit="contain"
+      style={{ width, aspectRatio: LOGO_ASPECT }}
+    />
   );
 }
