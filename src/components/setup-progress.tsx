@@ -11,10 +11,12 @@ type SetupProgressProps = {
   total?: number;
   /** How much of the current step is done, 0–1 (e.g. quiz questions answered). Full by default. */
   stepProgress?: number;
+  /** Every step is finished: all segments full and "Done" instead of "n of 3" (the starting-level screen) */
+  isDone?: boolean;
 };
 
 /** Segmented progress bar with "n of 3" on the right (design.md "Progress (setup)"). */
-export function SetupProgress({ step, total = 3, stepProgress = 1 }: SetupProgressProps) {
+export function SetupProgress({ step, total = 3, stepProgress = 1, isDone }: SetupProgressProps) {
   const { t } = useTranslation();
 
   return (
@@ -26,13 +28,17 @@ export function SetupProgress({ step, total = 3, stepProgress = 1 }: SetupProgre
     >
       <View className="flex-1 flex-row gap-1.5">
         {Array.from({ length: total }, (_, i) => {
-          const fill = i < step - 1 ? 1 : i === step - 1 ? stepProgress : 0;
+          const fill = isDone || i < step - 1 ? 1 : i === step - 1 ? stepProgress : 0;
           return <Segment key={i} fill={fill} />;
         })}
       </View>
-      <Text className="font-semibold text-[14px] text-muted">
-        {t("setup.progress", { step, total })}
-      </Text>
+      {isDone ? (
+        <Text className="font-semibold text-[14px] text-success">{t("setup.done")}</Text>
+      ) : (
+        <Text className="font-semibold text-[14px] text-muted">
+          {t("setup.progress", { step, total })}
+        </Text>
+      )}
     </View>
   );
 }
