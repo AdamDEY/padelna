@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { BackHandler, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";
 
+import { LoadingButton } from "@/components/loading-button";
 import { Page } from "@/components/page";
 import {
   initialAboutValues,
@@ -274,22 +275,22 @@ export default function ProfileSetup() {
             </Button.Label>
           </Button>
         ) : null}
-        <Button
+        <LoadingButton
           size="lg"
           onPress={next}
-          isDisabled={
-            (isQuestion && !hasAnswer) || (picking && selfLevel === undefined) || calculating || isSaving
-          }
+          // While the level is being worked out or saved the button spins instead of greying out
+          isLoading={calculating || isSaving}
+          isDisabled={(isQuestion && !hasAnswer) || (picking && selfLevel === undefined)}
           className={isQuiz ? "flex-1" : undefined}
         >
-          {isLastQuestion
+          {isLastQuestion || calculating
             ? t("setup.seeLevel")
             : isQuestion
               ? t("setup.next")
               : picking && selfLevel !== undefined
                 ? t("setup.pick.continueWith", { level: selfLevel.toFixed(1) })
                 : t("setup.continue")}
-        </Button>
+        </LoadingButton>
       </Page.Footer>
     </Page>
   );

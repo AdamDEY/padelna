@@ -45,6 +45,9 @@ You need at least:
 - [ ] **APP-AUTH-08 (P2)** Edit profile → Legal section → Terms of Use and Privacy Policy rows open the same two pages; closing the browser returns to Edit profile with nothing lost (unsaved edits are kept, no discard warning).
 
 - [ ] **APP-AUTH-09 (P1)** Sign-in screen: in light theme a grey hero with the blue Padelna logo and "Your court. Your people."; in dark theme the dark hero with the lime logo. The light form sheet (rounded top) slides over it and "New to Padelna?" is pinned at the bottom. With the keyboard open the form scrolls and nothing is cut off; status bar text stays readable over the hero and once it scrolls away. Check on a small phone (iPhone SE) and in French.
+- [ ] **APP-AUTH-11 (P1)** Sign in shows a spinner next to "Sign in" while it works (the button keeps its blue and ignores further taps); it stops with an error toast on a wrong password or no network.
+- [ ] **APP-AUTH-12 (P1)** On a short phone (e.g. Galaxy S23) the sign-in logo and hero shrink so Google (and Apple) show without scrolling; on a tall phone the hero keeps its full size.
+- [ ] **APP-GEN-06 (P1)** With the keyboard open on any screen with inputs (Sign in, Sign up, Setup, Edit profile), the field being typed in stays visible above the keyboard, also after tapping another field. Android and iOS.
 - [ ] **APP-AUTH-10 (P1)** Password field has an eye button: tapping it shows the password as typed (icon changes to a crossed eye), tapping again hides it; the text is kept when toggling and typing continues where it was. The button has a screen-reader label ("Show password" / "Hide password").
 
 ### Profile setup, level quiz and onboarding (APP-SETUP)
@@ -63,6 +66,7 @@ You need at least:
 - [ ] **APP-SETUP-12 (P2)** The quiz and the Starting level screen read correctly in French and nothing is cut off at a large text size.
 - [ ] **APP-SETUP-13 (P1)** "See my level" on the last question shows a short "Working out your level" page first (about 2 seconds: the Padelna ball bounces three times over its shadow, three lines follow one another, a bar fills) and then the Starting level screen. The buttons can't be pressed during it; Back cancels it and returns to question 10 with the answer kept. Skip opens Pick your level with no wait (APP-SETUP-15).
 - [ ] **APP-SETUP-14 (P1)** On the Starting level screen the blocks rise in one after the other, the level counts up from 1.0 to its value while the gauge fills from the left to match, and the level name tag pops in last. Moving the "Think your level is different?" slider makes the number and the gauge follow smoothly. With Reduce Motion on in the phone settings there is only a short pause, then the finished screen with no counting.
+- [ ] **APP-SETUP-18 (P1)** On the quiz the main button shows a spinner on "See my level" while the level is worked out, and on Continue while the profile is saved.
 - [ ] **APP-SETUP-15 (P0)** Skip on a quiz question opens "Pick your level": six cards (Beginner 1.0–1.5, Improving 2.0–2.5, Intermediate 3.0–3.5, Advanced 4.0–4.5, Competitive 5.0–5.5, Expert), none chosen, Continue disabled. Choosing a card opens a lower / upper choice (e.g. "3.0 · newer to it", "3.5 · solid"), starting on the lower; Continue reads "Continue with 3.5" and saves exactly that level, which then shows on Home and Profile. Expert is locked ("Set by a coach") and can't be chosen, so no level above 5.5 is ever saved this way. The sand note says it is the player's own estimate.
 - [ ] **APP-SETUP-16 (P1)** On Pick your level, "Take the quiz" and the Back arrow return to the question Skip was pressed on, with the answers already given kept. Skipping again shows the earlier pick still chosen. French reads correctly and nothing is cut off at a large text size.
 - [ ] **APP-SETUP-17 (P0)** The way the starting level was set is saved with the profile: a player who answered the quiz gets `level_source = 'quiz'`, one who skipped and picked a level gets `'self'`. Doing setup again on an existing profile (deep link) changes neither the level nor the source. ↔ needs migration `20261113120000_level_source.sql`.
@@ -79,6 +83,7 @@ You need at least:
 
 - [ ] **APP-MATCH-01 (P0)** Create a match from the Home button: club, court, date, half-hour start, 90 minutes, level range, Friendly or Competitive, price, note, seat in the line-up. It appears in Matches and to other players.
 - [ ] **APP-MATCH-02 (P0)** Only **published** clubs can be picked; a draft or closed club never shows.
+- [ ] **APP-MATCH-04 (P1)** "Publish match" shows a spinner while the match is saved and can't be tapped twice; the sheet closes on success, and on failure the button returns to normal with an error toast.
 - [ ] **APP-MATCH-03 (P1)** A start time in the past, or a match overlapping one the host already plays, is refused.
 - [ ] **APP-MATCH-04 (P1)** Audience: a man can create Men or Mixed, a woman Women or Mixed; a host can't open a match for the other gender.
 - [ ] **APP-MATCH-05 (P1)** Court not booked: the booking notice shows and the match shows "Court not booked".
@@ -383,3 +388,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-13 | New positioning (community first, "your padel, on the record"): onboarding pages (order is now Every match on the record, Trusted level, Fair play, Grow padel together; Fair play is still page 3 of 4), booking notice text and the share-image footers. Copy only; no migration. |
 | 2026-11-13 | Sign-in tagline is now "Your padel, on the record" (APP-AUTH-09) and the new-player checklist on the Profile says "Log your first match", "Build your padel circle" and "players rate each other". Copy only; no migration. |
 | 2026-11-13 | Sign-in tagline is now "Your court. Your people." (French: "Ton terrain. Tes potes."), APP-AUTH-09. Copy only; no migration. |
+| 2026-11-13 | Loading spinner inside buttons (`LoadingButton`) on Sign in, the quiz and Publish match; sign-in hero shrinks on short phones; the focused input scrolls above the keyboard (APP-AUTH-11, APP-AUTH-12, APP-GEN-06, APP-SETUP-18, APP-MATCH-04). No migration. |

@@ -4,7 +4,7 @@ import {
   type BottomSheetFooterProps,
 } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
-import { BottomSheet, Button, cn, useToast } from "heroui-native";
+import { BottomSheet, cn, useToast } from "heroui-native";
 import { Clock, Minus, Plus } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,7 @@ import { Pressable as GesturePressable } from "react-native-gesture-handler";
 import { CourtFields } from "@/components/court-fields";
 import { Dropdown, type DropdownOption as Option } from "@/components/dropdown";
 import { Icon } from "@/components/icon";
+import { LoadingButton } from "@/components/loading-button";
 import { InfoNote } from "@/components/info-note";
 import { LevelRangeSlider, MAX_LEVEL, MIN_LEVEL } from "@/components/level-range-slider";
 import { MatchAudienceField } from "@/components/match-audience-field";
@@ -204,9 +205,14 @@ export function CreateMatchSheet({
           footerComponent={(props: BottomSheetFooterProps) => (
             <BottomSheetFooter {...props}>
               <View className="bg-overlay px-5 pt-3" style={{ paddingBottom: BOTTOM_ACTION_GAP }}>
-                <Button size="lg" isDisabled={!canPublish} onPress={publish}>
+                <LoadingButton
+                  size="lg"
+                  isDisabled={!canPublish && !createMatch.isPending}
+                  isLoading={createMatch.isPending}
+                  onPress={publish}
+                >
                   {t("createMatch.publish")}
-                </Button>
+                </LoadingButton>
               </View>
             </BottomSheetFooter>
           )}

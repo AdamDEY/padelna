@@ -6,9 +6,13 @@ import {
   createContext,
   isValidElement,
   useContext,
+  useCallback,
   useEffect,
+  useRef,
   useState,
+  type ComponentProps,
   type ReactNode,
+  type Ref,
 } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,6 +22,7 @@ import {
   RefreshControl,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -42,6 +47,11 @@ import { IconButton } from "@/components/icon-button";
  * so screens never set those themselves.
  */
 
+// React Native doesn't export the ScrollView instance type, so read it off the ref prop
+type ScrollViewRef = NonNullable<ComponentProps<typeof ScrollView>["ref"]> extends Ref<infer Instance>
+  ? Instance
+  : never;
+
 type PageVariant = "app" | "auth";
 
 // Side margins: 20 px on app screens, 24 px on auth, setup and onboarding
@@ -63,6 +73,10 @@ const KEYBOARD_GAP = 12;
 // Breathing room under the last element when nothing is pinned below it,
 // e.g. above the tab bar, whose inset iOS adds to the scroll view itself
 const END_GAP = 16;
+// Space kept between the input being typed in and the keyboard / the top of the body
+const REVEAL_GAP = 24;
+// The keyboard animates the body's size; wait for it to settle before measuring
+const REVEAL_DELAY_MS = 120;
 const SECTION_GAP = "gap-5";
 
 type PageContextValue = { variant: PageVariant; hasFooter: boolean; underStatusBar: boolean };
@@ -111,7 +125,8 @@ function PageRoot({ variant = "app", surface, dark, underStatusBar, children }: 
     <PageContext.Provider value={{ variant, hasFooter, underStatusBar: !!underStatusBar }}>
       <KeyboardAvoidingView
         className={cn("flex-1", surface ? "bg-surface" : dark ? "bg-ink" : "bg-background")}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        // Android is edge-to-edge, so the window no longer resizes for the keyboard by itself
+        behavior="padding"
         style={{ paddingTop: underStatusBar ? 0 : insets.top + TOP_GAP }}
       >
         {children}
@@ -213,6 +228,37 @@ function PageBody({ scroll = true, onScrollY, onRefresh, className, children }: 
     }
   }
 
+  const scrollRef = useRef<ScrollViewRef>(null);
+  const offsetY = useRef(0);
+  const revealTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Scrolls the input being typed in above the keyboard, so the player always sees what they write
+  const revealFocusedInput = useCallback(() => {
+    clearTimeout(revealTimer.current);
+    revealTimer.current = setTimeout(() => {
+      const input = TextInput.State.currentlyFocusedInput();
+      const scrollView = scrollRef.current;
+      if (!input || !scrollView) return;
+      scrollView.measureInWindow((_x, viewY, _w, viewHeight) => {
+        input.measureInWindow((_ix, inputY, _iw, inputHeight) => {
+          const hiddenBelow = inputY + inputHeight + REVEAL_GAP - (viewY + viewHeight);
+          const hiddenAbove = viewY + REVEAL_GAP - inputY;
+          if (hiddenBelow > 0) scrollView.scrollTo({ y: offsetY.current + hiddenBelow, animated: true });
+          else if (hiddenAbove > 0) scrollView.scrollTo({ y: Math.max(0, offsetY.current - hiddenAbove), animated: true });
+        });
+      });
+    }, REVEAL_DELAY_MS);
+  }, []);
+
+  useEffect(() => {
+    if (!scroll) return;
+    const show = Keyboard.addListener("keyboardDidShow", revealFocusedInput);
+    return () => {
+      show.remove();
+      clearTimeout(revealTimer.current);
+    };
+  }, [scroll, revealFocusedInput]);
+
   const insets = useSafeAreaInsets();
   const contentClass = cn(marginClass[variant], SECTION_GAP, className);
   const paddingBottom = hasFooter ? 24 : Math.max(insets.bottom, BOTTOM_ACTION_GAP) + END_GAP;
@@ -227,14 +273,22 @@ function PageBody({ scroll = true, onScrollY, onRefresh, className, children }: 
 
   return (
     <ScrollView
+      ref={scrollRef}
       className="flex-1"
       contentContainerClassName={cn("grow", contentClass)}
       contentContainerStyle={{ paddingBottom }}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
       showsVerticalScrollIndicator={false}
-      onScroll={onScrollY ? (event) => onScrollY(event.nativeEvent.contentOffset.y) : undefined}
-      scrollEventThrottle={onScrollY ? 32 : undefined}
+      onScroll={(event) => {
+        offsetY.current = event.nativeEvent.contentOffset.y;
+        onScrollY?.(offsetY.current);
+      }}
+      scrollEventThrottle={16}
+      // Moving to another field while the keyboard is already up doesn't fire a keyboard event
+      onTouchEnd={() => {
+        if (Keyboard.isVisible()) revealFocusedInput();
+      }}
       refreshControl={
         onRefresh ? <RefreshControl refreshing={isRefreshing} onRefresh={refresh} /> : undefined
       }
