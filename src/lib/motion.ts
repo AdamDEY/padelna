@@ -1,5 +1,6 @@
 import { I18nManager } from "react-native";
 import {
+  FadeInDown,
   FadeInLeft,
   FadeInRight,
   LinearTransition,
@@ -28,3 +29,26 @@ export const slideOutLeft = SlideOutLeft.duration(STEP_DURATION);
 
 /** The rows below a removed one glide up instead of snapping */
 export const closeGap = LinearTransition.duration(STEP_DURATION);
+
+// The starting-level moment in profile setup: a short "working it out" screen, then the level
+// counts up while its bar fills. Both are one-off and never loop.
+
+/** How long the "working out your level" screen stays, one bounce of the ball per 700 ms */
+export const CALCULATING_MS = 2100;
+export const CALCULATING_BOUNCES = 3;
+
+/** The level counting up from 1.0 and the bar filling to it, after the cards have settled */
+export const LEVEL_REVEAL_DELAY_MS = 350;
+export const LEVEL_REVEAL_MS = 1200;
+
+/** Moving the level with the slider: the number and bar follow quickly */
+export const LEVEL_ADJUST_MS = 220;
+
+const RISE_STAGGER_MS = 90;
+
+/** Blocks of a page rising in one after the other, `index` being their place from the top */
+export function riseIn(index: number) {
+  return FadeInDown.delay(index * RISE_STAGGER_MS)
+    .duration(300)
+    .reduceMotion(ReduceMotion.System);
+}

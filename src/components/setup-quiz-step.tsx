@@ -1,8 +1,9 @@
+import type { ParseKeys } from "i18next";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 import { AnswerCard } from "@/components/answer-card";
-import { ANSWER_INDEXES, type QuizQuestion } from "@/data/level-quiz";
+import type { QuizQuestion } from "@/data/level-quiz";
 
 type SetupQuizStepProps = {
   questions: QuizQuestion[];
@@ -34,10 +35,11 @@ export function SetupQuizStep({ questions, index, answers, onPick }: SetupQuizSt
       </View>
 
       <View accessibilityRole="radiogroup" accessibilityLabel={title} className="gap-2.5">
-        {ANSWER_INDEXES.map((answer) => (
+        {question.answers.map((answer) => (
           <AnswerCard
             key={answer}
-            label={t(`quiz.${question.id}.a${answer}`)}
+            // Not every question has all five answers, so the key is checked by the language files, not by type
+            label={t(`quiz.${question.id}.a${answer}` as ParseKeys)}
             isSelected={answers[index] === answer}
             onPress={() => onPick(answer)}
           />
