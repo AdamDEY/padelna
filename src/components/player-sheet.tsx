@@ -19,12 +19,19 @@ import {
 import { ConnectButton } from "@/components/connect-button";
 import { CoachVerifiedBadge } from "@/components/coach-verified-badge";
 import { CoachVerificationCard } from "@/components/coach-verification-card";
+import { LevelCredibilityChip } from "@/components/level-credibility-chip";
 import { Icon } from "@/components/icon";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { ReportPlayerSheet } from "@/components/report-player-sheet";
 import { mockPlayerStats } from "@/data/mock";
 import type { PlayerTagCount } from "@/data/player-tags";
-import { useCoachVerification, useFreshPlayer, usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
+import {
+  useCoachVerification,
+  useFreshPlayer,
+  useLevelSource,
+  usePlayerDetails,
+  usePlayerTags,
+} from "@/hooks/usePlayers";
 import { formatMatchDay } from "@/lib/format-date";
 import type {
   Player,
@@ -172,6 +179,7 @@ function Header({
 }) {
   const { t } = useTranslation();
   const { data: coach } = useCoachVerification(player.id);
+  const { data: levelSource } = useLevelSource(player.id);
   const level = player.level;
 
   return (
@@ -188,6 +196,12 @@ function Header({
         <Text numberOfLines={1} className="font-normal text-[13px] text-muted">
           {sideAndCity(player, details)}
         </Text>
+        {/* A coach-verified level has its badge instead of a percentage */}
+        {levelSource && !coach ? (
+          <View className="my-0.5">
+            <LevelCredibilityChip source={levelSource} isStacked />
+          </View>
+        ) : null}
         {children}
       </View>
       {level !== undefined ? (

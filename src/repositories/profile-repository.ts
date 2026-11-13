@@ -2,6 +2,7 @@ import { t } from "i18next";
 
 import type { AboutValues } from "@/components/setup-about-step";
 import type { GameValues } from "@/components/setup-game-step";
+import type { LevelSource } from "@/data/level-credibility";
 import { toDateOnly } from "@/lib/age";
 import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/repositories/auth-repository";
@@ -73,12 +74,13 @@ export async function updateProfile(userId: string, edits: ProfileEdits) {
   if (error) throw error;
 }
 
-/** Saves the profile setup answers for the signed-in player, with the starting level from the quiz. */
+/** Saves the profile setup answers for the signed-in player, with the starting level and how it was set. */
 export async function saveProfile(
   userId: string,
   about: AboutValues,
   game: GameValues,
   level: number,
+  levelSource: LevelSource,
 ) {
   const avatarUrl = about.photoUri ? await uploadAvatar(userId, about.photoUri) : undefined;
 
@@ -95,6 +97,7 @@ export async function saveProfile(
     side: game.side,
     play_style: game.playStyle,
     level,
+    level_source: levelSource,
     // Left out when no photo was picked, so a retry never wipes an existing one
     ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
   });

@@ -1061,6 +1061,12 @@ export const fr: Messages = {
     removeA11y: "Connecté avec {{name}}, retirer la connexion",
     cancelA11y: "Demande envoyée à {{name}}, annuler la demande",
   },
+  credibility: {
+    percent: "{{percent}} % de crédibilité",
+    quiz: "A fait le quiz",
+    self: "A passé le quiz",
+    a11y: "Crédibilité du niveau {{percent}} %, {{how}}",
+  },
   coach: {
     verified: "Vérifié par un coach",
     heroTitle: "Niveau fixé par un coach",
@@ -1633,6 +1639,7 @@ export const fr: Messages = {
     startingLevel: "Niveau de départ",
     welcome: "Bienvenue sur Padelna !",
     welcomeHint: "Ce niveau vient de ton quiz. Il devient plus précis à chaque match et chaque avis.",
+    welcomeHintSelf: "Tu as choisi ce niveau toi-même. Il devient plus précis à chaque match et chaque avis.",
     getStarted: "Pour bien démarrer",
     historyLockedTitle: "Joue ton premier match",
     historyLockedText: "Ton historique commence dès que tu as joué au moins un match.",

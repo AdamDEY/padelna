@@ -11,6 +11,7 @@ import {
   fetchPlayerByCode,
   fetchPlayerDetails,
   fetchCoachVerification,
+  fetchLevelSource,
   fetchPlayerTags,
   fetchPlayedWith,
   fetchPlayersAtMyClubs,
@@ -126,6 +127,15 @@ export function useCoachVerification(playerId: string | undefined) {
   return useQuery({
     queryKey: [...playersKey, "coach", playerId],
     queryFn: () => fetchCoachVerification(playerId!),
+    enabled: playerId !== undefined,
+  });
+}
+
+/** How the player's level was set; null data means unknown (a player from before it was kept). */
+export function useLevelSource(playerId: string | undefined) {
+  return useQuery({
+    queryKey: [...playersKey, "level-source", playerId],
+    queryFn: () => fetchLevelSource(playerId!),
     enabled: playerId !== undefined,
   });
 }

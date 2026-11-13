@@ -20,7 +20,7 @@ import { useMatchHistory, useMyPastMatches } from "@/hooks/useMatches";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useMyFinishedTournaments } from "@/hooks/useTournaments";
 import { useMyStats } from "@/hooks/useMyStats";
-import { useCoachVerification, usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
+import { useCoachVerification, useLevelSource, usePlayerDetails, usePlayerTags } from "@/hooks/usePlayers";
 import { stopPushNotifications } from "@/hooks/usePushNotifications";
 import { STATS_MIN_MATCHES } from "@/lib/profile-stats";
 import { queryClient } from "@/lib/query-client";
@@ -40,6 +40,7 @@ export default function Profile() {
   const friendCount = usePlayerDetails(profile?.player.id).data?.friendCount ?? 0;
   const { data: tags = [] } = usePlayerTags(profile?.player.id);
   const { data: coach } = useCoachVerification(profile?.player.id);
+  const { data: levelSource } = useLevelSource(profile?.player.id);
 
   const [isShareOpen, setIsShareOpen] = useState(false);
   // The sheet is drawn above everything, so it must close when another screen opens over this one
@@ -169,6 +170,7 @@ export default function Profile() {
             hasPlayed={hasStats}
             friendCount={friendCount}
             isCoachVerified={Boolean(coach)}
+            levelSource={levelSource}
             onPressSettings={() => router.push("/settings")}
             onPressShare={() => setIsShareOpen(true)}
           />
