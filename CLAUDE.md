@@ -1,6 +1,8 @@
 # Padelna
 
-Padelna is a social app for padel players: find and create matches at the right level, book courts, rate players and confirm scores. A player's level (1–7 scale) and trust signals (confirmed scores, reputation) are the core of the product. Launch market is Tunisia (`+216` phone numbers); the UI ships in English first, with French and Arabic (right-to-left) planned.
+Padelna is the community app for padel players, a bit like Strava for padel: log matches, confirm scores, share results, rate players and courts, and build a level other players can trust. A player's level (1–7 scale) and trust signals (confirmed scores, reputation) are the core of the product. Padelna does not book courts; players reserve with the club, then create or log the match in the app.
+
+**Positioning (use it for any user-facing copy):** the pitch is "your padel, on the record". Lead with the community (sharing results, trust, rating each other and the courts, healthy competition between players and between clubs), not with finding a game or booking. Don't promise features that don't exist (in-app booking, club leaderboards) and don't claim partner clubs or user numbers we can't back up. Launch market is Tunisia (`+216` phone numbers); the UI ships in English first, with French and Arabic (right-to-left) planned.
 
 @AGENTS.md
 @design.md
