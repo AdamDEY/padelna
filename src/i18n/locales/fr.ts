@@ -1786,7 +1786,7 @@ export const fr: Messages = {
     signInText: "Connecte-toi pour enregistrer ton prochain match.",
     emailOrPhone: "E-mail ou téléphone",
     identifierError: "Saisis ton e-mail ou un numéro de téléphone tunisien.",
-    tagline: "Ton padel, noir sur blanc",
+    tagline: "Ton terrain. Tes potes.",
     password: "Mot de passe",
     showPassword: "Afficher le mot de passe",
     hidePassword: "Masquer le mot de passe",

@@ -1784,7 +1784,7 @@ export const en = {
     signInText: "Sign in to log your next match.",
     emailOrPhone: "Email or phone",
     identifierError: "Enter your email or a Tunisian phone number.",
-    tagline: "Your padel, on the record",
+    tagline: "Your court. Your people.",
     password: "Password",
     showPassword: "Show password",
     hidePassword: "Hide password",
