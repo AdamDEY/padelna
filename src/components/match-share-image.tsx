@@ -6,7 +6,7 @@ import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Defs, Line, Pattern, Polygon, Rect } from "react-native-svg";
 import { ScopedTheme, useCSSVariable } from "uniwind";
 
-import { PadelnaMark } from "@/components/padelna-logo";
+import { PadelnaLogo } from "@/components/padelna-logo";
 import type { MatchShareData, ShareBackdrop, ShareStyle } from "@/lib/match-share";
 
 // design (Share your match · exported story image): laid out at 390 × 694 (9:16) and captured
@@ -45,15 +45,11 @@ export function shareDragRange(style: ShareStyle, contentHeight: number) {
   return { min: -room, max: room };
 }
 
+// The logo is drawn as wide as this many times the old wordmark's font size
+const LOGO_WIDTH_PER_SIZE = 5;
+
 function Logo({ size }: { size: number }) {
-  return (
-    <View className="flex-row items-center gap-2">
-      <PadelnaMark size={size * 1.6} />
-      <Text className="font-black text-white" style={{ fontSize: size }}>
-        Padelna
-      </Text>
-    </View>
-  );
+  return <PadelnaLogo width={size * LOGO_WIDTH_PER_SIZE} tone="lime" />;
 }
 
 /** The set scores as the design shows them: "6-4 3-6 7-5" */

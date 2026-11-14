@@ -4,7 +4,7 @@ import { Text, View } from "react-native";
 import { ScopedTheme } from "uniwind";
 
 import { Icon } from "@/components/icon";
-import { PadelnaMark } from "@/components/padelna-logo";
+import { PadelnaLogo } from "@/components/padelna-logo";
 import { QrCode } from "@/components/qr-code";
 import type { ShareProfile } from "@/hooks/useShareProfile";
 
@@ -32,8 +32,13 @@ export function ProfileChips({ profile }: { profile: ShareProfile }) {
   );
 }
 
+// The lime logo (mark over the wordmark) on the blue panel
+const LOGO_WIDTH = 120;
+// Nudges the logo up, away from the white card
+const LOGO_LIFT = 14;
+
 /**
- * The player's code card (design: "Share profile · my code"): a blue panel with the Padelna mark
+ * The player's code card (design: "Share profile · my code"): a blue panel with the Padelna logo
  * and a white card holding their name, @handle and QR code. It grows to fill the sheet.
  */
 export function ShareProfileCard({ profile }: { profile: ShareProfile }) {
@@ -49,9 +54,8 @@ export function ShareProfileCard({ profile }: { profile: ShareProfile }) {
         <View aria-hidden className="absolute -end-[50px] -top-[50px] size-[180px] rounded-full border-2 border-white/15" />
         <View aria-hidden className="absolute -bottom-10 -start-[70px] size-[190px] rounded-full border-2 border-white/10" />
 
-        <View className="flex-row items-center gap-2">
-          <PadelnaMark size={28} />
-          <Text className="font-black text-[17px] text-accent-foreground">Padelna</Text>
+        <View style={{ transform: [{ translateY: -LOGO_LIFT }] }}>
+          <PadelnaLogo width={LOGO_WIDTH} tone="lime" />
         </View>
 
         <View className="items-center gap-3.5 self-stretch rounded-[28px] bg-surface px-5 pb-5 pt-[22px]">
