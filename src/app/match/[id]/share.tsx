@@ -229,7 +229,7 @@ export default function ShareMatch() {
             onPress={() => router.back()}
             className="size-11 items-center justify-center rounded-full bg-white/10"
           >
-            <Icon as={X} size={20} color="surface" />
+            <Icon as={X} size={20} color="accent-foreground" />
           </Pressable>
           <Text accessibilityRole="header" className="font-black text-[16px] text-white">
             {t("matchShare.title")}
@@ -240,7 +240,7 @@ export default function ShareMatch() {
               onPress={pickPhoto}
               className="h-11 flex-row items-center gap-1.5 rounded-xl bg-white/10 px-3"
             >
-              <Icon as={Camera} size={16} color="surface" />
+              <Icon as={Camera} size={16} color="accent-foreground" />
               <Text className="font-bold text-[13px] text-white">
                 {photoUri ? t("matchShare.change") : t("matchShare.addPhoto")}
               </Text>
@@ -392,7 +392,7 @@ function ActionButton({ icon, label, primary, isBusy, isDisabled, onPress }: Act
       className={cn("flex-1 items-center gap-1.5", isDisabled && "opacity-50")}
     >
       <View className={cn("size-[52px] items-center justify-center rounded-[18px]", primary ? "bg-accent" : "bg-white/10")}>
-        {isBusy ? <Spinner size="sm" color="white" /> : <Icon as={icon} size={22} color="surface" />}
+        {isBusy ? <Spinner size="sm" color="white" /> : <Icon as={icon} size={22} color="accent-foreground" />}
       </View>
       <Text className="font-black text-[12px] text-white">{label}</Text>
     </Pressable>

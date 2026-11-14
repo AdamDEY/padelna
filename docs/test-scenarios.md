@@ -392,3 +392,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-13 | Loading spinner inside buttons (`LoadingButton`) on Sign in, the quiz and Publish match; sign-in hero shrinks on short phones; the focused input scrolls above the keyboard (APP-AUTH-11, APP-AUTH-12, APP-GEN-06, APP-SETUP-18, APP-MATCH-04). No migration. |
 | 2026-11-14 | Edit profile: Save is disabled until something changes, and spins while saving (APP-PROF-09). No migration. |
 | 2026-11-14 | Share profile card and image, and the match share picture, now show the new lime Padelna logo instead of the small mark plus text (checks added to the existing share scenarios by eye; no new scenario). No migration. |
+| 2026-11-14 | Share your match screen: the close, Change, Story, Save and More icons are white in dark mode (APP-MSHARE). No migration. |
