@@ -19,6 +19,7 @@ import { Alert, Linking, Text, View } from "react-native";
 import { DeleteAccountSheet } from "@/components/delete-account-sheet";
 import { Dropdown } from "@/components/dropdown";
 import { Icon } from "@/components/icon";
+import { LoadingButton } from "@/components/loading-button";
 import { Page } from "@/components/page";
 import { PhotoPicker } from "@/components/photo-picker";
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -217,9 +218,15 @@ function SettingsForm({ account }: { account: MyAccount }) {
           </Text>
         }
       >
-        <Button size="sm" onPress={save} isDisabled={isSaving} className="h-10 rounded-xl px-4">
+        <LoadingButton
+          size="sm"
+          onPress={save}
+          isLoading={isSaving}
+          isDisabled={!hasChanges && !isSaving}
+          className="h-10 rounded-xl px-4"
+        >
           {t("settings.save")}
-        </Button>
+        </LoadingButton>
       </Page.Header>
 
       <Page.Body className="gap-[22px]">
