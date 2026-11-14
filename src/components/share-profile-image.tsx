@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { ScopedTheme } from "uniwind";
 
-import { PadelnaMark } from "@/components/padelna-logo";
+import { PadelnaLogo } from "@/components/padelna-logo";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { QrCode } from "@/components/qr-code";
 import { ProfileChips } from "@/components/share-profile-card";
@@ -13,6 +13,8 @@ import type { ShareProfile } from "@/hooks/useShareProfile";
 export const SHARE_IMAGE_WIDTH = 390;
 export const SHARE_IMAGE_HEIGHT = 694;
 const QR_SIZE = 220;
+// The lime logo (mark over the wordmark) on the blue picture
+const LOGO_WIDTH = 150;
 
 type ShareProfileImageProps = {
   profile: ShareProfile;
@@ -39,10 +41,7 @@ export function ShareProfileImage({ profile, ref }: ShareProfileImageProps) {
         <View aria-hidden className="absolute -end-[60px] -top-[60px] size-[220px] rounded-full border-2 border-white/15" />
         <View aria-hidden className="absolute -start-[90px] bottom-[120px] size-[240px] rounded-full border-2 border-white/10" />
 
-        <View className="flex-row items-center gap-2">
-          <PadelnaMark size={30} />
-          <Text className="font-black text-[18px] text-accent-foreground">Padelna</Text>
-        </View>
+        <PadelnaLogo width={LOGO_WIDTH} tone="lime" />
         <Text className="text-center font-black text-[26px] leading-[31px] tracking-[-0.4px] text-accent-foreground">
           {t("shareProfile.imageHeadline")}
         </Text>

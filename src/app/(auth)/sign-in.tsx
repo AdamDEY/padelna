@@ -1,12 +1,13 @@
 import { Link, router } from "expo-router";
-import { Button, cn, FieldError, Input, InputGroup, Label, TextField, useToast } from "heroui-native";
+import { cn, FieldError, Input, InputGroup, Label, TextField, useToast } from "heroui-native";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/icon";
+import { LoadingButton } from "@/components/loading-button";
 import { Page } from "@/components/page";
 import { PadelnaLogo } from "@/components/padelna-logo";
 import { SocialAuthButtons } from "@/components/social-auth-buttons";
@@ -21,6 +22,11 @@ const DESIGN_STATUS_BAR = 44;
 // The form sheet starts here; the hero runs SHEET_OVERLAP further under it
 const HERO_HEIGHT = 300;
 const LOGO_TOP = 78;
+const LOGO_WIDTH = 200;
+// The hero gives up height on short screens (e.g. a Galaxy S23) so Google and Apple show without
+// scrolling. This is the height the form, the social buttons and the footer need below it.
+const BELOW_HERO_HEIGHT = 600;
+const MIN_HERO_HEIGHT = 170;
 // Page.Body pads its end by this much when a footer is pinned below it
 const BODY_END_PADDING = 24;
 // How far the form sheet slides over the hero: its rounded corners show the hero behind them
@@ -30,6 +36,10 @@ export default function SignIn() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const shift = Math.max(0, insets.top - DESIGN_STATUS_BAR);
+  const { height: screenHeight } = useWindowDimensions();
+  const heroHeight = Math.min(HERO_HEIGHT, Math.max(MIN_HERO_HEIGHT, screenHeight - BELOW_HERO_HEIGHT - shift));
+  // The logo and its top gap shrink with the hero
+  const scale = heroHeight / HERO_HEIGHT;
   // Light theme: grey hero with the blue logo. Dark theme: ink hero with the lime logo.
   const isDark = useThemePreference() === "dark";
   const { toast } = useToast();
@@ -82,7 +92,7 @@ export default function SignIn() {
         {/* Hero: the logo over two faint rings, like court lines */}
         <View
           className={cn("items-center gap-3.5 overflow-hidden", isDark ? "bg-ink" : "bg-track")}
-          style={{ height: HERO_HEIGHT + shift + SHEET_OVERLAP, paddingTop: LOGO_TOP + shift }}
+          style={{ height: heroHeight + shift + SHEET_OVERLAP, paddingTop: LOGO_TOP * scale + shift }}
         >
           <View
             aria-hidden
@@ -98,7 +108,7 @@ export default function SignIn() {
               isDark ? "border-lime" : "border-primary",
             )}
           />
-          <PadelnaLogo tone={isDark ? "lime" : "blue"} />
+          <PadelnaLogo width={LOGO_WIDTH * scale} tone={isDark ? "lime" : "blue"} />
           <Text
             className={cn("font-semibold text-[15px]", isDark ? "text-ink-tint-text" : "text-ink-2")}
           >
@@ -182,9 +192,9 @@ export default function SignIn() {
             <FieldError>{t("auth.passwordError")}</FieldError>
           </TextField>
 
-          <Button size="lg" onPress={signIn} isDisabled={isSigningIn} className="mt-1">
+          <LoadingButton size="lg" onPress={signIn} isLoading={isSigningIn} className="mt-1">
             {t("auth.signIn")}
-          </Button>
+          </LoadingButton>
 
           <SocialAuthButtons />
         </View>
