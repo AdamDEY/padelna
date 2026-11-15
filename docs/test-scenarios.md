@@ -238,6 +238,11 @@ You need at least:
 - [ ] **APP-PROF-07 (P1)** Level credibility: under the level on the Profile header, a player who took the quiz shows "50% credibility · Took the quiz" and one who skipped it and picked a level shows "20% credibility · Skipped the quiz". A player whose level a coach verified shows only the "Coach verified" badge, no percentage; a player from before this was kept (no source) shows nothing. A player who picked their level reads "You picked this level yourself" in the welcome text, not "comes from your quiz".
 - [ ] **APP-PROF-08 (P1)** The same credibility shows in the player sheet other players open (the percentage in a chip with "Took the quiz" / "Skipped the quiz" under it), in the preview and the full profile, and is hidden for coach-verified and older players.
 
+- [ ] **APP-PROF-09 (P1)** Shake to send feedback: shake the phone on any screen (Simulator: Device → Shake) and the "Help us improve Padelna" sheet opens with Bug selected. Pick Bug / Idea / Other (the label and placeholder change), type a message (counter "n / 500", stops at 500), tap Send: a thank-you toast shows and the sheet closes. Send stays disabled while the message is empty. Closing the sheet clears what was typed. Check on a small phone with the keyboard open and in French.
+- [ ] **APP-PROF-10 (P1)** The sent feedback is saved with the sender's profile id and full name (`app_feedback.sender_id`, `sender_name`), the type, message, route (`screen`), app version and platform. The name is the one on the profile at that moment; it can't be set from the app. ↔ (dashboard doesn't list feedback yet; check the table.)
+- [ ] **APP-PROF-11 (P1)** Edit profile → Appearance → "Shake to send feedback" switch: off, then shake: nothing opens; kill and reopen the app and it is still off. On again and shaking opens the sheet. The "Settings" link in the sheet's footnote closes it and opens Edit profile.
+- [ ] **APP-PROF-12 (P2)** Shaking while the sheet is already open does nothing extra; the 11th feedback in a day shows "You've sent a lot of feedback today. Try again tomorrow." (translated). Not signed in or before setup is finished, shaking does nothing.
+
 ### General app checks (APP-GEN)
 
 - [ ] **APP-GEN-01 (P1)** Every list has loading, empty and error states; no raw error text ever shows.
@@ -350,6 +355,7 @@ Run these against the database directly (SQL editor or a player's session token)
 - [ ] **SEC-03 (P0)** A player can't read other players' ratings, private profile data or chats of matches they're not in.
 - [ ] **SEC-04 (P0)** A player can't insert a match at a draft or closed club, or in the past, with a direct insert.
 - [ ] **SEC-05 (P1)** A player can't confirm their own team's score or submit a tournament score for a match they don't play.
+- [ ] **SEC-05b (P1)** A player can't read or write `app_feedback` directly (only `submit_feedback`), and can't send feedback as someone else: the sender comes from the session.
 - [ ] **SEC-06 (P1)** Supabase advisors (security and performance) show no new warnings after each migration.
 
 ## Not built yet (add scenarios when they ship)
@@ -383,3 +389,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-13 | New positioning (community first, "your padel, on the record"): onboarding pages (order is now Every match on the record, Trusted level, Fair play, Grow padel together; Fair play is still page 3 of 4), booking notice text and the share-image footers. Copy only; no migration. |
 | 2026-11-13 | Sign-in tagline is now "Your padel, on the record" (APP-AUTH-09) and the new-player checklist on the Profile says "Log your first match", "Build your padel circle" and "players rate each other". Copy only; no migration. |
 | 2026-11-13 | Sign-in tagline is now "Your court. Your people." (French: "Ton terrain. Tes potes."), APP-AUTH-09. Copy only; no migration. |
+| 2026-11-15 | Shake to send feedback: bottom sheet (Bug / Idea / Other + message), a "Shake to send feedback" switch in Settings, and feedback saved with the sender's profile id and full name (APP-PROF-09 to 12, SEC-05b). Needs migration `20261115100000_app_feedback.sql` and a new native build (`expo-sensors`). |

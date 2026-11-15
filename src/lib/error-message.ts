@@ -122,6 +122,11 @@ const SERVER_MESSAGES: Record<string, ServerKey> = {
   "Say whether you played with this player": "sayIfPlayed",
   "Keep your comment under 300 characters": "reportCommentTooLong",
   "You've sent a lot of reports today. Try again tomorrow.": "tooManyReports",
+  "Pick a type from the list": "pickFeedbackType",
+  "Write your message first": "writeMessageFirst",
+  "Keep your message under 500 characters": "messageTooLong",
+  "Finish your profile first": "finishProfileFirst",
+  "You've sent a lot of feedback today. Try again tomorrow.": "tooManyFeedback",
 };
 const SIGNED_OUT_MESSAGES = new Set(["Sign in first", "Not signed in"]);
 
