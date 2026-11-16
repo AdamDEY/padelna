@@ -18,6 +18,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CrashScreen } from "@/components/crash-screen";
 import { Celebration } from "@/components/celebration";
 import { PushNotificationObserver } from "@/components/push-notification-observer";
+import { ShakeFeedback } from "@/components/shake-feedback";
 import { useAuthState } from "@/hooks/useAuthState";
 import { restoreLanguage } from "@/i18n";
 import { useMatchesRealtime } from "@/hooks/useMatchesRealtime";
@@ -25,6 +26,7 @@ import { useNotificationsRealtime } from "@/hooks/useNotifications";
 import { useConnectionsRealtime } from "@/hooks/usePlayers";
 import { usePrepareHome } from "@/hooks/usePrepareHome";
 import { queryClient } from "@/lib/query-client";
+import { restoreShakeToReport } from "@/lib/shake-preference";
 import { restoreThemePreference } from "@/lib/theme-preference";
 
 SplashScreen.preventAutoHideAsync();
@@ -42,7 +44,7 @@ export default function RootLayout() {
   // The saved language and theme are applied behind the splash screen, so nothing flashes in the wrong one
   const [isLanguageReady, setIsLanguageReady] = useState(false);
   useEffect(() => {
-    Promise.all([restoreLanguage(), restoreThemePreference()]).finally(() => setIsLanguageReady(true));
+    Promise.all([restoreLanguage(), restoreThemePreference(), restoreShakeToReport()]).finally(() => setIsLanguageReady(true));
   }, []);
 
   const [fontsLoaded, fontError] = useFonts({
@@ -104,6 +106,8 @@ export default function RootLayout() {
           </Stack>
           {/* Only for a player with a profile, so a tapped push always lands on an allowed screen */}
           {isReady ? <PushNotificationObserver /> : null}
+          {/* Shake to send feedback; only for a player with a profile, since the sender is saved with it */}
+          {isReady ? <ShakeFeedback /> : null}
           <Celebration />
         </HeroUINativeProvider>
       </QueryClientProvider>

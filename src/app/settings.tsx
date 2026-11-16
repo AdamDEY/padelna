@@ -47,6 +47,7 @@ import { deleteOwnAccount } from "@/repositories/auth-repository";
 import { updateProfile } from "@/repositories/profile-repository";
 import type { MyAccount } from "@/types/account";
 import { errorMessage } from "@/lib/error-message";
+import { setShakeToReport, useShakeToReport } from "@/lib/shake-preference";
 import { setThemePreference, useThemePreference } from "@/lib/theme-preference";
 
 const BIO_MAX_LENGTH = 150;
@@ -372,6 +373,7 @@ function SettingsForm({ account }: { account: MyAccount }) {
 
         <SettingsSection title={t("settings.appearance")}>
           <DarkModeRow />
+          <ShakeToReportRow />
         </SettingsSection>
 
         <SettingsSection title={t("settings.legal")}>
@@ -487,6 +489,20 @@ function NotificationRows() {
         </>
       ) : null}
     </>
+  );
+}
+
+/** Shake to send feedback switch. Applies at once and isn't part of Save. */
+function ShakeToReportRow() {
+  const { t } = useTranslation();
+  const enabled = useShakeToReport();
+
+  return (
+    <SettingsSwitchRow
+      label={t("settings.shakeToReport")}
+      isSelected={enabled}
+      onSelectedChange={(on) => void setShakeToReport(on)}
+    />
   );
 }
 
