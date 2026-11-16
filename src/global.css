@@ -9,9 +9,9 @@
  * #0F141B / #171E27 / #1E2631, tinted status pairs, a lighter blue for text).
  * The player picks light or dark in Edit profile (src/lib/theme-preference.ts).
  *
- * Two layers: HeroUI's own variables (--background, --accent, …) are set per theme
- * in the variants below; Padelna-only colours have their light value in
- * `@theme static` further down and a dark override in the `@variant dark` block.
+ * Two layers: HeroUI's own variables (--background, --accent, …) and the Padelna-only
+ * colours are both set per theme in the `@variant light` / `@variant dark` blocks (the two
+ * must list the same variables). Colours that don't change per theme are in `@theme static`.
  */
 
 @theme {
@@ -79,8 +79,8 @@
       --field-shadow: 0 0 0 0 transparent;
       --overlay-shadow: 0 8px 24px 0 rgba(23, 32, 43, 0.16);
 
-      /* Padelna-only colours. Uniwind needs every theme to declare the same variables,
-         so the light values are repeated here from `@theme static` below (keep both in sync). */
+      /* Padelna-only colours, used as Tailwind classes (bg-lime-soft, text-ink-2, …).
+         Uniwind needs light and dark to declare exactly the same variables. */
       --color-accent-soft: #e3ecfa;
       --color-accent-soft-foreground: #1f4a99;
       --color-success-soft: #dff1e7;
@@ -96,13 +96,16 @@
       --color-line-input: #dde2e8;
       --color-fill: #f0f3f7;
       --color-track: #e8ecf1;
+      /* Text and icons in the brand blue; dark mode lightens it, a fill stays --color-accent */
       --color-accent-text: #2d63c8;
       --color-primary: #2d63c8;
       --color-primary-dark: #1f4a99;
       --color-primary-soft: #e3ecfa;
       --color-primary-outline: #c9d6ee;
       --color-slot-border: #9db8e6;
+      /* Outline of the small court drawings on unselected "Preferred side" tiles */
       --color-diagram-line: #9aa4b1;
+      /* Empty radio circle on unselected answer cards */
       --color-radio-border: #c9d1db;
       --color-lime-soft: #e4f59e;
       --color-lime-foreground: #2e3a0a;
@@ -111,6 +114,7 @@
       --color-attention-action: #a44a1e;
       --color-attention-outline: #f0c9b2;
       --color-out-of-range: #eef0f3;
+      /* Unread notification row, and the hairline between rows (--color-line-soft) */
       --color-unread: #eef3fc;
       --color-line-soft: #eef1f4;
       --color-avatar-blue: #e3ecfa;
@@ -179,7 +183,7 @@
       --field-shadow: 0 0 0 0 transparent;
       --overlay-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.4);
 
-      /* Padelna-only colours (their light values are in @theme static below) */
+      /* Padelna-only colours */
       --color-ink: #2e3846;
       --color-ink-2: #c3cbd5;
       --color-muted-icon: #8793a2;
@@ -237,84 +241,22 @@
   }
 }
 
-/* HeroUI's soft colours are computed tints; use the exact design.md pairs instead.
-   static (not inline) so the dark variant can override them. */
+/* Padelna-only colours that are the same in both themes. Colours that change per theme live
+   in the `@variant light` / `@variant dark` blocks above. static makes them Tailwind classes
+   (bg-lime, text-ink-tint-text) and keeps them available to useCSSVariable (src/components/icon.tsx). */
 @theme static {
-  --color-accent-soft: #e3ecfa;
-  --color-accent-soft-foreground: #1f4a99;
-  --color-success-soft: #dff1e7;
-  --color-success-soft-foreground: #1d6e48;
-  --color-warning-soft: #fbf1d3;
-  --color-warning-soft-foreground: #6b4f00;
-  --color-danger-soft: #fde8e6;
-  --color-danger-soft-foreground: #b42318;
-}
-
-/* Padelna-only colours, used as Tailwind classes (bg-lime-soft, text-ink-2, …).
-   static keeps them all available to useCSSVariable (see src/components/icon.tsx). */
-@theme static {
-  --color-ink: #17202b;
-  --color-ink-2: #4a5462;
-  --color-muted-icon: #6b7480;
-  --color-line: #e3e7ec;
-  --color-line-input: #dde2e8;
-  --color-fill: #f0f3f7;
-  --color-track: #e8ecf1;
-
-  /* Text and icons in the brand blue; dark mode lightens it, a fill stays --color-accent */
-  --color-accent-text: #2d63c8;
   /* The blue hero headers keep the same blue in both themes */
   --color-hero: #2d63c8;
-
-  --color-primary: #2d63c8;
-  --color-primary-dark: #1f4a99;
-  --color-primary-soft: #e3ecfa;
   --color-primary-tint-text: #d6e3fa;
   /* Secondary text on ink blocks (competitive scoreboard, selected day) */
   --color-ink-tint-text: #c3cbd6;
-  --color-primary-outline: #c9d6ee;
-  --color-slot-border: #9db8e6;
-  /* Outline of the small court drawings on unselected "Preferred side" tiles */
-  --color-diagram-line: #9aa4b1;
-  /* Empty radio circle on unselected answer cards */
-  --color-radio-border: #c9d1db;
-
   --color-lime: #d8f06c;
-  --color-lime-soft: #e4f59e;
-  --color-lime-foreground: #2e3a0a;
   /* Text and icons on a solid lime fill (stays dark in both themes) */
   --color-on-lime: #17202b;
-
   /* Call button on the booking notice */
   --color-call: #1f8a5b;
-
-  --color-attention: #8a3a12;
-  --color-attention-soft: #fbe8da;
-  --color-attention-action: #a44a1e;
-  --color-attention-outline: #f0c9b2;
-
-  --color-out-of-range: #eef0f3;
   --color-dot: #e0703a;
-  /* Unread notification row, and the hairline between rows */
-  --color-unread: #eef3fc;
-  --color-line-soft: #eef1f4;
   --color-star: #e5a823;
-
-  --color-avatar-blue: #e3ecfa;
-  --color-avatar-blue-foreground: #2d5db8;
-  --color-avatar-peach: #fbe8da;
-  --color-avatar-peach-foreground: #9a4317;
-  --color-avatar-mint: #dff1e7;
-  --color-avatar-mint-foreground: #1d6e48;
-  --color-avatar-lilac: #ece6f8;
-  --color-avatar-lilac-foreground: #5e3fa0;
-  --color-avatar-sand: #fbf1d3;
-  --color-avatar-sand-foreground: #6b4f00;
-
-  --color-court-blue: #d9e6f6;
-  --color-court-green: #cfe6d8;
-  --color-court-peach: #f7e6da;
-  --color-court-lime: #e8f2cf;
 }
 
 /* Component adjustments where HeroUI's defaults differ from design.md */
