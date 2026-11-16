@@ -335,6 +335,19 @@ You need at least:
 - [ ] **ADM-RUN-06 (P1)** Organiser corrects an individual Americano score a player entered; the app updates. ↔
 - [ ] **ADM-RUN-07 (P2)** League score form saves and standings update.
 
+### Feedback (ADM-FB)
+
+Needs migration `20261116100000_feedback_inbox.sql`. Send a few messages from the app first (shake, see APP-PROF-09).
+
+- [ ] **ADM-FB-01 (P1)** Feedback in the side menu shows a blue count of messages nobody has opened; the count is gone at 0. The page lists every message newest first with a blue dot on New ones, the type chip (Bug red, Idea lime, Other grey), up to two lines of the message, the sender's full name and short id (`u_` + 8 characters), the screen name, platform with app version, and how long ago. ↔
+- [ ] **ADM-FB-02 (P1)** The four tiles: New (not opened), Bugs in 7 days with the busiest app version, Ideas in 7 days, Most reported screen (bugs, 7 days). They ignore the filters.
+- [ ] **ADM-FB-03 (P1)** Tabs All / Bug / Idea / Other show counts under the other filters. Filters Status, Platform, App version, Screen and Created (starts on Last 30 days) combine, live in the URL and reset the page and the open message. A filter with no match shows "No feedback matches these filters."
+- [ ] **ADM-FB-04 (P1)** Clicking a message opens the panel on the right: type and status chips, ticket number (`FB-0482`) and time, the full message (line breaks kept), the sender (avatar, full name, level, city, joined month), **Sender ID** (short form, "Copy" puts the full profile id on the clipboard) and **Open profile** (goes to that player). Facts: screen, platform, app version, created. Up to three earlier messages from the same player. Previous / Next move through the list.
+- [ ] **ADM-FB-05 (P1)** The sender shown is the one saved with the message: same profile id and full name as the player who sent it, even if they have renamed since (the list shows the name at send time). If the player deleted their account, the name stays and the panel says so; "Open profile" is hidden.
+- [ ] **ADM-FB-06 (P1)** A New message turns to Opened (status chip, dot and bold text go, the menu count drops by one) only when the admin clicks it, not when it is just the first one shown. **Mark as done** sets Done; **Reopen** brings it back to Opened. Both are recorded in the audit log (`feedback_done`, `feedback_reopen`); opening is not.
+- [ ] **ADM-FB-07 (P2)** **Copy details** copies the ticket, message, sender name and id, screen, platform, version and time. **Export CSV** downloads every message matching the current filters (not only the page); a message starting with `=`, `+`, `-` or `@` opens as text, not as a formula.
+- [ ] **ADM-FB-08 (P2)** With no feedback yet the page says players send it by shaking their phone; a signed-out request to `/feedback/export` gets 401. 25 per page, with "Showing 1–25 of n" and page buttons.
+
 ### General dashboard checks (ADM-GEN)
 
 - [ ] **ADM-GEN-01 (P0)** Every write is logged in `admin_actions` with before/after.
@@ -390,3 +403,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-13 | Sign-in tagline is now "Your padel, on the record" (APP-AUTH-09) and the new-player checklist on the Profile says "Log your first match", "Build your padel circle" and "players rate each other". Copy only; no migration. |
 | 2026-11-13 | Sign-in tagline is now "Your court. Your people." (French: "Ton terrain. Tes potes."), APP-AUTH-09. Copy only; no migration. |
 | 2026-11-15 | Shake to send feedback: bottom sheet (Bug / Idea / Other + message), a "Shake to send feedback" switch in Settings, and feedback saved with the sender's profile id and full name (APP-PROF-09 to 12, SEC-05b). Needs migration `20261115100000_app_feedback.sql` and a new native build (`expo-sensors`). |
+| 2026-11-16 | Dashboard Feedback inbox (ADM-FB-01 to 08): list, filters, detail panel with sender id and name, New / Opened / Done, CSV export. Needs migration `20261116100000_feedback_inbox.sql` (adds ticket number, status, `admin_open_feedback`, `admin_set_feedback_done`). |
