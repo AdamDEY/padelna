@@ -260,6 +260,7 @@ You need at least:
 - [ ] **ADM-AUTH-01 (P0)** Signed out, any dashboard URL redirects to `/sign-in`.
 - [ ] **ADM-AUTH-02 (P0)** A player account (not admin) signs in and lands on `/not-allowed`; it can't call any `admin_*` function (try from the app's session too).
 - [ ] **ADM-AUTH-03 (P1)** Admin sign in, refresh after a long idle (session refresh), sign out.
+- [ ] **ADM-AUTH-04 (P2)** The sign-in page and the sidebar header show the blue Padelna symbol (no broken image, readable).
 
 ### Overview (ADM-OVER)
 
@@ -404,3 +405,4 @@ Run these against the database directly (SQL editor or a player's session token)
 | 2026-11-13 | Sign-in tagline is now "Your court. Your people." (French: "Ton terrain. Tes potes."), APP-AUTH-09. Copy only; no migration. |
 | 2026-11-15 | Shake to send feedback: bottom sheet (Bug / Idea / Other + message), a "Shake to send feedback" switch in Settings, and feedback saved with the sender's profile id and full name (APP-PROF-09 to 12, SEC-05b). Needs migration `20261115100000_app_feedback.sql` and a new native build (`expo-sensors`). |
 | 2026-11-16 | Dashboard Feedback inbox (ADM-FB-01 to 08): list, filters, detail panel with sender id and name, New / Opened / Done, CSV export. Needs migration `20261116100000_feedback_inbox.sql` (adds ticket number, status, `admin_open_feedback`, `admin_set_feedback_done`). |
+| 2026-11-16 | Dashboard uses the blue Padelna symbol (sidebar and sign-in); added ADM-AUTH-04. |
